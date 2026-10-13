@@ -5,7 +5,7 @@ description = "Shared schemas, library layout and path handling for Rushbase."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
-dependencies = ["pydantic>=2.9"]
+dependencies = ["pydantic>=2.9", "blake3>=1.0"]
 
 [build-system]
 requires = ["hatchling"]

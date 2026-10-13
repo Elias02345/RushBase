@@ -1,52 +1,79 @@
 """FastAPI application factory."""
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Literal
 
-from fastapi import FastAPI, Request, Response, status
-from pydantic import BaseModel
+from fastapi import FastAPI
+from sqlalchemy import select
 
+from rushbase_core import LibraryMismatchError
 from rushbase_server import get_version
-from rushbase_server.db import create_engine, database_reachable
+from rushbase_server.api import admin, auth, system, worker
+from rushbase_server.clock import Clock, SystemClock
+from rushbase_server.db import create_engine, create_session_factory
+from rushbase_server.models import Library
+from rushbase_server.runtime import Runtime
+from rushbase_server.services.backup import PgTools
+from rushbase_server.services.library_binding import LibraryBinding
+from rushbase_server.services.ratelimit import LoginRateLimiter
 from rushbase_server.settings import Settings
 
-
-class HealthResponse(BaseModel):
-    """Result of the health probe."""
-
-    status: Literal["ok", "degraded"]
-    version: str
-    database: bool
+logger = logging.getLogger(__name__)
 
 
-def create_app(settings: Settings) -> FastAPI:
-    """Build the application for the given settings."""
+async def _bind_library(runtime: Runtime) -> None:
+    """Open the library, take the server lease and verify it matches the database."""
+    if not await runtime.binding.bind(force=runtime.settings.force_takeover):
+        logger.info("no initialised library yet; waiting for first-run setup")
+        return
+    if runtime.settings.force_takeover:
+        logger.warning("server lease taken over with --force-takeover")
+    try:
+        async with runtime.session_factory() as session:
+            known = (await session.execute(select(Library.id))).scalars().first()
+    except Exception:
+        logger.warning("could not compare library id with the database", exc_info=True)
+        return
+    if known is not None and known != runtime.binding.library_id:
+        await runtime.binding.release()
+        raise LibraryMismatchError(
+            f"database belongs to library {known}, but {runtime.binding.root} holds "
+            f"{runtime.binding.library_id} (wrong mount?)"
+        )
+
+
+def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
+    """Build the application for the given settings (``clock`` is injectable for tests)."""
+    clock = clock or SystemClock()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         engine = create_engine(settings)
-        app.state.engine = engine
+        runtime = Runtime(
+            settings=settings,
+            engine=engine,
+            session_factory=create_session_factory(engine),
+            clock=clock,
+            binding=LibraryBinding(settings, clock),
+            limiter=LoginRateLimiter(
+                clock, settings.login_max_failures, settings.login_window_seconds
+            ),
+            pg_tools=PgTools.from_settings(settings),
+        )
+        app.state.runtime = runtime
         try:
+            await _bind_library(runtime)
+            if settings.background_tasks:
+                runtime.start()
             yield
         finally:
+            await runtime.stop()
             await engine.dispose()
 
     app = FastAPI(title="Rushbase", version=get_version(), lifespan=lifespan)
-
-    @app.get(
-        "/health",
-        response_model=HealthResponse,
-        responses={status.HTTP_503_SERVICE_UNAVAILABLE: {"model": HealthResponse}},
-        tags=["system"],
-        summary="Liveness and database reachability",
-    )
-    async def health(request: Request, response: Response) -> HealthResponse:
-        database = await database_reachable(request.app.state.engine)
-        if not database:
-            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return HealthResponse(
-            status="ok" if database else "degraded", version=get_version(), database=database
-        )
-
+    app.include_router(system.router)
+    app.include_router(auth.router)
+    app.include_router(admin.router)
+    app.include_router(worker.router)
     return app

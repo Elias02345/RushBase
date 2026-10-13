@@ -1,7 +1,7 @@
 # Third-party software
 
 Rushbase itself is licensed under Apache-2.0. This file lists direct dependencies and external
-tools as of milestone M0; transitive dependencies are pinned in `uv.lock` and `pnpm-lock.yaml`.
+tools as of milestone M1; transitive dependencies are pinned in `uv.lock` and `pnpm-lock.yaml`.
 Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 
 ## Python (server, worker, core, tooling)
@@ -15,6 +15,8 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | Alembic | migrations | MIT |
 | psycopg 3 (+ binary) | PostgreSQL driver (bundles libpq) | LGPL-3.0-only |
 | Typer | CLI | MIT |
+| argon2-cffi | argon2id password hashing | MIT |
+| blake3 (BLAKE3 Python bindings) | file fingerprints and hashes | MIT / Apache-2.0 |
 | HTTPX | HTTP client | BSD-3-Clause |
 | Hatchling | build backend | MIT |
 | pytest, pytest-cov | tests | MIT |
@@ -45,6 +47,7 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | Software | Use | Licence |
 | --- | --- | --- |
 | PostgreSQL, pgvector (`pgvector/pgvector` image) | database | PostgreSQL License |
+| `pg_dump` / `pg_restore` (PostgreSQL client tools) | scheduled backups and restore, invoked as separate processes | PostgreSQL License |
 | FFmpeg / ffprobe | media probing, test media | LGPL-2.1+ / GPL-2.0+ (build dependent), invoked as a separate process |
 | ExifTool | metadata extraction | Perl Artistic License / GPL, invoked as a separate process |
 | Samba (`dockurr/samba` image) | simulated NAS in the dev stack only | GPL-3.0 (Samba), MIT (image scripts) |

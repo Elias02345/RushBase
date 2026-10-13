@@ -14,10 +14,12 @@ dependencies = [
   "alembic>=1.14",
   "pydantic>=2.9",
   "pydantic-settings>=2.6",
+  "argon2-cffi>=23.1",
+  "typer>=0.15",
 ]
 
 [project.scripts]
-rushbase-server = "rushbase_server.main:main"
+rushbase-server = "rushbase_server.cli:app"
 
 [build-system]
 requires = ["hatchling"]

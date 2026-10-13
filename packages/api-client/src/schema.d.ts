@@ -4,6 +4,562 @@
  */
 
 export interface paths {
+    "/api/v1/admin/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Backups
+         * @description List backups on the share, newest first.
+         */
+        get: operations["list_backups_api_v1_admin_backups_get"];
+        put?: never;
+        /**
+         * Create Backup
+         * @description Create a backup now.
+         */
+        post: operations["create_backup_api_v1_admin_backups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Batches
+         * @description List batches, oldest first.
+         */
+        get: operations["list_batches_api_v1_admin_batches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/batches/{batch_id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pause Batch
+         * @description Pause one batch.
+         */
+        post: operations["pause_batch_api_v1_admin_batches__batch_id__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/batches/{batch_id}/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Priority
+         * @description Set a batch priority; open jobs of the batch are re-prioritised.
+         */
+        put: operations["set_priority_api_v1_admin_batches__batch_id__priority_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/batches/{batch_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume Batch
+         * @description Resume one batch.
+         */
+        post: operations["resume_batch_api_v1_admin_batches__batch_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/enrollment-tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a one-time worker enrollment token
+         * @description Create a token a new worker exchanges for its own API key.
+         */
+        post: operations["create_enrollment_token_api_v1_admin_enrollment_tokens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pipeline/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Stages
+         * @description Choose which stages newly ingested assets get (``finalize`` is always included).
+         */
+        put: operations["set_stages_api_v1_admin_pipeline_stages_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/queue/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pause Queue
+         * @description Stop handing out jobs (running jobs finish).
+         */
+        post: operations["pause_queue_api_v1_admin_queue_pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/queue/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume Queue
+         * @description Hand out jobs again.
+         */
+        post: operations["resume_queue_api_v1_admin_queue_resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reprocess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reprocess
+         * @description Re-enqueue a stage for assets whose latest result has an older model version.
+         */
+        post: operations["reprocess_api_v1_admin_reprocess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Users
+         * @description List all users.
+         */
+        get: operations["list_users_api_v1_admin_users_get"];
+        put?: never;
+        /**
+         * Create User
+         * @description Create a user with the given role.
+         */
+        post: operations["create_user_api_v1_admin_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update User
+         * @description Change role, disabled flag, display name or password of a user.
+         */
+        patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List workers
+         * @description List all workers with their liveness (``online`` = seen recently).
+         */
+        get: operations["list_workers_api_v1_admin_workers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/workers/{worker_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Worker
+         * @description Revoke a worker's API keys and mark it offline; its leases expire normally.
+         */
+        post: operations["revoke_worker_api_v1_admin_workers__worker_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in
+         * @description Verify credentials, rate-limited per client address and per user name.
+         */
+        post: operations["login_api_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign out
+         * @description Delete the current session and clear the cookies.
+         */
+        post: operations["logout_api_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current user
+         * @description Return the signed-in user.
+         */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * First-run status
+         * @description Report whether setup is needed and whether a backup can be restored instead.
+         */
+        get: operations["setup_status_api_v1_setup_get"];
+        put?: never;
+        /**
+         * Create the first admin and initialise (or adopt) the library
+         * @description Only works while no user exists. Logs the new admin in.
+         */
+        post: operations["setup_api_v1_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * System Status
+         * @description Backlog per stage (jobs, files, bytes, media duration), assets, inputs and workers.
+         */
+        get: operations["system_status_api_v1_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tokens
+         * @description List the signed-in user's personal API tokens.
+         */
+        get: operations["list_tokens_api_v1_tokens_get"];
+        put?: never;
+        /**
+         * Create Token
+         * @description Create a personal API token for the signed-in user (stored hashed).
+         */
+        post: operations["create_token_api_v1_tokens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tokens/{token_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke Token
+         * @description Revoke one of the caller's tokens (admins may revoke any personal token).
+         */
+        delete: operations["revoke_token_api_v1_tokens__token_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lease jobs matching the capabilities
+         * @description Lease up to ``max_jobs`` jobs, preferring the stage this worker ran last.
+         */
+        post: operations["claim_api_v1_worker_claim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enroll
+         * @description Exchange a one-time enrollment token for a worker API key.
+         */
+        post: operations["enroll_api_v1_worker_enroll_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/jobs/{job_id}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Heartbeat
+         * @description Extend the lease. 409 ``lease_lost`` means: stop working on this job.
+         */
+        post: operations["heartbeat_api_v1_worker_jobs__job_id__heartbeat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/jobs/{job_id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Release
+         * @description Give a job back without an attempt penalty (graceful shutdown).
+         */
+        post: operations["release_api_v1_worker_jobs__job_id__release_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/jobs/{job_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Result
+         * @description Report success or failure. Repeating the call for a finished job is harmless.
+         */
+        post: operations["submit_result_api_v1_worker_jobs__job_id__result_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Library id for the mount check
+         * @description Return the library id; the worker compares it with its mounted ``library.json``.
+         */
+        get: operations["library_api_v1_worker_library_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -11,7 +567,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liveness and database reachability */
+        /**
+         * Liveness, database, library mount and server lease
+         * @description 503 when the database is down, the library is unreadable or the lease was lost.
+         */
         get: operations["health_health_get"];
         put?: never;
         post?: never;
@@ -26,12 +585,182 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * BackupInfoOut
+         * @description A backup file.
+         */
+        BackupInfoOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Size */
+            size: number;
+        };
+        /**
+         * BackupOut
+         * @description A backup file offered for restore.
+         */
+        BackupOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Size */
+            size: number;
+        };
+        /**
+         * BatchOut
+         * @description An ingest batch.
+         */
+        BatchOut: {
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /** Hint Date */
+            hint_date: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Path */
+            input_path: string;
+            /** Label */
+            label: string;
+            /** Paused */
+            paused: boolean;
+            /** Priority */
+            priority: number;
+            /** Status */
+            status: string;
+        };
+        /**
+         * ClaimIn
+         * @description Claim request.
+         */
+        ClaimIn: {
+            /** @description Current capabilities; omitted = keep the stored ones. */
+            capabilities?: components["schemas"]["WorkerCapabilities"] | null;
+            /**
+             * Max Jobs
+             * @default 1
+             */
+            max_jobs: number;
+        };
+        /**
+         * ClaimOut
+         * @description Claimed jobs (possibly none) and the timing the worker should follow.
+         */
+        ClaimOut: {
+            /** Heartbeat Seconds */
+            heartbeat_seconds: number;
+            /** Jobs */
+            jobs: components["schemas"]["JobOut"][];
+            /** Lease Seconds */
+            lease_seconds: number;
+        };
+        /**
+         * EnrollIn
+         * @description Enrollment request with the one-time token from the web UI.
+         */
+        EnrollIn: {
+            capabilities?: components["schemas"]["WorkerCapabilities"];
+            /** Hostname */
+            hostname?: string | null;
+            /** Name */
+            name: string;
+            /** Platform */
+            platform?: string | null;
+            /** Token */
+            token: string;
+            /** Version */
+            version?: string | null;
+        };
+        /**
+         * EnrollOut
+         * @description The API key is shown exactly once.
+         */
+        EnrollOut: {
+            /** Api Key */
+            api_key: string;
+            /** Heartbeat Seconds */
+            heartbeat_seconds: number;
+            /** Lease Seconds */
+            lease_seconds: number;
+            /** Library Id */
+            library_id: string | null;
+            /**
+             * Worker Id
+             * Format: uuid
+             */
+            worker_id: string;
+        };
+        /**
+         * EnrollmentIn
+         * @description Request for a one-time enrollment token.
+         */
+        EnrollmentIn: {
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Ttl Hours */
+            ttl_hours?: number | null;
+        };
+        /**
+         * EnrollmentOut
+         * @description The token is shown exactly once; it is stored hashed.
+         */
+        EnrollmentOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Token */
+            token: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
          * HealthResponse
          * @description Result of the health probe.
+         *
+         *     ``library_mounted`` / ``lease_held`` are ``null`` while no library is bound yet (a fresh
+         *     install before the setup wizard ran); that state is healthy and shows ``setup_required``.
          */
         HealthResponse: {
             /** Database */
             database: boolean;
+            /** Lease Held */
+            lease_held?: boolean | null;
+            /** Library Mounted */
+            library_mounted?: boolean | null;
+            /** Setup Required */
+            setup_required?: boolean | null;
             /**
              * Status
              * @enum {string}
@@ -39,6 +768,492 @@ export interface components {
             status: "ok" | "degraded";
             /** Version */
             version: string;
+        };
+        /**
+         * HeartbeatOut
+         * @description New lease expiry.
+         */
+        HeartbeatOut: {
+            /**
+             * Lease Expires At
+             * Format: date-time
+             */
+            lease_expires_at: string;
+        };
+        /**
+         * JobFile
+         * @description A file of the job's asset (paths relative to the library root).
+         */
+        JobFile: {
+            /** Card Structure Root */
+            card_structure_root: string | null;
+            /** Rel Path */
+            rel_path: string;
+            /** Role */
+            role: string;
+            /** Size */
+            size: number;
+        };
+        /**
+         * JobOut
+         * @description A leased job.
+         */
+        JobOut: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Attempt */
+            attempt: number;
+            /** Files */
+            files: components["schemas"]["JobFile"][];
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Lease Expires At
+             * Format: date-time
+             */
+            lease_expires_at: string;
+            /** Media Type */
+            media_type: string;
+            stage: components["schemas"]["Stage"];
+            /**
+             * Upstream
+             * @description Latest successful output per earlier stage of this asset.
+             */
+            upstream: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        /**
+         * LibraryOut
+         * @description Identifies the library so a worker can verify its mount (``library.json``).
+         */
+        LibraryOut: {
+            /** Library Id */
+            library_id: string | null;
+            /** Name */
+            name: string | null;
+        };
+        /**
+         * LoginIn
+         * @description Credentials.
+         */
+        LoginIn: {
+            /** Password */
+            password: string;
+            /** Username */
+            username: string;
+        };
+        /**
+         * LoginOut
+         * @description Result of a successful login. The CSRF token is also set as a cookie.
+         */
+        LoginOut: {
+            /** Csrf Token */
+            csrf_token: string;
+            user: components["schemas"]["UserOut"];
+        };
+        /**
+         * ModelInfo
+         * @description An installed model for a stage.
+         */
+        ModelInfo: {
+            /** Model Id */
+            model_id: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * PriorityIn
+         * @description New batch priority (higher runs first).
+         */
+        PriorityIn: {
+            /** Priority */
+            priority: number;
+        };
+        /**
+         * ReprocessIn
+         * @description Re-enqueue ``stage`` for assets whose latest result is older than ``below_version``.
+         */
+        ReprocessIn: {
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Below Version */
+            below_version: string;
+            stage: components["schemas"]["Stage"];
+        };
+        /**
+         * ReprocessOut
+         * @description Assets that received a new job.
+         */
+        ReprocessOut: {
+            /** Asset Ids */
+            asset_ids: string[];
+            /** Enqueued */
+            enqueued: number;
+        };
+        /**
+         * ResultIn
+         * @description Outcome of a job.
+         */
+        ResultIn: {
+            /** Duration Ms */
+            duration_ms?: number | null;
+            /** Error */
+            error?: string | null;
+            /** Model Id */
+            model_id?: string | null;
+            /** Model Version */
+            model_version?: string | null;
+            /** Ok */
+            ok: boolean;
+            /** Output */
+            output?: {
+                [key: string]: unknown;
+            };
+            /** Prompt Version */
+            prompt_version?: string | null;
+            /**
+             * Retryable
+             * @default true
+             */
+            retryable: boolean;
+            /** Started At */
+            started_at?: string | null;
+        };
+        /**
+         * ResultOut
+         * @description Whether the result was applied. ``duplicate`` results are ignored safely.
+         */
+        ResultOut: {
+            /** Accepted */
+            accepted: boolean;
+            /** Duplicate */
+            duplicate: boolean;
+            /** Job State */
+            job_state: string;
+        };
+        /**
+         * SetupIn
+         * @description First-run request: creates the admin and initialises or adopts the library.
+         */
+        SetupIn: {
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
+            /**
+             * Library Name
+             * @default Rushbase
+             */
+            library_name: string;
+            /**
+             * Locale
+             * @default de
+             * @enum {string}
+             */
+            locale: "de" | "en";
+            /** Password */
+            password: string;
+            /** Username */
+            username: string;
+        };
+        /**
+         * SetupStatus
+         * @description What the setup wizard needs to know.
+         */
+        SetupStatus: {
+            /** Backups */
+            backups: components["schemas"]["BackupOut"][];
+            /** Library Configured */
+            library_configured: boolean;
+            /** Library Initialised */
+            library_initialised: boolean;
+            /** Needs Setup */
+            needs_setup: boolean;
+            /** Restore Available */
+            restore_available: boolean;
+        };
+        /**
+         * Stage
+         * @description Processing stages (``job.stage``).
+         * @enum {string}
+         */
+        Stage: "probe" | "hash" | "preview" | "shots" | "audio" | "embed" | "vision" | "classify" | "finalize";
+        /**
+         * StageBacklogOut
+         * @description Pending work of one stage.
+         */
+        StageBacklogOut: {
+            /** Duration Unknown Jobs */
+            duration_unknown_jobs: number;
+            /** Jobs */
+            jobs: {
+                [key: string]: number;
+            };
+            /** Pending Bytes */
+            pending_bytes: number;
+            /** Pending Duration Ms */
+            pending_duration_ms: number;
+            /** Pending Files */
+            pending_files: number;
+            /** Pending Jobs */
+            pending_jobs: number;
+        };
+        /**
+         * StagesIn
+         * @description Stages to enable for newly ingested assets.
+         */
+        StagesIn: {
+            /** Stages */
+            stages: components["schemas"]["Stage"][];
+        };
+        /**
+         * StatusOut
+         * @description Backlog and system counters. Available with or without workers online.
+         */
+        StatusOut: {
+            /** Assets */
+            assets: {
+                [key: string]: number;
+            };
+            /** Batches */
+            batches: {
+                [key: string]: number;
+            };
+            /** Input Files */
+            input_files: {
+                [key: string]: number;
+            };
+            /** Queue Paused */
+            queue_paused: boolean;
+            /** Stages */
+            stages: {
+                [key: string]: components["schemas"]["StageBacklogOut"];
+            };
+            /** Version */
+            version: string;
+            /** Workers Online */
+            workers_online: number;
+            /** Workers Total */
+            workers_total: number;
+        };
+        /**
+         * TokenCreated
+         * @description A newly created token including its plaintext, shown exactly once.
+         */
+        TokenCreated: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Name */
+            name: string;
+            /** Prefix */
+            prefix: string;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Scopes */
+            scopes: string[];
+            /** Token */
+            token: string;
+        };
+        /**
+         * TokenIn
+         * @description Request for a new personal API token.
+         */
+        TokenIn: {
+            /** Name */
+            name: string;
+            /** Scopes */
+            scopes?: string[];
+        };
+        /**
+         * TokenOut
+         * @description Token metadata (the secret is only shown once, in :class:`TokenCreated`).
+         */
+        TokenOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Name */
+            name: string;
+            /** Prefix */
+            prefix: string;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Scopes */
+            scopes: string[];
+        };
+        /**
+         * UserCreate
+         * @description Create a user (admin only).
+         */
+        UserCreate: {
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
+            /**
+             * Locale
+             * @default de
+             * @enum {string}
+             */
+            locale: "de" | "en";
+            /** Password */
+            password: string;
+            /**
+             * Role
+             * @default viewer
+             * @enum {string}
+             */
+            role: "admin" | "editor" | "viewer";
+            /** Username */
+            username: string;
+        };
+        /**
+         * UserOut
+         * @description A user as shown in the API (never includes the password hash).
+         */
+        UserOut: {
+            /** Disabled */
+            disabled: boolean;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Login At */
+            last_login_at: string | null;
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "de" | "en";
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "editor" | "viewer";
+            /** Username */
+            username: string;
+        };
+        /**
+         * UserUpdate
+         * @description Partial user update (admin only).
+         */
+        UserUpdate: {
+            /** Disabled */
+            disabled?: boolean | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Password */
+            password?: string | null;
+            /** Role */
+            role?: ("admin" | "editor" | "viewer") | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /**
+         * WorkerCapabilities
+         * @description Capabilities a worker reports at enrollment and with every claim.
+         */
+        WorkerCapabilities: {
+            /**
+             * Backends
+             * @description cuda, vulkan, ...
+             */
+            backends?: string[];
+            /**
+             * Models
+             * @description Per stage.
+             */
+            models?: {
+                [key: string]: components["schemas"]["ModelInfo"];
+            };
+            /** Profile */
+            profile?: string | null;
+            /** Ram Mb */
+            ram_mb?: number | null;
+            /**
+             * Stages
+             * @description Enabled stages.
+             */
+            stages?: components["schemas"]["Stage"][];
+            /** Vram Mb */
+            vram_mb?: number | null;
+        };
+        /**
+         * WorkerOut
+         * @description A registered worker.
+         */
+        WorkerOut: {
+            /** Capabilities */
+            capabilities: {
+                [key: string]: unknown;
+            };
+            /** Current Job Id */
+            current_job_id: string | null;
+            /** Hostname */
+            hostname: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            /** Last Stage */
+            last_stage: string | null;
+            /** Name */
+            name: string;
+            /** Online */
+            online: boolean;
+            /** Platform */
+            platform: string | null;
+            /** Status */
+            status: string;
+            /** Version */
+            version: string | null;
         };
     };
     responses: never;
@@ -49,6 +1264,834 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_backups_api_v1_admin_backups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupInfoOut"][];
+                };
+            };
+        };
+    };
+    create_backup_api_v1_admin_backups_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupInfoOut"];
+                };
+            };
+        };
+    };
+    list_batches_api_v1_admin_batches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"][];
+                };
+            };
+        };
+    };
+    pause_batch_api_v1_admin_batches__batch_id__pause_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_priority_api_v1_admin_batches__batch_id__priority_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriorityIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_batch_api_v1_admin_batches__batch_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_enrollment_token_api_v1_admin_enrollment_tokens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_stages_api_v1_admin_pipeline_stages_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StagesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_queue_api_v1_admin_queue_pause_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resume_queue_api_v1_admin_queue_resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reprocess_api_v1_admin_reprocess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReprocessIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReprocessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_api_v1_admin_users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"][];
+                };
+            };
+        };
+    };
+    create_user_api_v1_admin_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_api_v1_admin_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_workers_api_v1_admin_workers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerOut"][];
+                };
+            };
+        };
+    };
+    revoke_worker_api_v1_admin_workers__worker_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worker_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_api_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    setup_status_api_v1_setup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupStatus"];
+                };
+            };
+        };
+    };
+    setup_api_v1_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_status_api_v1_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+        };
+    };
+    list_tokens_api_v1_tokens_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"][];
+                };
+            };
+        };
+    };
+    create_token_api_v1_tokens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_token_api_v1_tokens__token_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    claim_api_v1_worker_claim_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enroll_api_v1_worker_enroll_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    heartbeat_api_v1_worker_jobs__job_id__heartbeat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_api_v1_worker_jobs__job_id__release_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_result_api_v1_worker_jobs__job_id__result_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResultIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    library_api_v1_worker_library_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryOut"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;

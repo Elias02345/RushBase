@@ -1,4 +1,4 @@
-"""Entry point: ``rushbase-server``."""
+"""Server start-up helpers shared by the CLI."""
 
 import sys
 
@@ -10,10 +10,10 @@ from rushbase_server.logging import configure_logging
 from rushbase_server.settings import Settings
 
 
-def load_settings() -> Settings:
+def load_settings(**overrides: object) -> Settings:
     """Load settings, exiting with a clear message when required values are missing."""
     try:
-        return Settings()  # values come from the environment
+        return Settings(**overrides)  # type: ignore[arg-type]  # other values come from the environment
     except ValidationError as exc:
         problems = "; ".join(
             f"RUSHBASE_{'.'.join(str(p) for p in e['loc']).upper()}: {e['msg']}"
@@ -23,9 +23,8 @@ def load_settings() -> Settings:
         raise SystemExit(2) from exc
 
 
-def main() -> None:
-    """Run the API server with uvicorn."""
-    settings = load_settings()
+def serve(settings: Settings) -> None:
+    """Run the API server with uvicorn until it is stopped."""
     configure_logging(settings.log_level)
     uvicorn.run(
         create_app(settings),
@@ -34,6 +33,11 @@ def main() -> None:
         log_config=None,
         access_log=False,
     )
+
+
+def main() -> None:
+    """Run the API server with settings from the environment."""
+    serve(load_settings())
 
 
 if __name__ == "__main__":

@@ -38,11 +38,33 @@ def manifest_path(root: Path) -> Path:
     return root / SYSTEM_DIR / LIBRARY_JSON
 
 
-def _write_manifest(root: Path, manifest: LibraryManifest) -> None:
-    target = manifest_path(root)
-    tmp = target.with_name(target.name + ".tmp")
-    tmp.write_text(manifest.model_dump_json(indent=2) + "\n", encoding="utf-8")
+def atomic_write_text(target: Path, text: str) -> None:
+    """Write ``text`` to ``target`` via ``.<name>.rbtmp`` in the same directory, fsync, rename.
+
+    This is the write pattern for every file Rushbase creates on the share (ADR-0005): other
+    clients never observe a partially written file under its final name.
+    """
+    tmp = target.with_name(f".{target.name}.rbtmp")
+    with tmp.open("w", encoding="utf-8") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
     os.replace(tmp, target)
+    try:
+        dir_fd = os.open(target.parent, os.O_RDONLY)
+    except OSError:  # directory fsync is not supported everywhere (e.g. some network mounts)
+        return
+    try:
+        os.fsync(dir_fd)
+    except OSError:
+        pass
+    finally:
+        os.close(dir_fd)
+
+
+def write_manifest(root: Path, manifest: LibraryManifest) -> None:
+    """Atomically persist ``manifest`` as ``.rushbase/library.json``."""
+    atomic_write_text(manifest_path(root), manifest.model_dump_json(indent=2) + "\n")
 
 
 def init_library(root: Path) -> LibraryManifest:
@@ -61,7 +83,7 @@ def init_library(root: Path) -> LibraryManifest:
     if manifest_path(root).exists():
         return open_library(root)
     manifest = LibraryManifest()
-    _write_manifest(root, manifest)
+    write_manifest(root, manifest)
     return manifest
 
 

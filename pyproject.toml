@@ -45,6 +45,7 @@ ignore = ["S101"]
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106", "S108", "S603", "S607"]
 "dev/testmedia/*.py" = ["S603", "S607", "T201"]
+"scripts/*.py" = ["S603", "S607", "T201", "S101"]
 "worker/src/rushbase_worker/doctor.py" = ["S603"]
 "server/src/rushbase_server/migrations/**" = ["E501"]
 
@@ -52,7 +53,7 @@ ignore = ["S101"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-mypy_path = ["core/src", "server/src", "worker/src"]
+mypy_path = ["core/src", "server/src", "worker/src", "server/tests"]
 explicit_package_bases = true
 files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests", "dev/testmedia"]
 
@@ -60,5 +61,6 @@ files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["core/tests", "server/tests", "worker/tests"]
+pythonpath = ["server/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = ["postgres: needs a reachable PostgreSQL (RUSHBASE_TEST_DATABASE_URL)"]
