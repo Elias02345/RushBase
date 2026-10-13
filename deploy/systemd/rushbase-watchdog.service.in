@@ -1,0 +1,7 @@
+[Unit]
+Description=Rushbase watchdog (health check and self-repair)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=@APP_DIR@/scripts/watchdog.sh

@@ -9,6 +9,7 @@
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
 | M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | planned |
+| Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
 | M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
 
 ## M0 demo

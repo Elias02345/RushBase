@@ -1,0 +1,22 @@
+[Unit]
+Description=Rushbase headless worker
+Documentation=https://github.com/Elias02345/RushBase
+After=network-online.target @SERVER_SERVICE@
+Wants=network-online.target
+@MOUNTS_FOR_LINE@
+ConditionPathExists=@APP_DIR@/.env
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+WorkingDirectory=@APP_DIR@
+ExecStart=@APP_DIR@/.venv/bin/rushbase worker run
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

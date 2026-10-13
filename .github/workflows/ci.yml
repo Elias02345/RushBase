@@ -5,6 +5,9 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *" # nightly sandbox run
 
 permissions:
   contents: read
@@ -69,3 +72,22 @@ jobs:
         run: pnpm -r test
       - name: Build
         run: pnpm --filter @rushbase/web build
+
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck
+        run: |
+          docker run --rm -v "$PWD:/mnt:ro" -w /mnt koalaman/shellcheck:stable -x -s bash \
+            install.sh update.sh revert-update.sh doctor.sh scripts/*.sh scripts/lib/*.sh deploy/test/guest-test.sh
+
+  sandbox:
+    # Full installer/updater/rollback/watchdog/doctor run inside a systemd container (slow).
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sandbox test
+        run: scripts/sandbox-test.sh

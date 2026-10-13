@@ -1,0 +1,233 @@
+# Operations guide
+
+How to install, update, monitor and recover a Rushbase server. The operations layer is a set of
+bash scripts plus systemd units; the contract the updater must keep is in
+[`UPDATE_RULES.md`](UPDATE_RULES.md).
+
+## Overview
+
+| File | Purpose |
+| --- | --- |
+| `install.sh` | One-shot installer (idempotent) |
+| `update.sh` | Check, back up, pull, migrate, restart, health check, automatic rollback |
+| `revert-update.sh` | Manual rollback to a backup |
+| `doctor.sh [--repair] [--json]` | Diagnostics and repair |
+| `scripts/watchdog.sh` | Health watchdog (every 60 s) |
+| `scripts/updater-service.sh`, `scripts/updater-handler.sh` | Periodic update check and local trigger socket |
+| `scripts/compose-up.sh` | Helper behind the Docker-mode unit |
+| `scripts/sandbox-test.sh` | End-to-end test inside a throw-away systemd container |
+
+The root-level scripts are thin wrappers around `scripts/`. All scripts need root and print
+English output; colours only on a terminal.
+
+## Install modes
+
+| Mode | What runs | Use when |
+| --- | --- | --- |
+| `bare` | PostgreSQL 16 + pgvector from the system, server as `rushbase-server.service` (uvicorn in a uv venv under `/opt/rushbase`, user `rushbase`) | VPS, Proxmox LXC, dedicated VM |
+| `docker` | `docker-compose.yml` (bridge) or `docker-compose.hostnet.yml` (host network) managed by `rushbase-compose.service` | Hosts that already run Docker, TrueNAS-like setups |
+
+```sh
+git clone https://github.com/Elias02345/RushBase.git
+cd RushBase
+sudo bash install.sh                      # interactive: asks for mode, network, library path
+sudo bash install.sh --mode bare --yes --library /mnt/rushbase     # unattended
+sudo bash install.sh --mode docker --network host --yes --library /srv/media   # cgNAT / tunnel
+```
+
+Useful flags (see `install.sh --help`): `--branch main|dev`, `--repo URL`, `--app-dir DIR`,
+`--port N`, `--bind ADDR`, `--db-url URL` (external PostgreSQL, bare mode), `--with-worker`,
+`--no-web`, `--no-media-tools`, `--auto-update`, `--smb ...`, `--units-only`, `--no-start`.
+
+What the installer does, in order: root and OS check, apt prerequisites (with a 3x retry loop and
+dpkg lock timeout), the `rushbase` system user, `/opt/rushbase` (git clone of the chosen train),
+`.env` from `.env.example` with generated secrets, database role/database and extensions
+(`vector`, `pg_trgm`), `uv sync --frozen`, optional web build, migrations, systemd units
+(`daemon-reload`, `enable`), health check and a summary. Re-running it keeps `.env`, secrets,
+the database and the checkout.
+
+Layout (bare mode):
+
+| Path | Content |
+| --- | --- |
+| `/opt/rushbase` | Application checkout (code is replaced by updates) |
+| `/opt/rushbase/.env` | Instance configuration and secrets (mode 640, `root:rushbase`) |
+| `/var/lib/rushbase/install.conf` | Mode, train, paths chosen at install time |
+| `/var/lib/rushbase/backups/<timestamp>-<commit>/` | `db.dump`, `env.backup`, `meta.json` |
+| `/var/lib/rushbase/update-state/` | `status.json`, `available.json`, `update.log` |
+| `/var/log/rushbase/watchdog.log` | Structured watchdog log (JSON lines) |
+| `/run/rushbase/updater.sock` | Updater trigger socket |
+
+### Secrets
+
+`RUSHBASE_SECRET_KEY` and the database password are generated with
+`python3 -c "import secrets; print(secrets.token_urlsafe(48))"` on first run and never replaced
+afterwards. There are no defaults; the server refuses to start without them. **Losing `.env`
+means losing the secrets that sign and protect stored data**: back it up (the updater keeps a
+copy in every backup directory).
+
+## Networking
+
+The server binds to `127.0.0.1:8080` by default. Terminate TLS in front of it:
+
+- Standard (public IP + domain): Caddy (`deploy/caddy/Caddyfile.example`) or Nginx
+  (`deploy/nginx/rushbase.conf.example`).
+- cgNAT / no public IP: Cloudflare Tunnel (`deploy/cloudflared/config.yml.example`) or CloudGate.
+  In Docker mode choose `--network host` if the tunnel needs it.
+
+**MCP:** `/mcp`, `/.well-known/*` and `/oauth/*` must not be behind a WAF challenge, bot
+protection or a second authentication layer, otherwise the claude.ai connector cannot reach
+them. The example configurations note this where it matters.
+
+## Updates
+
+```sh
+sudo bash update.sh --check            # is there an update?
+sudo bash update.sh                    # apply it
+sudo bash update.sh --branch dev       # switch train (use --force if it is not a fast-forward)
+sudo bash update.sh --backup-only      # just take a backup
+```
+
+Flow (always in this order; progress is written to `status.json`):
+
+1. **check**: `git fetch`, compare with the remote, print the commit delta.
+2. **backup**: database dump + `.env` into a timestamped directory. A failing backup aborts the
+   update before anything changes. An optional `RUSHBASE_BACKUP_HOOK` (for example an upload)
+   only warns on failure or after 300 s.
+3. **pull**: fast-forward guard, then `git reset --hard origin/<branch>`.
+4. **deps**: `uv sync --frozen --no-dev` and, if enabled, `pnpm install --frozen-lockfile` plus
+   the web build, only when lock files changed. Docker mode rebuilds the image.
+5. **migrate**: `alembic upgrade head`.
+6. **restart** and **health check** (`curl -fsS http://127.0.0.1:<port>/health`, up to
+   `RUSHBASE_HEALTH_TIMEOUT` = 90 s).
+7. On failure: **automatic rollback** (stop the service, reset the checkout to the previous
+   commit, restore `.env`, drop and restore the database from the pre-update dump, restart,
+   verify health) and `status.json` state `rolled_back`. A journal excerpt (`journalctl -n 250`)
+   is printed.
+
+Exit codes: `0` updated or already current, `1` failed before any change, `2` failed and rolled
+back, `3` failed and the rollback failed as well.
+
+The update runs from a private copy of the scripts, because `git reset --hard` replaces the
+scripts themselves. The complete log is appended to
+`/var/lib/rushbase/update-state/update.log`.
+
+### State files
+
+`status.json`: `state` (`running`, `success`, `failed`, `rolled_back`, `rollback_failed`,
+`up_to_date`), `phase` (`check`, `backup`, `pull`, `deps`, `migrate`, `restart`, `health`,
+`rollback`, `done`), `progress` (0-100), `branch`, `from_commit`, `to_commit`, `message`,
+`started_at`, `timestamp`. `available.json`: `available`, `behind`, `current_commit`,
+`latest_commit`, `branch`, `checked_at`.
+
+### Trains
+
+`main` is stable (default), `dev` carries pre-release builds. `update.sh --branch <train>`
+switches; the choice is stored in `install.conf`. Because migrations are additive, going back
+from `dev` to `main` leaves a database that is ahead of the code, which is safe but needs
+`--force` because the move is not a fast-forward.
+
+### Automatic updates
+
+`rushbase-updater.timer` polls every `RUSHBASE_UPDATE_INTERVAL` (default `10min`). By default it
+only records availability in `available.json` (notify only). Set `RUSHBASE_UPDATE_AUTO=true`
+(or install with `--auto-update`) to have it apply updates. After changing the interval run
+`sudo bash install.sh --units-only`.
+
+The server backend (or an operator) can trigger and monitor updates through the local socket,
+one request line in, one JSON line out:
+
+```sh
+sudo bash scripts/updater-handler.sh request status       # {"ok":true,"running":false,"update":{...},"available":{...}}
+sudo bash scripts/updater-handler.sh request check
+sudo bash scripts/updater-handler.sh request "update main"
+sudo bash scripts/updater-handler.sh request revert
+```
+
+The socket `/run/rushbase/updater.sock` (mode 0660, group `rushbase`) is served with `socat`.
+Without `socat` the handler falls back to a FIFO pair in `/run/rushbase/` (single client,
+polling). The web UI tails `update.log` and polls `status.json`.
+
+### Signed updates
+
+Set `RUSHBASE_UPDATE_REQUIRE_SIGNED=true` and place an SSH `allowed_signers` file at
+`deploy/allowed_signers` in the **installed** checkout. The updater then runs
+`git verify-commit` (and `verify-tag` for tags on that commit) with SSH signing against the
+fetched commit and aborts when the signature is invalid or the file is missing. The file is read
+from the currently installed tree, never from the commit being verified. Default is off, with a
+warning, until release signing is set up.
+
+## Rollback
+
+Automatic on a failed health check (above). Manually:
+
+```sh
+sudo bash revert-update.sh --list
+sudo bash revert-update.sh                        # newest backup, asks for confirmation
+sudo bash revert-update.sh --backup /var/lib/rushbase/backups/<dir> --yes
+```
+
+Data written after the backup was taken is lost; the library on the share is never touched.
+
+## Watchdog
+
+`rushbase-watchdog.timer` runs `scripts/watchdog.sh` every 60 s. After
+`RUSHBASE_WATCHDOG_THRESHOLD` (default 3) consecutive failed health checks it runs a repair pass
+(prerequisite check, unit re-render, permission fixes) and restarts the service. It skips while an
+update runs. Actions are logged as JSON lines to `/var/log/rushbase/watchdog.log`
+(`health_failed`, `repair_started`, `restarting`, `recovered`, `escalated`).
+
+## Doctor
+
+```sh
+sudo bash doctor.sh            # [OK] / [WARN] / [ERROR] per check and a summary
+sudo bash doctor.sh --json     # machine-readable
+sudo bash doctor.sh --repair   # re-run prerequisites, re-render units, fix permissions first
+```
+
+Checks: OS, `ffmpeg`/`ffprobe`/`exiftool`, `pg_dump`, `uv`, `node`, Docker (Docker mode), unit
+states, `.env` permissions and secrets, `/health`, PostgreSQL, the library (exists,
+`.rushbase/library.json`, write test as the service user), cifs mount options (warns on
+`cache=loose`, `vers<3`, `actimeo>5`), disk space and backup age. Exit status 1 when any check is
+an `[ERROR]`.
+
+## SMB library mount
+
+Never configured unless asked for:
+
+```sh
+echo 'the-password' > /root/smb.pw && chmod 600 /root/smb.pw
+sudo bash install.sh --mode bare --yes --smb //nas/media --smb-user rushbase \
+     --smb-password-file /root/smb.pw --library /mnt/rushbase
+```
+
+This writes `/etc/rushbase/smb.credentials` (mode 600) and a managed block in `/etc/fstab` with
+the options from [ADR-0005](adr/0005-smb-semantics.md):
+`vers=3.1.1,cache=strict,actimeo=1,uid=<svc>,gid=<svc>,file_mode=0664,dir_mode=0775,noperm`
+(plus `_netdev,nofail`). The server unit declares `RequiresMountsFor=` for the library path.
+Unprivileged LXC containers cannot mount cifs; see `deploy/lxc/README.md`.
+
+## Backups
+
+Every update writes `/var/lib/rushbase/backups/<UTC timestamp>-<commit>/` containing a
+custom-format `db.dump`, `env.backup` (mode 600) and `meta.json`. The newest
+`RUSHBASE_BACKUP_KEEP` (default 10) are kept. These cover the **database and `.env` only**;
+the library on the share is the source of truth for originals and sidecars, and the database can
+be rebuilt from sidecars. Take your own backups of `/var/lib/rushbase/backups` and of the NAS.
+
+## Sacred paths
+
+The updater never touches `.env`, secret/encryption keys, the PostgreSQL data directory or
+volume, the library (`Content/`, `Input/`, `.rushbase/`), TLS certificates or user-authored
+configuration. The full list is in [`UPDATE_RULES.md`](UPDATE_RULES.md). `git reset --hard`
+only affects tracked files under `/opt/rushbase`; `.env` and `.venv` are untracked.
+
+## Testing the operations layer
+
+`scripts/sandbox-test.sh` builds a Debian 12 image with systemd as PID 1 and drives the whole
+lifecycle inside it: install, idempotent re-run, signature enforcement, notify-only update
+check, a real update with a migration, a deliberately broken update with automatic rollback
+(code, database and `.env` verified), the watchdog, SMB configuration output, manual revert and
+`doctor --json`. It uses no host ports and removes the container afterwards (`--keep` keeps it,
+`--with-web` also builds the web UI). Docker mode is validated with `shellcheck` and
+`docker compose config` only.

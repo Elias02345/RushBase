@@ -1,0 +1,47 @@
+# Rushbase production stack, bridge network. Managed by rushbase-compose.service (see
+# docs/operations.md); all values come from .env, which install.sh generates.
+#   docker compose -p rushbase --env-file .env up -d
+# The server publishes only on RUSHBASE_BIND (127.0.0.1 by default): put a reverse proxy or a
+# tunnel in front of it. For cgNAT/tunnel setups that need host networking use
+# docker-compose.hostnet.yml instead.
+name: rushbase
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: rushbase
+      POSTGRES_PASSWORD: ${RUSHBASE_DB_PASSWORD:?RUSHBASE_DB_PASSWORD is missing; run install.sh}
+      POSTGRES_DB: rushbase
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rushbase -d rushbase"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: deploy/docker/server.Dockerfile
+    image: rushbase-server:local
+    environment:
+      RUSHBASE_SECRET_KEY: ${RUSHBASE_SECRET_KEY:?RUSHBASE_SECRET_KEY is missing; run install.sh}
+      RUSHBASE_DATABASE_URL: postgresql+psycopg://rushbase:${RUSHBASE_DB_PASSWORD}@postgres:5432/rushbase
+      RUSHBASE_HOST: 0.0.0.0
+      RUSHBASE_PORT: "8080"
+      RUSHBASE_LOG_LEVEL: ${RUSHBASE_LOG_LEVEL:-INFO}
+      RUSHBASE_LIBRARY_ROOT: /library
+    ports:
+      - "${RUSHBASE_BIND:-127.0.0.1}:${RUSHBASE_PORT:-8080}:8080"
+    volumes:
+      - ${RUSHBASE_LIBRARY_HOST_PATH:?RUSHBASE_LIBRARY_HOST_PATH is missing; run install.sh}:/library
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

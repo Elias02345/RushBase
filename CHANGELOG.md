@@ -8,6 +8,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Operations layer (milestone M7): one-shot `install.sh` (bare metal with PostgreSQL 16 +
+  pgvector, or Docker Compose in bridge/host network mode, optional SMB mount), `update.sh`
+  (backup, migrate, health check, automatic rollback, update trains `main`/`dev`, optional SSH
+  signature verification), `revert-update.sh`, `doctor.sh [--repair] [--json]`, systemd units for
+  the server, watchdog, updater (notify-only by default) and a Unix-socket trigger for the
+  backend, reverse proxy/tunnel examples (Caddy, Nginx, cloudflared), Proxmox LXC and TrueNAS
+  guides, `docs/operations.md`, and `scripts/sandbox-test.sh` (end-to-end test in a systemd
+  container) with ShellCheck and sandbox jobs in CI.
+
 - Monorepo foundation (milestone M0): uv workspace (`core`, `server`, `worker`) and pnpm
   workspace (`web`, `packages/ui`, `packages/api-client`).
 - `rushbase-core`: `library.json` models with server lease, library layout constants,

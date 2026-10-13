@@ -1,0 +1,25 @@
+# Debian 12 with systemd as PID 1, used only by scripts/sandbox-test.sh to exercise the
+# installer, updater, watchdog and doctor in isolation. Not a deployment image.
+FROM debian:12
+
+ENV container=docker \
+    DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      systemd systemd-sysv dbus ca-certificates curl git openssh-client sudo procps iproute2 \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -f /lib/systemd/system/multi-user.target.wants/* \
+          /etc/systemd/system/*.wants/* \
+          /lib/systemd/system/local-fs.target.wants/* \
+          /lib/systemd/system/sockets.target.wants/*udev* \
+          /lib/systemd/system/sockets.target.wants/*initctl* \
+          /lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup* \
+          /lib/systemd/system/systemd-update-utmp* \
+ && systemctl mask getty.target console-getty.service systemd-udevd.service \
+      systemd-udev-trigger.service systemd-remount-fs.service \
+      sys-kernel-config.mount sys-kernel-debug.mount sys-kernel-tracing.mount
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]
