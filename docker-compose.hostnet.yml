@@ -1,0 +1,50 @@
+# Rushbase production stack on the host network, for cgNAT/tunnel setups where the bridge
+# network is not usable (for example Cloudflare Tunnel or CloudGate running on the host).
+# Everything binds to 127.0.0.1: the server on RUSHBASE_PORT, PostgreSQL on RUSHBASE_DB_PORT
+# (default 15432, so it does not clash with a PostgreSQL already running on the host).
+name: rushbase
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    network_mode: host
+    command: ["postgres", "-p", "${RUSHBASE_DB_PORT:-15432}", "-c", "listen_addresses=127.0.0.1"]
+    environment:
+      POSTGRES_USER: rushbase
+      POSTGRES_PASSWORD: ${RUSHBASE_DB_PASSWORD:?RUSHBASE_DB_PASSWORD is missing; run install.sh}
+      POSTGRES_DB: rushbase
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -h 127.0.0.1 -p ${RUSHBASE_DB_PORT:-15432} -U rushbase -d rushbase",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: deploy/docker/server.Dockerfile
+    image: rushbase-server:local
+    network_mode: host
+    environment:
+      RUSHBASE_SECRET_KEY: ${RUSHBASE_SECRET_KEY:?RUSHBASE_SECRET_KEY is missing; run install.sh}
+      RUSHBASE_DATABASE_URL: postgresql+psycopg://rushbase:${RUSHBASE_DB_PASSWORD}@127.0.0.1:${RUSHBASE_DB_PORT:-15432}/rushbase
+      RUSHBASE_HOST: ${RUSHBASE_BIND:-127.0.0.1}
+      RUSHBASE_PORT: ${RUSHBASE_PORT:-8080}
+      RUSHBASE_LOG_LEVEL: ${RUSHBASE_LOG_LEVEL:-INFO}
+      RUSHBASE_LIBRARY_ROOT: /library
+    volumes:
+      - ${RUSHBASE_LIBRARY_HOST_PATH:?RUSHBASE_LIBRARY_HOST_PATH is missing; run install.sh}:/library
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

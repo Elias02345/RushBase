@@ -1,0 +1,13 @@
+[Unit]
+Description=Rushbase updater trigger (Unix socket in @RUN_DIR@)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=@APP_DIR@/scripts/updater-handler.sh listen
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

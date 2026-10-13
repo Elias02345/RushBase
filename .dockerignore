@@ -1,0 +1,11 @@
+.git
+.claude
+.toolchain
+.venv
+node_modules
+web/dist
+dev/library
+dev/data
+**/__pycache__
+.env
+*.key

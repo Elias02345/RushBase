@@ -1,0 +1,22 @@
+[Unit]
+Description=Rushbase container stack (Docker Compose)
+Documentation=https://github.com/Elias02345/RushBase
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+@MOUNTS_FOR_LINE@
+ConditionPathExists=@APP_DIR@/.env
+
+[Service]
+Type=simple
+WorkingDirectory=@APP_DIR@
+# compose-up.sh validates the config, builds and starts with retries, dumps diagnostics on
+# failure and then follows the logs, so the unit ends (and restarts) when the stack stops.
+ExecStart=@APP_DIR@/scripts/compose-up.sh start
+ExecStop=@APP_DIR@/scripts/compose-up.sh stop
+Restart=always
+RestartSec=5
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

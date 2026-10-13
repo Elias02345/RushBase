@@ -1,0 +1,24 @@
+[Unit]
+Description=Rushbase server (API and web UI)
+Documentation=https://github.com/Elias02345/RushBase
+After=network-online.target @DB_UNIT@
+Wants=network-online.target @DB_UNIT@
+@MOUNTS_FOR_LINE@
+ConditionPathExists=@APP_DIR@/.env
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+WorkingDirectory=@APP_DIR@
+ExecStart=@APP_DIR@/.venv/bin/rushbase-server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

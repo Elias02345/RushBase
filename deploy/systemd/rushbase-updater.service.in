@@ -1,0 +1,9 @@
+[Unit]
+Description=Rushbase update check (applies updates only when RUSHBASE_UPDATE_AUTO=true)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=@APP_DIR@/scripts/updater-service.sh once
+TimeoutStartSec=infinity
