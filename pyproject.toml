@@ -45,6 +45,7 @@ ignore = ["S101"]
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106", "S108", "S603", "S607"]
 "dev/testmedia/*.py" = ["S603", "S607", "T201"]
+"scripts/*.py" = ["S603", "S607", "T201", "S101"]
 "worker/src/rushbase_worker/doctor.py" = ["S603"]
 "server/src/rushbase_server/migrations/**" = ["E501"]
 
