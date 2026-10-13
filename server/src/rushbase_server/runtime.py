@@ -14,10 +14,14 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
 from rushbase_server.models import Session, Worker
-from rushbase_server.services import backup, inprocess, queue, scanner
+from rushbase_server.services import backup, filing, inprocess, quarantine, queue, scanner
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter
-from rushbase_server.services.settings_store import PIPELINE_STAGES_KEY, get_setting
+from rushbase_server.services.settings_store import (
+    CENTRAL_META_KEY,
+    PIPELINE_STAGES_KEY,
+    get_setting,
+)
 from rushbase_server.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -49,6 +53,20 @@ class Runtime:
             return [str(s) for s in override]
         return [s.value for s in self.settings.enabled_stages]
 
+    async def filing_env(self) -> filing.FilingEnv | None:
+        """Settings of the filing service; ``None`` when no library is mounted."""
+        if self.binding.root is None:
+            return None
+        async with self.session_factory() as session:
+            central = bool(await get_setting(session, CENTRAL_META_KEY, False))
+        return filing.FilingEnv(
+            root=self.binding.root,
+            library_id=self.binding.library_id,
+            path_budget=self.settings.filing_path_budget,
+            central_meta=central,
+            queue_config=self.queue_config,
+        )
+
     # --- single iterations (also called directly by tests) ---
 
     async def scan_once(self) -> scanner.ScanReport | None:
@@ -73,11 +91,10 @@ class Runtime:
         return report
 
     async def maintain_once(self) -> queue.ReapReport:
-        """Reaper, server-side stages, session cleanup and worker liveness."""
+        """Reaper, quarantine, finalize (filing), session cleanup and worker liveness."""
         now = self.clock.now()
         async with self.session_factory() as session:
             report = await queue.reap_expired(session, now, self.queue_config)
-            await queue.run_server_stages(session, now)
             await session.execute(delete(Session).where(Session.expires_at < now))
             offline_before = now - timedelta(seconds=self.settings.worker_online_seconds)
             await session.execute(
@@ -86,6 +103,10 @@ class Runtime:
                 .values(status="offline", current_job_id=None)
             )
             await session.commit()
+        env = await self.filing_env()
+        if env is not None:
+            await quarantine.process_pending(self.session_factory, env.root, self.clock.now)
+            await filing.run_finalize(self.session_factory, env, self.clock.now)
         if self.settings.inprocess and self.binding.root is not None:
             await inprocess.run_one(
                 self.session_factory,

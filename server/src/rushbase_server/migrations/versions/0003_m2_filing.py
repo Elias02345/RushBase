@@ -9,6 +9,7 @@ Create Date: 2026-10-14
 """
 
 from collections.abc import Sequence
+from typing import Any
 
 import sqlalchemy as sa
 from alembic import op
@@ -23,7 +24,7 @@ DECODE_STATUSES = ("ok", "proxy_only", "metadata_only", "decoder_missing", "deco
 CHECK_NAME = "ck_asset_decode_status"
 
 
-def _columns() -> list[sa.Column[object]]:
+def _columns() -> list[sa.Column[Any]]:
     return [
         sa.Column("decode_status", sa.String(length=16), server_default="ok", nullable=False),
         sa.Column(

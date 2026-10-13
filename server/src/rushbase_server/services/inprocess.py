@@ -28,16 +28,18 @@ SUPPORTED_STAGES: Final = frozenset({Stage.HASH})
 _CHUNK: Final = 4 * 1024 * 1024
 
 
-def hash_files(root: Path, rel_paths: list[str]) -> dict[str, str]:
-    """Return the full BLAKE3 hex digest of each library-relative file."""
-    digests: dict[str, str] = {}
+def hash_files(root: Path, rel_paths: list[str]) -> list[dict[str, str | int]]:
+    """Return ``HashOutput`` file entries (path, size, full BLAKE3 hex digest) per file."""
+    entries: list[dict[str, str | int]] = []
     for rel in rel_paths:
         hasher = blake3.blake3(max_threads=blake3.blake3.AUTO)
+        size = 0
         with resolve_in_root(root, rel).open("rb") as handle:
             while chunk := handle.read(_CHUNK):
                 hasher.update(chunk)
-        digests[rel] = hasher.hexdigest()
-    return digests
+                size += len(chunk)
+        entries.append({"rel_path": rel, "size": size, "blake3": hasher.hexdigest()})
+    return entries
 
 
 async def run_one(
@@ -69,10 +71,10 @@ async def run_one(
     started = clock_now()
     began = time.monotonic()
     try:
-        digests = await asyncio.to_thread(hash_files, root, rel_paths)
+        entries = await asyncio.to_thread(hash_files, root, rel_paths)
         data = queue.ResultData(
             ok=True,
-            output={"files": digests},
+            output={"schema": 1, "files": entries},
             model_id="blake3",
             model_version=blake3.__version__,
             duration_ms=int((time.monotonic() - began) * 1000),
