@@ -24,6 +24,13 @@ customer names, no internal hostnames, anywhere.
    decisions, sends no messages, notifies nobody.
 9. **No PyTorch in the worker.** Inference goes through llama.cpp, whisper.cpp and ONNX Runtime.
 10. **Additive migrations only**, each with a working `downgrade()` and idempotent guards.
+11. **Heavy analysis on workers, everything else on the server alone.** Workers (typically a GPU
+    PC that is only switched on occasionally) pick up all pending material as a batch and run the
+    analysis stages. Search, filters, facets, statistics, asset details, previews, needs lists and
+    MCP must work fully with **no worker online**, on a CPU-only server. The only model inference on
+    the server is lightweight query encoding (text towers of the embedding models via ONNX Runtime
+    on CPU), using the same model ids/revisions the workers used for indexing. The server runs only
+    the `finalize` stage itself.
 
 ## Repository layout
 
