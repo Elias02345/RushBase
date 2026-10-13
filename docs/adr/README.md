@@ -16,3 +16,4 @@ decisions (see `CLAUDE.md`) may only change through an ADR that supersedes the o
 | [0008](0008-inference-binaries.md) | Prebuilt inference binaries, pinning and verification | accepted |
 | [0009](0009-audio-events.md) | Audio event classification | accepted |
 | [0010](0010-mcp-auth.md) | MCP server and OAuth for claude.ai | accepted |
+| [0011](0011-model-refresh-2026-10.md) | Model refresh (October 2026) | accepted |

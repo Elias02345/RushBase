@@ -1,6 +1,6 @@
 # ADR-0008: Prebuilt inference binaries, pinning and verification
 
-- Status: Accepted
+- Status: Accepted (amended by ADR-0011)
 - Date: 2026-10-13
 
 ## Context

@@ -1,6 +1,6 @@
 # ADR-0009: Audio event classification
 
-- Status: Accepted
+- Status: Accepted (amended by ADR-0011)
 - Date: 2026-10-13
 
 ## Context

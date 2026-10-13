@@ -1,6 +1,6 @@
 # ADR-0006: Vision-language model via llama.cpp
 
-- Status: Accepted
+- Status: Accepted (amended by ADR-0011)
 - Date: 2026-10-13
 
 ## Context
