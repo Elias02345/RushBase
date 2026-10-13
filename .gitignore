@@ -34,3 +34,6 @@ Thumbs.db
 web/dist/
 packages/*/dist/
 coverage/
+
+# Claude Code local state (agent worktrees)
+.claude/

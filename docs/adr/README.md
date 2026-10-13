@@ -7,8 +7,12 @@ decisions (see `CLAUDE.md`) may only change through an ADR that supersedes the o
 | # | Title | Status |
 | --- | --- | --- |
 | [0001](0001-tech-stack.md) | Technology stack, monorepo and workspaces | accepted |
-
-Planned research ADRs (written before the affected milestone is built): DaVinci Resolve
-scripting and import formats, RAW video decoders, vision-language model runtime, embedding
-models, prebuilt inference backends, audio classifier, MCP authentication, Tauri specifics,
-SMB behaviour.
+| [0002](0002-davinci-resolve-integration.md) | DaVinci Resolve integration | accepted |
+| [0003](0003-raw-video-decoders.md) | RAW video decoding via optional plugins | accepted |
+| [0004](0004-tauri-companion.md) | Tauri 2 companion app specifics | accepted |
+| [0005](0005-smb-semantics.md) | Working with SMB shares | accepted |
+| [0006](0006-vision-language-model.md) | Vision-language model via llama.cpp | accepted |
+| [0007](0007-embeddings.md) | Embeddings via ONNX Runtime | accepted |
+| [0008](0008-inference-binaries.md) | Prebuilt inference binaries, pinning and verification | accepted |
+| [0009](0009-audio-events.md) | Audio event classification | accepted |
+| [0010](0010-mcp-auth.md) | MCP server and OAuth for claude.ai | accepted |
