@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+uv.lock
+dev/library
+dev/data
+.toolchain
+.venv
+packages/api-client/src/schema.d.ts
+packages/api-client/openapi.json
+*.py
+*.md

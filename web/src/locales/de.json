@@ -1,0 +1,23 @@
+{
+  "app": {
+    "tagline": "Dein Rohmaterial, sofort auffindbar.",
+    "intro": "Rushbase sammelt, analysiert und ordnet Video, Foto und Audio auf deinem Netzwerkspeicher. Die eigentliche Oberfläche kommt in Meilenstein 3."
+  },
+  "nav": {
+    "theme": "Farbschema wechseln",
+    "language": "Sprache wechseln"
+  },
+  "health": {
+    "title": "Serverstatus",
+    "readiness": "Bereitschaft",
+    "server": "Server",
+    "database": "Datenbank",
+    "version": "Version {{version}}",
+    "refresh": "Neu prüfen",
+    "checking": "Prüfe …",
+    "up": "erreichbar",
+    "down": "nicht erreichbar",
+    "dbUp": "verbunden",
+    "dbDown": "keine Verbindung"
+  }
+}

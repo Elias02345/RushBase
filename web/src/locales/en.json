@@ -1,0 +1,23 @@
+{
+  "app": {
+    "tagline": "Your raw footage, instantly findable.",
+    "intro": "Rushbase collects, analyses and organises video, photo and audio on your network storage. The full interface arrives in milestone 3."
+  },
+  "nav": {
+    "theme": "Toggle colour theme",
+    "language": "Switch language"
+  },
+  "health": {
+    "title": "Server status",
+    "readiness": "Readiness",
+    "server": "Server",
+    "database": "Database",
+    "version": "Version {{version}}",
+    "refresh": "Check again",
+    "checking": "Checking…",
+    "up": "reachable",
+    "down": "unreachable",
+    "dbUp": "connected",
+    "dbDown": "no connection"
+  }
+}

@@ -1,0 +1,98 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--rb-bg);
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  min-height: 100vh;
+}
+
+.shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem;
+}
+
+.shell__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.shell__logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.6rem;
+  background: conic-gradient(from 200deg, var(--rb-primary), var(--rb-accent), var(--rb-primary));
+}
+
+.shell__actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.shell__main {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--rb-text-muted);
+}
+
+.health {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.health__list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1 1 14rem;
+}
+
+.health__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.health__version {
+  color: var(--rb-text-muted);
+  font-size: 0.85rem;
+}
