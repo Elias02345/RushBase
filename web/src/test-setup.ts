@@ -4,6 +4,9 @@ import { afterEach } from "vitest";
 
 import i18n from "./i18n";
 
+// jsdom does not implement scrolling; the router calls it on navigation.
+window.scrollTo = () => undefined;
+
 afterEach(async () => {
   cleanup();
   window.localStorage.clear();

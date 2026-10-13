@@ -66,7 +66,10 @@ describe("ThemeProvider", () => {
 
   it("throws outside a provider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const swallow = (event: ErrorEvent) => event.preventDefault(); // jsdom re-reports render errors
+    window.addEventListener("error", swallow);
     expect(() => render(<Toggle />)).toThrow(/ThemeProvider/);
+    window.removeEventListener("error", swallow);
     spy.mockRestore();
   });
 });

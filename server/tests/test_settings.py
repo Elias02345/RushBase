@@ -35,6 +35,13 @@ def test_loads_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "k" * 40 not in repr(settings)
 
 
+def test_blank_values_count_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RUSHBASE_SECRET_KEY", "")
+    monkeypatch.setenv("RUSHBASE_DATABASE_URL", "postgresql+psycopg://u@h/db")
+    with pytest.raises(ValidationError, match="secret_key"):
+        Settings()
+
+
 def test_load_settings_exits_cleanly_when_missing(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as exc:
         load_settings()

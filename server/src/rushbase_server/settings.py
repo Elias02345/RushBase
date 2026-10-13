@@ -17,6 +17,7 @@ class Settings(BaseSettings):
         env_prefix="RUSHBASE_",
         env_file=".env",
         env_file_encoding="utf-8",
+        env_ignore_empty=True,  # blank keys copied from .env.example count as unset
         extra="ignore",
     )
 
