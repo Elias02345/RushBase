@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: rushbase
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: rushbase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rushbase -d rushbase"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RUSHBASE_TEST_DATABASE_URL: postgresql+psycopg://rushbase:ci-only-password@127.0.0.1:5432/rushbase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format
+        run: uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy
+      - name: Pytest
+        run: uv run pytest --cov=core/src --cov=server/src --cov=worker/src --cov-report=term-missing
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Prettier
+        run: pnpm format:check
+      - name: ESLint
+        run: pnpm -r lint
+      - name: Type check
+        run: pnpm -r typecheck
+      - name: Vitest
+        run: pnpm -r test
+      - name: Build
+        run: pnpm --filter @rushbase/web build
