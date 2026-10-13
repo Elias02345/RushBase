@@ -60,12 +60,12 @@ class StageResult(Base):
             "stage",
             text("finished_at DESC"),
         ),
-        # One result per job: duplicate submissions of a finished job are ignored.
+        # At most one successful result per job: duplicate submissions are ignored.
         Index(
             "ux_stage_result_job_id",
             "job_id",
             unique=True,
-            postgresql_where=text("job_id IS NOT NULL"),
+            postgresql_where=text("job_id IS NOT NULL AND ok"),
         ),
     )
 

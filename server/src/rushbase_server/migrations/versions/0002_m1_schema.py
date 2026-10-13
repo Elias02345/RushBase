@@ -782,7 +782,7 @@ def upgrade() -> None:
         "stage_result",
         ["job_id"],
         unique=True,
-        postgresql_where=sa.text("job_id IS NOT NULL"),
+        postgresql_where=sa.text("job_id IS NOT NULL AND ok"),
         if_not_exists=True,
     )
 
