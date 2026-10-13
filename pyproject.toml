@@ -52,7 +52,7 @@ ignore = ["S101"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-mypy_path = ["core/src", "server/src", "worker/src"]
+mypy_path = ["core/src", "server/src", "worker/src", "server/tests"]
 explicit_package_bases = true
 files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests", "dev/testmedia"]
 
@@ -60,5 +60,6 @@ files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["core/tests", "server/tests", "worker/tests"]
+pythonpath = ["server/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = ["postgres: needs a reachable PostgreSQL (RUSHBASE_TEST_DATABASE_URL)"]
