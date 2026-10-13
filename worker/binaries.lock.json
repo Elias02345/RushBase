@@ -1,0 +1,8 @@
+{
+  "exiftool": {
+    "version": "13.59",
+    "url": "https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.59.tar.gz/download",
+    "sha256": "668ea3acececb7235fbd0f4900e72d5f12c9b07e5c778fd36cb1e9b5828fd65a",
+    "checksum_source": "https://exiftool.org/checksums.txt"
+  }
+}
