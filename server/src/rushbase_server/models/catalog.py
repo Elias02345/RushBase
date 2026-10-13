@@ -38,6 +38,7 @@ ASSET_STATUSES = (
     "duplicate",
 )
 ORIENTATIONS = ("landscape", "portrait", "square")
+DECODE_STATUSES = ("ok", "proxy_only", "metadata_only", "decoder_missing", "decoder_error")
 TRISTATE = ("yes", "no", "unknown")
 MEDIA_TYPES = tuple(m.value for m in MediaType)
 FILE_ROLES = tuple(r.value for r in FileRole)
@@ -98,6 +99,16 @@ class Asset(Base):
     gps_lon: Mapped[float | None] = mapped_column(Double)
     gps_alt: Mapped[float | None] = mapped_column(Double)
     size_total: Mapped[int] = mapped_column(BigInteger, server_default="0", default=0)
+    decode_status: Mapped[str] = mapped_column(String(16), server_default="ok", default="ok")
+    # Derived files of the preview stage: ``files`` and ``normalization``.
+    derived: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb"), default=dict
+    )
+    perceptual_hash: Mapped[str | None] = mapped_column(Text)
+    tech_summary_de: Mapped[str | None] = mapped_column(Text)
+    tech_summary_en: Mapped[str | None] = mapped_column(Text)
+    # Set while the files rest in ``.rushbase/quarantine/`` (reason, stage, moved paths).
+    quarantine: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     title: Mapped[str | None] = mapped_column(Text)
     summary_short: Mapped[str | None] = mapped_column(Text)
     summary_long_de: Mapped[str | None] = mapped_column(Text)
@@ -126,12 +137,19 @@ class Asset(Base):
             "orientation IS NULL OR orientation IN ('landscape', 'portrait', 'square')",
             name="orientation",
         ),
+        enum_check("decode_status", DECODE_STATUSES),
         enum_check("person_identifiable", TRISTATE),
         enum_check("consent", TRISTATE),
         CheckConstraint("rating IS NULL OR rating BETWEEN 0 AND 5", name="rating"),
         Index("ix_asset_status", "status"),
         Index("ix_asset_media_type_capture_at", "media_type", "capture_at"),
         Index("ix_asset_camera_model", "camera_model"),
+        Index("ix_asset_capture_at", "capture_at"),
+        Index("ix_asset_lens_model", "lens_model"),
+        Index("ix_asset_log_profile", "log_profile"),
+        Index("ix_asset_orientation", "orientation"),
+        Index("ix_asset_codec", "codec"),
+        Index("ix_asset_duplicate_of", "duplicate_of"),
         Index("ix_asset_batch_id", "batch_id"),
         Index("ix_asset_search_tsv", "search_tsv", postgresql_using="gin"),
     )
@@ -159,6 +177,17 @@ class AssetFile(Base):
         Index("ix_asset_file_asset_id", "asset_id"),
         Index("ix_asset_file_blake3", "blake3"),
         Index("ix_asset_file_quick_fp", "quick_fp"),
+        Index(
+            "ix_asset_file_card_structure_root",
+            "card_structure_root",
+            postgresql_where=text("card_structure_root IS NOT NULL"),
+        ),
+        Index(
+            "ix_asset_file_rel_path_trgm",
+            "rel_path",
+            postgresql_using="gin",
+            postgresql_ops={"rel_path": "gin_trgm_ops"},
+        ),
     )
 
 

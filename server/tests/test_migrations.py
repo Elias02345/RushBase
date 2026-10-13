@@ -76,6 +76,32 @@ def test_models_match_the_migrations(
     assert diff == []
 
 
+def _asset_columns(url: str) -> set[str]:
+    engine = create_engine(url)
+    try:
+        return {c["name"] for c in inspect(engine).get_columns("asset")}
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.postgres
+def test_m2_migration_is_additive_idempotent_and_reversible(
+    monkeypatch: pytest.MonkeyPatch, fresh_database_url: str
+) -> None:
+    config = _config(monkeypatch, fresh_database_url)
+    new = {"decode_status", "derived", "perceptual_hash", "tech_summary_de", "quarantine"}
+    command.upgrade(config, "0002")
+    assert not new & _asset_columns(fresh_database_url)
+    command.upgrade(config, "0003")
+    assert new <= _asset_columns(fresh_database_url)
+    command.stamp(config, "0002")
+    command.upgrade(config, "0003")  # guards: every object already exists
+    command.downgrade(config, "0002")
+    assert not new & _asset_columns(fresh_database_url)
+    command.upgrade(config, "head")
+    assert new <= _asset_columns(fresh_database_url)
+
+
 @pytest.mark.postgres
 def test_queue_indexes_exist(database_url: str) -> None:
     engine = create_engine(database_url)
