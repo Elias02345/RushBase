@@ -1,5 +1,5 @@
 # Local, isolated toolchains, models and backends (never committed)
-.toolchain/
+.toolchain
 # Dev library (simulated NAS share)
 dev/library/
 dev/data/
@@ -29,3 +29,8 @@ target/
 Thumbs.db
 .idea/
 .vscode/
+
+# Generated build output
+web/dist/
+packages/*/dist/
+coverage/

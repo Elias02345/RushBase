@@ -1,0 +1,64 @@
+[project]
+name = "rushbase"
+version = "0.0.0"
+description = "Rushbase monorepo root (virtual; not published)."
+requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["core", "server", "worker"]
+
+[tool.uv.sources]
+rushbase-core = { workspace = true }
+rushbase-server = { workspace = true }
+rushbase-worker = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "rushbase-core",
+  "rushbase-server",
+  "rushbase-worker",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+  "httpx>=0.27",
+  "pillow>=11.0",
+  "numpy>=2.1",
+  "tifffile>=2024.9",
+  "ruff>=0.8",
+  "mypy>=1.13",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests"]
+extend-exclude = ["dev/library", "dev/data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PT", "RUF", "S", "ASYNC", "T20"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S105", "S106", "S108", "S603", "S607"]
+"dev/testmedia/*.py" = ["S603", "S607", "T201"]
+"worker/src/rushbase_worker/doctor.py" = ["S603"]
+"server/src/rushbase_server/migrations/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = ["core/src", "server/src", "worker/src"]
+explicit_package_bases = true
+files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests", "dev/testmedia"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["core/tests", "server/tests", "worker/tests"]
+addopts = "-ra --strict-markers --import-mode=importlib"
+markers = ["postgres: needs a reachable PostgreSQL (RUSHBASE_TEST_DATABASE_URL)"]
