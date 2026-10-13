@@ -1,0 +1,14 @@
+# Source this file to use the project-local, isolated toolchains:  source .envrc.local
+export RUSHBASE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+export UV_PYTHON_INSTALL_DIR="$RUSHBASE_ROOT/.toolchain/python"
+export UV_CACHE_DIR="$RUSHBASE_ROOT/.toolchain/uv-cache"
+export UV_PYTHON_PREFERENCE=only-managed
+export UV_PYTHON_BIN_DIR="$RUSHBASE_ROOT/.toolchain/bin"
+export UV_TOOL_DIR="$RUSHBASE_ROOT/.toolchain/uv-tools"
+export UV_TOOL_BIN_DIR="$RUSHBASE_ROOT/.toolchain/bin"
+export RUSTUP_HOME="$RUSHBASE_ROOT/.toolchain/rustup"
+export CARGO_HOME="$RUSHBASE_ROOT/.toolchain/cargo"
+export COREPACK_HOME="$RUSHBASE_ROOT/.toolchain/corepack"
+export npm_config_cache="$RUSHBASE_ROOT/.toolchain/npm-cache"
+export PNPM_HOME="$RUSHBASE_ROOT/.toolchain/pnpm"
+export PATH="$RUSHBASE_ROOT/.toolchain/bin:$PNPM_HOME:$CARGO_HOME/bin:$PATH"
