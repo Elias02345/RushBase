@@ -1,5 +1,5 @@
 import { observeElementRect, useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 import { cx } from "./cx";
 
@@ -25,6 +25,8 @@ export interface DataTableProps<T> {
   selectedId?: string | null;
   empty?: ReactNode;
   className?: string;
+  /** Called when the last rows scroll into view, to load the next page. */
+  onNearEnd?: () => void;
 }
 
 /**
@@ -42,8 +44,10 @@ export function DataTable<T>({
   selectedId,
   empty,
   className,
+  onNearEnd,
 }: DataTableProps<T>) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line react-hooks/incompatible-library -- virtual items are read each render
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
@@ -57,6 +61,11 @@ export function DataTable<T>({
         callback(rect.height === 0 ? { width: 800, height: maxHeight } : rect),
       ),
   });
+  const visible = virtualizer.getVirtualItems();
+  const lastVisible = visible[visible.length - 1]?.index ?? -1;
+  useEffect(() => {
+    if (onNearEnd && rows.length > 0 && lastVisible >= rows.length - 8) onNearEnd();
+  }, [lastVisible, rows.length, onNearEnd]);
   const template = columns.map((column) => column.width ?? "minmax(0, 1fr)").join(" ");
   const bodyHeight = rows.length * rowHeight;
 
@@ -96,7 +105,7 @@ export function DataTable<T>({
         style={{ maxHeight, height: Math.min(bodyHeight, maxHeight) }}
       >
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
-          {virtualizer.getVirtualItems().map((item) => {
+          {visible.map((item) => {
             const row = rows[item.index];
             if (row === undefined) return null;
             const id = getRowId(row);
