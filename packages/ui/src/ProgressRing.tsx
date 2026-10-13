@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { cx } from "./cx";
+import type { StatusTone } from "./StatusChip";
+
 export interface ProgressRingProps {
   /** Progress from 0 to 100; values outside the range are clamped. */
   value: number;
@@ -10,6 +13,8 @@ export interface ProgressRingProps {
   label: string;
   /** Text shown in the centre; defaults to the rounded percentage. */
   children?: ReactNode;
+  /** Colour of the arc; defaults to the accent colour. */
+  tone?: StatusTone;
 }
 
 /** Circular progress indicator with an animated arc. */
@@ -19,6 +24,7 @@ export function ProgressRing({
   strokeWidth = 10,
   label,
   children,
+  tone,
 }: ProgressRingProps) {
   const clamped = Math.min(100, Math.max(0, value));
   const radius = (size - strokeWidth) / 2;
@@ -26,7 +32,7 @@ export function ProgressRing({
   const offset = circumference * (1 - clamped / 100);
   return (
     <div
-      className="rb-ring"
+      className={cx("rb-ring", tone && `rb-ring--${tone}`)}
       role="progressbar"
       aria-label={label}
       aria-valuemin={0}
@@ -47,7 +53,9 @@ export function ProgressRing({
           />
         </g>
       </svg>
-      <span className="rb-ring__label">{children ?? `${Math.round(clamped)}%`}</span>
+      <span className="rb-ring__label" style={{ fontSize: Math.max(11, size * 0.2) }}>
+        {children ?? `${Math.round(clamped)}%`}
+      </span>
     </div>
   );
 }

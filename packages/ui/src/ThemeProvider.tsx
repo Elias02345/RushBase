@@ -9,9 +9,14 @@ import {
 } from "react";
 
 export type Theme = "light" | "dark";
+/** `system` follows the OS and keeps following it while the app is open. */
+export type ThemePreference = Theme | "system";
 
 interface ThemeContextValue {
+  /** The theme currently shown. */
   theme: Theme;
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -26,39 +31,59 @@ function systemTheme(): Theme {
   return prefersDark ? "dark" : "light";
 }
 
-function initialTheme(): Theme {
+function storedPreference(): ThemePreference {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored === "light" || stored === "dark") return stored;
   } catch {
-    // Storage can be blocked (private mode); fall back to the OS preference.
+    // Storage can be blocked (private mode); follow the OS.
   }
-  return systemTheme();
+  return "system";
 }
 
-/** Provides the active colour theme and mirrors it to `<html data-theme>` (CSS variables react to it). */
+/**
+ * Provides the colour theme. Without an explicit choice the OS preference applies (also
+ * while the app runs); an explicit choice is mirrored to `<html data-theme>` and remembered.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(initialTheme);
+  const [preference, setPreferenceState] = useState<ThemePreference>(storedPreference);
+  const [system, setSystem] = useState<Theme>(systemTheme);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setSystem(query.matches ? "dark" : "light");
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
+  const theme: Theme = preference === "system" ? system : preference;
+
+  useEffect(() => {
+    if (preference === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = preference;
+  }, [preference]);
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    setPreferenceState(next);
     try {
-      window.localStorage.setItem(STORAGE_KEY, next);
+      if (next === "system") window.localStorage.removeItem(STORAGE_KEY);
+      else window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // Persisting the choice is a convenience only.
     }
   }, []);
 
+  const setTheme = setPreference;
   const toggleTheme = useCallback(
-    () => setTheme(theme === "dark" ? "light" : "dark"),
-    [setTheme, theme],
+    () => setPreference(theme === "dark" ? "light" : "dark"),
+    [setPreference, theme],
   );
 
-  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
+  const value = useMemo(
+    () => ({ theme, preference, setPreference, setTheme, toggleTheme }),
+    [theme, preference, setPreference, setTheme, toggleTheme],
+  );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
