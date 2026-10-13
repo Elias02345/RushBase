@@ -1,0 +1,18 @@
+[project]
+name = "rushbase-worker"
+version = "0.1.0"
+description = "Rushbase worker engine and the `rushbase` command line interface."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+dependencies = ["rushbase-core", "typer>=0.15", "httpx>=0.27"]
+
+[project.scripts]
+rushbase = "rushbase_worker.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rushbase_worker"]
