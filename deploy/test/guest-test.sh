@@ -77,7 +77,9 @@ assert ".env mode is 640" test "$(stat -c %a "${APP}/.env")" = "640"
 SECRET="$(env_value RUSHBASE_SECRET_KEY)"
 assert "secret key generated (>= 32 chars)" test "${#SECRET}" -ge 32
 assert "server binds 127.0.0.1 only" bash -c "ss -ltnH | grep -q '127.0.0.1:${PORT}' && ! ss -ltnH | grep -qE '(0.0.0.0|\\*|\\[::\\]):${PORT}'"
-assert_eq "alembic revision is 0001" 0001 "$(psql_app 'SELECT version_num FROM alembic_version')"
+# The installed head revision is whatever the repository ships; the sandbox migrations build on it.
+BASE_REV="$(psql_app 'SELECT version_num FROM alembic_version')"
+assert "alembic revision recorded after install (${BASE_REV})" test -n "${BASE_REV}"
 assert "install.conf written" grep -q '^MODE=bare' /var/lib/rushbase/install.conf
 
 # ----------------------------------------------------------------------------------------------
@@ -98,15 +100,15 @@ phase "update-signature-required"
 # Update 1: a new migration plus a data row, commit signed with a throw-away SSH key.
 ssh-keygen -q -t ed25519 -N '' -f /tmp/signing_key
 printf '* %s\n' "$(cut -d' ' -f1,2 /tmp/signing_key.pub)" >"${APP}/deploy/allowed_signers"
-cat >"${WORK}/server/src/rushbase_server/migrations/versions/0002_sandbox_probe.py" <<'PY'
+cat >"${WORK}/server/src/rushbase_server/migrations/versions/9001_sandbox_probe.py" <<'PY'
 """Sandbox migration: adds a probe table (idempotent)."""
 
 from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = "0002"
-down_revision: str | None = "0001"
+revision: str = "sandbox1"
+down_revision: str | None = "@BASE_REV@"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -118,6 +120,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute("DROP TABLE IF EXISTS sandbox_probe")
 PY
+sed -i "s/@BASE_REV@/${BASE_REV}/" "${WORK}/server/src/rushbase_server/migrations/versions/9001_sandbox_probe.py"
 git -C "${WORK}" config gpg.format ssh
 git -C "${WORK}" config user.signingkey /tmp/signing_key.pub
 git -C "${WORK}" config gpg.ssh.allowedSignersFile "${APP}/deploy/allowed_signers"
@@ -150,7 +153,7 @@ assert "amended commit differs" test "${COMMIT_UPDATE1}" != "${COMMIT_UPDATE1_UN
 env_set_line RUSHBASE_UPDATE_REQUIRE_SIGNED true
 if RUSHBASE_HEALTH_TIMEOUT=60 bash "${APP}/update.sh"; then pass "signed update applies (exit 0)"; else flunk "signed update applies (exit 0)"; fi
 assert "checkout moved to the new commit" test "$(head_commit)" = "${COMMIT_UPDATE1}"
-assert_eq "migration 0002 applied" 0002 "$(psql_app 'SELECT version_num FROM alembic_version')"
+assert_eq "sandbox migration applied" sandbox1 "$(psql_app 'SELECT version_num FROM alembic_version')"
 assert_eq "health ok after update" true "$(health_json | python3 -c 'import json,sys; print(str(json.load(sys.stdin)["database"]).lower())')"
 assert_eq "status.json state is success" success "$(json_field /var/lib/rushbase/update-state/status.json state)"
 assert_eq "status.json progress is 100" 100 "$(json_field /var/lib/rushbase/update-state/status.json progress)"
@@ -163,15 +166,15 @@ BACKUP_AFTER_UPDATE1_COUNT="$(psql_app 'SELECT count(*) FROM sandbox_probe')"
 
 # ----------------------------------------------------------------------------------------------
 phase "rollback-on-broken-update"
-cat >"${WORK}/server/src/rushbase_server/migrations/versions/0003_sandbox_bad.py" <<'PY'
+cat >"${WORK}/server/src/rushbase_server/migrations/versions/9002_sandbox_bad.py" <<'PY'
 """Sandbox migration that ships with a release which cannot start."""
 
 from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = "0003"
-down_revision: str | None = "0002"
+revision: str = "sandbox2"
+down_revision: str | None = "sandbox1"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -184,8 +187,11 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute("DROP TABLE IF EXISTS sandbox_bad")
 PY
-sed -i 's|^    settings = load_settings()$|    raise SystemExit("sandbox: simulated broken release")\n    settings = load_settings()|' \
+# Break start-up: the server process exits before serving (the migration CLI keeps working).
+sed -i '/^def serve(/a\    raise SystemExit("sandbox: simulated broken release")' \
   "${WORK}/server/src/rushbase_server/main.py"
+grep -q 'simulated broken release' "${WORK}/server/src/rushbase_server/main.py" \
+  || flunk "could not inject the simulated breakage into main.py"
 git -C "${WORK}" add -A
 git -C "${WORK}" commit -q -S -m "sandbox: broken release"
 git -C "${WORK}" push -q --force "${ORIGIN}" main
@@ -198,7 +204,7 @@ tail -n 25 /tmp/update-broken.log || true
 assert_eq "broken update exits 2 (rolled back)" 2 "${rc}"
 assert "checkout restored to the pre-update commit" test "$(head_commit)" = "${COMMIT_UPDATE1}"
 assert_eq "server healthy again" true "$(health_json | python3 -c 'import json,sys; print(str(json.load(sys.stdin)["database"]).lower())')"
-assert_eq "alembic revision restored to 0002" 0002 "$(psql_app 'SELECT version_num FROM alembic_version')"
+assert_eq "alembic revision restored to sandbox1" sandbox1 "$(psql_app 'SELECT version_num FROM alembic_version')"
 assert_eq "table from the broken migration is gone" "" "$(psql_app "SELECT to_regclass('public.sandbox_bad')")"
 assert_eq "data deleted by the broken migration is back" "${BACKUP_AFTER_UPDATE1_COUNT}" "$(psql_app 'SELECT count(*) FROM sandbox_probe')"
 assert_eq "status.json state is rolled_back" rolled_back "$(json_field /var/lib/rushbase/update-state/status.json state)"
@@ -246,7 +252,7 @@ phase "manual-revert"
 OLDEST_BACKUP="$(find /var/lib/rushbase/backups -mindepth 1 -maxdepth 1 -type d | sort | head -n1)"
 if bash "${APP}/revert-update.sh" --yes --backup "${OLDEST_BACKUP}"; then pass "revert-update.sh exits 0"; else flunk "revert-update.sh exits 0"; fi
 assert "checkout restored to the baseline commit" test "$(head_commit)" = "${BASE_COMMIT}"
-assert_eq "alembic revision back to 0001" 0001 "$(psql_app 'SELECT version_num FROM alembic_version')"
+assert_eq "alembic revision back to the installed head" "${BASE_REV}" "$(psql_app 'SELECT version_num FROM alembic_version')"
 assert "server healthy after manual revert" health_json
 
 # ----------------------------------------------------------------------------------------------
