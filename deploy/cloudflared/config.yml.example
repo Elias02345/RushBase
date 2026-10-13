@@ -1,0 +1,27 @@
+# Cloudflare Tunnel for Rushbase (no public IP / cgNAT). Copy to /etc/cloudflared/config.yml.
+# Create the tunnel once with:  cloudflared tunnel create rushbase
+# and route DNS with:           cloudflared tunnel route dns rushbase rushbase.example.com
+#
+# Rushbase listens on 127.0.0.1:8080 (RUSHBASE_PORT). The tunnel connects to it locally, so
+# no inbound port has to be opened. With Docker host networking (docker-compose.hostnet.yml)
+# the same address works.
+#
+# IMPORTANT for the MCP connector (claude.ai): the paths /mcp, /.well-known/* and /oauth/* must
+# not sit behind a Cloudflare WAF challenge, "Bot Fight Mode", Cloudflare Access or a managed
+# rule that blocks non-browser clients. Create a WAF skip rule (or an Access bypass policy) for
+#   (http.request.uri.path eq "/mcp") or
+#   starts_with(http.request.uri.path, "/.well-known/") or
+#   starts_with(http.request.uri.path, "/oauth/")
+# The rest of the site (web UI) may stay behind Access if you want an extra login.
+
+tunnel: <TUNNEL-UUID>
+credentials-file: /etc/cloudflared/<TUNNEL-UUID>.json
+
+ingress:
+  - hostname: rushbase.example.com
+    service: http://127.0.0.1:8080
+    originRequest:
+      connectTimeout: 10s
+      # Streaming responses (MCP, job progress) can be long-lived.
+      keepAliveTimeout: 300s
+  - service: http_status:404

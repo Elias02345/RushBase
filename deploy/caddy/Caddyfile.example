@@ -1,0 +1,25 @@
+# Caddy reverse proxy for Rushbase. Caddy terminates TLS and obtains certificates itself.
+# Copy to /etc/caddy/Caddyfile (or import it) and replace the host name.
+#
+# Rushbase listens on 127.0.0.1:8080 (RUSHBASE_PORT). Do not expose that port directly.
+#
+# MCP (claude.ai connector) needs /mcp, /.well-known/* and /oauth/* to be reachable by the
+# connector without any bot challenge, WAF rule or additional authentication layer in front.
+
+rushbase.example.com {
+	encode zstd gzip
+
+	# Long-lived streaming responses (MCP over HTTP, job progress) must not be buffered.
+	reverse_proxy 127.0.0.1:8080 {
+		flush_interval -1
+		transport http {
+			read_timeout 300s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+	}
+}
