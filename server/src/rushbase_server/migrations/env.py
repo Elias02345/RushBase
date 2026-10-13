@@ -5,14 +5,15 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine
 
+from rushbase_server.models import Base
 from rushbase_server.settings import Settings
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-# No ORM models yet (M1 adds them); migrations are written by hand.
-target_metadata = None
+# Migrations are hand-reviewed; the metadata only feeds `alembic revision --autogenerate`.
+target_metadata = Base.metadata
 
 
 def run_migrations_online() -> None:
