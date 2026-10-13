@@ -1,12 +1,398 @@
 {
   "components": {
     "schemas": {
+      "BackupInfoOut": {
+        "description": "A backup file.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "size",
+          "created_at",
+          "kind"
+        ],
+        "title": "BackupInfoOut",
+        "type": "object"
+      },
+      "BackupOut": {
+        "description": "A backup file offered for restore.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "size",
+          "created_at",
+          "kind"
+        ],
+        "title": "BackupOut",
+        "type": "object"
+      },
+      "BatchOut": {
+        "description": "An ingest batch.",
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "first_seen_at": {
+            "format": "date-time",
+            "title": "First Seen At",
+            "type": "string"
+          },
+          "hint_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_path": {
+            "title": "Input Path",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "paused": {
+            "title": "Paused",
+            "type": "boolean"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "input_path",
+          "label",
+          "hint_date",
+          "status",
+          "priority",
+          "paused",
+          "first_seen_at",
+          "completed_at"
+        ],
+        "title": "BatchOut",
+        "type": "object"
+      },
+      "ClaimIn": {
+        "description": "Claim request.",
+        "properties": {
+          "capabilities": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkerCapabilities"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Current capabilities; omitted = keep the stored ones."
+          },
+          "max_jobs": {
+            "default": 1,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Max Jobs",
+            "type": "integer"
+          }
+        },
+        "title": "ClaimIn",
+        "type": "object"
+      },
+      "ClaimOut": {
+        "description": "Claimed jobs (possibly none) and the timing the worker should follow.",
+        "properties": {
+          "heartbeat_seconds": {
+            "title": "Heartbeat Seconds",
+            "type": "number"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobOut"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "lease_seconds": {
+            "title": "Lease Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "jobs",
+          "heartbeat_seconds",
+          "lease_seconds"
+        ],
+        "title": "ClaimOut",
+        "type": "object"
+      },
+      "EnrollIn": {
+        "description": "Enrollment request with the one-time token from the web UI.",
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/WorkerCapabilities"
+          },
+          "hostname": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hostname"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "token": {
+            "maxLength": 200,
+            "minLength": 10,
+            "title": "Token",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "token",
+          "name"
+        ],
+        "title": "EnrollIn",
+        "type": "object"
+      },
+      "EnrollOut": {
+        "description": "The API key is shown exactly once.",
+        "properties": {
+          "api_key": {
+            "title": "Api Key",
+            "type": "string"
+          },
+          "heartbeat_seconds": {
+            "title": "Heartbeat Seconds",
+            "type": "number"
+          },
+          "lease_seconds": {
+            "title": "Lease Seconds",
+            "type": "number"
+          },
+          "library_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          },
+          "worker_id": {
+            "format": "uuid",
+            "title": "Worker Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id",
+          "api_key",
+          "library_id",
+          "heartbeat_seconds",
+          "lease_seconds"
+        ],
+        "title": "EnrollOut",
+        "type": "object"
+      },
+      "EnrollmentIn": {
+        "description": "Request for a one-time enrollment token.",
+        "properties": {
+          "note": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Note",
+            "type": "string"
+          },
+          "ttl_hours": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 720.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ttl Hours"
+          }
+        },
+        "title": "EnrollmentIn",
+        "type": "object"
+      },
+      "EnrollmentOut": {
+        "description": "The token is shown exactly once; it is stored hashed.",
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "token",
+          "expires_at"
+        ],
+        "title": "EnrollmentOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "HealthResponse": {
-        "description": "Result of the health probe.",
+        "description": "Result of the health probe.\n\n``library_mounted`` / ``lease_held`` are ``null`` while no library is bound yet (a fresh\ninstall before the setup wizard ran); that state is healthy and shows ``setup_required``.",
         "properties": {
           "database": {
             "title": "Database",
             "type": "boolean"
+          },
+          "lease_held": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Held"
+          },
+          "library_mounted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Mounted"
+          },
+          "setup_required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup Required"
           },
           "status": {
             "enum": [
@@ -28,6 +414,1159 @@
         ],
         "title": "HealthResponse",
         "type": "object"
+      },
+      "HeartbeatOut": {
+        "description": "New lease expiry.",
+        "properties": {
+          "lease_expires_at": {
+            "format": "date-time",
+            "title": "Lease Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lease_expires_at"
+        ],
+        "title": "HeartbeatOut",
+        "type": "object"
+      },
+      "JobFile": {
+        "description": "A file of the job's asset (paths relative to the library root).",
+        "properties": {
+          "card_structure_root": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Structure Root"
+          },
+          "rel_path": {
+            "title": "Rel Path",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "rel_path",
+          "size",
+          "card_structure_root"
+        ],
+        "title": "JobFile",
+        "type": "object"
+      },
+      "JobOut": {
+        "description": "A leased job.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/JobFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "lease_expires_at": {
+            "format": "date-time",
+            "title": "Lease Expires At",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "upstream": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "description": "Latest successful output per earlier stage of this asset.",
+            "title": "Upstream",
+            "type": "object"
+          }
+        },
+        "required": [
+          "job_id",
+          "asset_id",
+          "stage",
+          "media_type",
+          "attempt",
+          "lease_expires_at",
+          "files",
+          "upstream"
+        ],
+        "title": "JobOut",
+        "type": "object"
+      },
+      "LibraryOut": {
+        "description": "Identifies the library so a worker can verify its mount (``library.json``).",
+        "properties": {
+          "library_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "required": [
+          "library_id",
+          "name"
+        ],
+        "title": "LibraryOut",
+        "type": "object"
+      },
+      "LoginIn": {
+        "description": "Credentials.",
+        "properties": {
+          "password": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginIn",
+        "type": "object"
+      },
+      "LoginOut": {
+        "description": "Result of a successful login. The CSRF token is also set as a cookie.",
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "required": [
+          "user",
+          "csrf_token"
+        ],
+        "title": "LoginOut",
+        "type": "object"
+      },
+      "ModelInfo": {
+        "description": "An installed model for a stage.",
+        "properties": {
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id",
+          "version"
+        ],
+        "title": "ModelInfo",
+        "type": "object"
+      },
+      "PriorityIn": {
+        "description": "New batch priority (higher runs first).",
+        "properties": {
+          "priority": {
+            "maximum": 100.0,
+            "minimum": -100.0,
+            "title": "Priority",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "priority"
+        ],
+        "title": "PriorityIn",
+        "type": "object"
+      },
+      "ReprocessIn": {
+        "description": "Re-enqueue ``stage`` for assets whose latest result is older than ``below_version``.",
+        "properties": {
+          "batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "below_version": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Below Version",
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          }
+        },
+        "required": [
+          "stage",
+          "below_version"
+        ],
+        "title": "ReprocessIn",
+        "type": "object"
+      },
+      "ReprocessOut": {
+        "description": "Assets that received a new job.",
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "enqueued": {
+            "title": "Enqueued",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enqueued",
+          "asset_ids"
+        ],
+        "title": "ReprocessOut",
+        "type": "object"
+      },
+      "ResultIn": {
+        "description": "Outcome of a job.",
+        "properties": {
+          "duration_ms": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "output": {
+            "additionalProperties": true,
+            "title": "Output",
+            "type": "object"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Version"
+          },
+          "retryable": {
+            "default": true,
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "ResultIn",
+        "type": "object"
+      },
+      "ResultOut": {
+        "description": "Whether the result was applied. ``duplicate`` results are ignored safely.",
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "duplicate": {
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "job_state": {
+            "title": "Job State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted",
+          "duplicate",
+          "job_state"
+        ],
+        "title": "ResultOut",
+        "type": "object"
+      },
+      "SetupIn": {
+        "description": "First-run request: creates the admin and initialises or adopts the library.",
+        "properties": {
+          "display_name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "library_name": {
+            "default": "Rushbase",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Library Name",
+            "type": "string"
+          },
+          "locale": {
+            "default": "de",
+            "enum": [
+              "de",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "SetupIn",
+        "type": "object"
+      },
+      "SetupStatus": {
+        "description": "What the setup wizard needs to know.",
+        "properties": {
+          "backups": {
+            "items": {
+              "$ref": "#/components/schemas/BackupOut"
+            },
+            "title": "Backups",
+            "type": "array"
+          },
+          "library_configured": {
+            "title": "Library Configured",
+            "type": "boolean"
+          },
+          "library_initialised": {
+            "title": "Library Initialised",
+            "type": "boolean"
+          },
+          "needs_setup": {
+            "title": "Needs Setup",
+            "type": "boolean"
+          },
+          "restore_available": {
+            "title": "Restore Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "needs_setup",
+          "library_configured",
+          "library_initialised",
+          "restore_available",
+          "backups"
+        ],
+        "title": "SetupStatus",
+        "type": "object"
+      },
+      "Stage": {
+        "description": "Processing stages (``job.stage``).",
+        "enum": [
+          "probe",
+          "hash",
+          "preview",
+          "shots",
+          "audio",
+          "embed",
+          "vision",
+          "classify",
+          "finalize"
+        ],
+        "title": "Stage",
+        "type": "string"
+      },
+      "StageBacklogOut": {
+        "description": "Pending work of one stage.",
+        "properties": {
+          "duration_unknown_jobs": {
+            "title": "Duration Unknown Jobs",
+            "type": "integer"
+          },
+          "jobs": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Jobs",
+            "type": "object"
+          },
+          "pending_bytes": {
+            "title": "Pending Bytes",
+            "type": "integer"
+          },
+          "pending_duration_ms": {
+            "title": "Pending Duration Ms",
+            "type": "integer"
+          },
+          "pending_files": {
+            "title": "Pending Files",
+            "type": "integer"
+          },
+          "pending_jobs": {
+            "title": "Pending Jobs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "jobs",
+          "pending_jobs",
+          "pending_files",
+          "pending_bytes",
+          "pending_duration_ms",
+          "duration_unknown_jobs"
+        ],
+        "title": "StageBacklogOut",
+        "type": "object"
+      },
+      "StagesIn": {
+        "description": "Stages to enable for newly ingested assets.",
+        "properties": {
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "stages"
+        ],
+        "title": "StagesIn",
+        "type": "object"
+      },
+      "StatusOut": {
+        "description": "Backlog and system counters. Available with or without workers online.",
+        "properties": {
+          "assets": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Assets",
+            "type": "object"
+          },
+          "batches": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Batches",
+            "type": "object"
+          },
+          "input_files": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Input Files",
+            "type": "object"
+          },
+          "queue_paused": {
+            "title": "Queue Paused",
+            "type": "boolean"
+          },
+          "stages": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StageBacklogOut"
+            },
+            "title": "Stages",
+            "type": "object"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "workers_online": {
+            "title": "Workers Online",
+            "type": "integer"
+          },
+          "workers_total": {
+            "title": "Workers Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "queue_paused",
+          "stages",
+          "assets",
+          "input_files",
+          "batches",
+          "workers_online",
+          "workers_total"
+        ],
+        "title": "StatusOut",
+        "type": "object"
+      },
+      "TokenCreated": {
+        "description": "A newly created token including its plaintext, shown exactly once.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "scopes",
+          "last_used_at",
+          "revoked_at",
+          "created_at",
+          "token"
+        ],
+        "title": "TokenCreated",
+        "type": "object"
+      },
+      "TokenIn": {
+        "description": "Request for a new personal API token.",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "TokenIn",
+        "type": "object"
+      },
+      "TokenOut": {
+        "description": "Token metadata (the secret is only shown once, in :class:`TokenCreated`).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "scopes",
+          "last_used_at",
+          "revoked_at",
+          "created_at"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "UserCreate": {
+        "description": "Create a user (admin only).",
+        "properties": {
+          "display_name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "locale": {
+            "default": "de",
+            "enum": [
+              "de",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "role": {
+            "default": "viewer",
+            "enum": [
+              "admin",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "UserCreate",
+        "type": "object"
+      },
+      "UserOut": {
+        "description": "A user as shown in the API (never includes the password hash).",
+        "properties": {
+          "disabled": {
+            "title": "Disabled",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          },
+          "locale": {
+            "enum": [
+              "de",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "display_name",
+          "role",
+          "locale",
+          "disabled",
+          "last_login_at"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserUpdate": {
+        "description": "Partial user update (admin only).",
+        "properties": {
+          "disabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "admin",
+                  "editor",
+                  "viewer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "title": "UserUpdate",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WorkerCapabilities": {
+        "additionalProperties": false,
+        "description": "Capabilities a worker reports at enrollment and with every claim.",
+        "properties": {
+          "backends": {
+            "description": "cuda, vulkan, ...",
+            "items": {
+              "type": "string"
+            },
+            "title": "Backends",
+            "type": "array"
+          },
+          "models": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ModelInfo"
+            },
+            "description": "Per stage.",
+            "title": "Models",
+            "type": "object"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "ram_mb": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ram Mb"
+          },
+          "stages": {
+            "description": "Enabled stages.",
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "vram_mb": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vram Mb"
+          }
+        },
+        "title": "WorkerCapabilities",
+        "type": "object"
+      },
+      "WorkerOut": {
+        "description": "A registered worker.",
+        "properties": {
+          "capabilities": {
+            "additionalProperties": true,
+            "title": "Capabilities",
+            "type": "object"
+          },
+          "current_job_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Job Id"
+          },
+          "hostname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hostname"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "last_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Stage"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "online": {
+            "title": "Online",
+            "type": "boolean"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hostname",
+          "platform",
+          "version",
+          "status",
+          "online",
+          "last_seen_at",
+          "last_stage",
+          "current_job_id",
+          "capabilities"
+        ],
+        "title": "WorkerOut",
+        "type": "object"
       }
     }
   },
@@ -37,8 +1576,1057 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/backups": {
+      "get": {
+        "description": "List backups on the share, newest first.",
+        "operationId": "list_backups_api_v1_admin_backups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BackupInfoOut"
+                  },
+                  "title": "Response List Backups Api V1 Admin Backups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Backups",
+        "tags": [
+          "admin",
+          "backup"
+        ]
+      },
+      "post": {
+        "description": "Create a backup now.",
+        "operationId": "create_backup_api_v1_admin_backups_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create Backup",
+        "tags": [
+          "admin",
+          "backup"
+        ]
+      }
+    },
+    "/api/v1/admin/batches": {
+      "get": {
+        "description": "List batches, oldest first.",
+        "operationId": "list_batches_api_v1_admin_batches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BatchOut"
+                  },
+                  "title": "Response List Batches Api V1 Admin Batches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Batches",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/batches/{batch_id}/pause": {
+      "post": {
+        "description": "Pause one batch.",
+        "operationId": "pause_batch_api_v1_admin_batches__batch_id__pause_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pause Batch",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/batches/{batch_id}/priority": {
+      "put": {
+        "description": "Set a batch priority; open jobs of the batch are re-prioritised.",
+        "operationId": "set_priority_api_v1_admin_batches__batch_id__priority_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PriorityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Priority",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/batches/{batch_id}/resume": {
+      "post": {
+        "description": "Resume one batch.",
+        "operationId": "resume_batch_api_v1_admin_batches__batch_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Batch",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/enrollment-tokens": {
+      "post": {
+        "description": "Create a token a new worker exchanges for its own API key.",
+        "operationId": "create_enrollment_token_api_v1_admin_enrollment_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollmentIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a one-time worker enrollment token",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/pipeline/stages": {
+      "put": {
+        "description": "Choose which stages newly ingested assets get (``finalize`` is always included).",
+        "operationId": "set_stages_api_v1_admin_pipeline_stages_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StagesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Stages",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/queue/pause": {
+      "post": {
+        "description": "Stop handing out jobs (running jobs finish).",
+        "operationId": "pause_queue_api_v1_admin_queue_pause_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pause Queue",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/queue/resume": {
+      "post": {
+        "description": "Hand out jobs again.",
+        "operationId": "resume_queue_api_v1_admin_queue_resume_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Resume Queue",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/reprocess": {
+      "post": {
+        "description": "Re-enqueue a stage for assets whose latest result has an older model version.",
+        "operationId": "reprocess_api_v1_admin_reprocess_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReprocessIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReprocessOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reprocess",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "description": "List all users.",
+        "operationId": "list_users_api_v1_admin_users_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserOut"
+                  },
+                  "title": "Response List Users Api V1 Admin Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Users",
+        "tags": [
+          "auth",
+          "admin"
+        ]
+      },
+      "post": {
+        "description": "Create a user with the given role.",
+        "operationId": "create_user_api_v1_admin_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create User",
+        "tags": [
+          "auth",
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}": {
+      "patch": {
+        "description": "Change role, disabled flag, display name or password of a user.",
+        "operationId": "update_user_api_v1_admin_users__user_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update User",
+        "tags": [
+          "auth",
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/workers": {
+      "get": {
+        "description": "List all workers with their liveness (``online`` = seen recently).",
+        "operationId": "list_workers_api_v1_admin_workers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkerOut"
+                  },
+                  "title": "Response List Workers Api V1 Admin Workers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List workers",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/workers/{worker_id}/revoke": {
+      "post": {
+        "description": "Revoke a worker's API keys and mark it offline; its leases expire normally.",
+        "operationId": "revoke_worker_api_v1_admin_workers__worker_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "worker_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Worker Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Worker",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Verify credentials, rate-limited per client address and per user name.",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sign in",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Delete the current session and clear the cookies.",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sign out",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Return the signed-in user.",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/setup": {
+      "get": {
+        "description": "Report whether setup is needed and whether a backup can be restored instead.",
+        "operationId": "setup_status_api_v1_setup_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "First-run status",
+        "tags": [
+          "auth"
+        ]
+      },
+      "post": {
+        "description": "Only works while no user exists. Logs the new admin in.",
+        "operationId": "setup_api_v1_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create the first admin and initialise (or adopt) the library",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "description": "Backlog per stage (jobs, files, bytes, media duration), assets, inputs and workers.",
+        "operationId": "system_status_api_v1_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "System Status",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/tokens": {
+      "get": {
+        "description": "List the signed-in user's personal API tokens.",
+        "operationId": "list_tokens_api_v1_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TokenOut"
+                  },
+                  "title": "Response List Tokens Api V1 Tokens Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Tokens",
+        "tags": [
+          "auth",
+          "tokens"
+        ]
+      },
+      "post": {
+        "description": "Create a personal API token for the signed-in user (stored hashed).",
+        "operationId": "create_token_api_v1_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Token",
+        "tags": [
+          "auth",
+          "tokens"
+        ]
+      }
+    },
+    "/api/v1/tokens/{token_id}": {
+      "delete": {
+        "description": "Revoke one of the caller's tokens (admins may revoke any personal token).",
+        "operationId": "revoke_token_api_v1_tokens__token_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Token Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Token",
+        "tags": [
+          "auth",
+          "tokens"
+        ]
+      }
+    },
+    "/api/v1/worker/claim": {
+      "post": {
+        "description": "Lease up to ``max_jobs`` jobs, preferring the stage this worker ran last.",
+        "operationId": "claim_api_v1_worker_claim_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lease jobs matching the capabilities",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/enroll": {
+      "post": {
+        "description": "Exchange a one-time enrollment token for a worker API key.",
+        "operationId": "enroll_api_v1_worker_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enroll",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/jobs/{job_id}/heartbeat": {
+      "post": {
+        "description": "Extend the lease. 409 ``lease_lost`` means: stop working on this job.",
+        "operationId": "heartbeat_api_v1_worker_jobs__job_id__heartbeat_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Heartbeat",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/jobs/{job_id}/release": {
+      "post": {
+        "description": "Give a job back without an attempt penalty (graceful shutdown).",
+        "operationId": "release_api_v1_worker_jobs__job_id__release_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Release",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/jobs/{job_id}/result": {
+      "post": {
+        "description": "Report success or failure. Repeating the call for a finished job is harmless.",
+        "operationId": "submit_result_api_v1_worker_jobs__job_id__result_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Result",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/library": {
+      "get": {
+        "description": "Return the library id; the worker compares it with its mounted ``library.json``.",
+        "operationId": "library_api_v1_worker_library_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Library id for the mount check",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
     "/health": {
       "get": {
+        "description": "503 when the database is down, the library is unreadable or the lease was lost.",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -62,7 +2650,7 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Liveness and database reachability",
+        "summary": "Liveness, database, library mount and server lease",
         "tags": [
           "system"
         ]
