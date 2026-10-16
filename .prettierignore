@@ -11,3 +11,4 @@ packages/api-client/src/schema.d.ts
 packages/api-client/openapi.json
 *.py
 *.md
+worker/tests/fixtures/
