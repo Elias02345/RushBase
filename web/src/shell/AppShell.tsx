@@ -6,6 +6,7 @@ import {
   ListChecks,
   SearchCheck,
   Tags,
+  ClipboardList,
   LayoutDashboard,
   Library,
   LogOut,
@@ -37,7 +38,15 @@ import { Logo } from "./Logo";
 import { useGlobalShortcuts, type GoTarget } from "./shortcuts";
 
 interface NavItem {
-  to: "/" | "/library" | "/processing" | "/admin" | "/review" | "/golden" | "/admin/taxonomy";
+  to:
+    | "/"
+    | "/library"
+    | "/processing"
+    | "/admin"
+    | "/review"
+    | "/golden"
+    | "/admin/taxonomy"
+    | "/needs";
   icon: LucideIcon;
   label: string;
   admin?: boolean;
@@ -49,6 +58,7 @@ const NAV: NavItem[] = [
   { to: "/library", icon: Library, label: "nav.library" },
   { to: "/review", icon: SearchCheck, label: "nav.review", editor: true },
   { to: "/golden", icon: ListChecks, label: "nav.golden", editor: true },
+  { to: "/needs", icon: ClipboardList, label: "nav.needs" },
   { to: "/processing", icon: Activity, label: "nav.processing" },
   { to: "/admin/taxonomy", icon: Tags, label: "nav.taxonomy", editor: true },
   { to: "/admin", icon: Settings2, label: "nav.admin", admin: true },

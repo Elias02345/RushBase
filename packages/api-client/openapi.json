@@ -215,6 +215,49 @@
         "title": "AiOut",
         "type": "object"
       },
+      "AssetBrief": {
+        "description": "What the UI shows of a candidate asset.",
+        "properties": {
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "poster_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster Url"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "filename",
+          "poster_url",
+          "summary",
+          "media_type"
+        ],
+        "title": "AssetBrief",
+        "type": "object"
+      },
       "AssetDetail": {
         "description": "Everything the detail view shows.",
         "properties": {
@@ -1086,6 +1129,119 @@
         "title": "AudioEventOut",
         "type": "object"
       },
+      "AuditOut": {
+        "description": "One MCP call.",
+        "properties": {
+          "args_hash": {
+            "title": "Args Hash",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "result_chars": {
+            "title": "Result Chars",
+            "type": "integer"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "client_name",
+          "client_id",
+          "tool",
+          "duration_ms",
+          "result_chars",
+          "ok",
+          "error",
+          "args_hash"
+        ],
+        "title": "AuditOut",
+        "type": "object"
+      },
+      "AuditPage": {
+        "description": "A page of audit entries and the filter choices.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "next_offset",
+          "tools"
+        ],
+        "title": "AuditPage",
+        "type": "object"
+      },
       "BackupInfoOut": {
         "description": "A backup file.",
         "properties": {
@@ -1392,6 +1548,120 @@
         "title": "BulkOut",
         "type": "object"
       },
+      "CandidateIn": {
+        "description": "Confirm, reject or add a candidate.",
+        "properties": {
+          "shot_idx": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Idx"
+          },
+          "status": {
+            "enum": [
+              "candidate",
+              "confirmed",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "CandidateIn",
+        "type": "object"
+      },
+      "CandidateOut": {
+        "description": "An asset (or shot) that may fulfil an item.",
+        "properties": {
+          "asset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssetBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "shot_idx": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Idx"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "asset_id",
+          "shot_idx",
+          "score",
+          "status",
+          "source"
+        ],
+        "title": "CandidateOut",
+        "type": "object"
+      },
+      "CandidateResult": {
+        "description": "Candidate after a decision, with the resulting item status.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_status": {
+            "title": "Item Status",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "item_status"
+        ],
+        "title": "CandidateResult",
+        "type": "object"
+      },
       "CapabilitiesOut": {
         "description": "What search can do right now (it never fails; it degrades).",
         "properties": {
@@ -1474,6 +1744,81 @@
           "lease_seconds"
         ],
         "title": "ClaimOut",
+        "type": "object"
+      },
+      "ClientOut": {
+        "description": "A connected OAuth client.",
+        "properties": {
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grants": {
+            "title": "Grants",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "client_id",
+          "scopes",
+          "grants",
+          "created_at",
+          "last_used_at",
+          "revoked_at"
+        ],
+        "title": "ClientOut",
         "type": "object"
       },
       "CollectionIn": {
@@ -2614,6 +2959,14 @@
           "version": {
             "title": "Version",
             "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
           }
         },
         "required": [
@@ -2663,6 +3016,160 @@
           "details"
         ],
         "title": "HistoryOut",
+        "type": "object"
+      },
+      "ItemIn": {
+        "description": "A wanted shot.",
+        "properties": {
+          "count_wanted": {
+            "default": 1,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Count Wanted",
+            "type": "integer"
+          },
+          "description": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/MediaFilters"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "ItemIn",
+        "type": "object"
+      },
+      "ItemOut": {
+        "description": "A wanted shot with its candidates.",
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateOut"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "integer"
+          },
+          "count_wanted": {
+            "title": "Count Wanted",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "filters",
+          "count_wanted",
+          "status",
+          "confirmed",
+          "candidates"
+        ],
+        "title": "ItemOut",
+        "type": "object"
+      },
+      "ItemPatch": {
+        "description": "Changes to an item.",
+        "properties": {
+          "count_wanted": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count Wanted"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaFilters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "fulfilled",
+                  "dropped"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "ItemPatch",
+        "type": "object"
+      },
+      "ItemStatus": {
+        "description": "Item after an edit.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "ItemStatus",
         "type": "object"
       },
       "JobFile": {
@@ -2991,6 +3498,262 @@
         "title": "LoginOut",
         "type": "object"
       },
+      "McpStatus": {
+        "description": "Connector status and settings.",
+        "properties": {
+          "clients": {
+            "items": {
+              "$ref": "#/components/schemas/ClientOut"
+            },
+            "title": "Clients",
+            "type": "array"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "extra_redirect_uris": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extra Redirect Uris",
+            "type": "array"
+          },
+          "mcp_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcp Url"
+          },
+          "public_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Url"
+          },
+          "rate_limit_per_minute": {
+            "title": "Rate Limit Per Minute",
+            "type": "integer"
+          },
+          "tools": {
+            "title": "Tools",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "public_url",
+          "mcp_url",
+          "warnings",
+          "rate_limit_per_minute",
+          "extra_redirect_uris",
+          "tools",
+          "clients"
+        ],
+        "title": "McpStatus",
+        "type": "object"
+      },
+      "MediaFilters": {
+        "additionalProperties": false,
+        "description": "Filters shared by search, counts, coverage and needs items (all optional).",
+        "properties": {
+          "camera_angle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Angle"
+          },
+          "camera_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Model"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Capture date, inclusive.",
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Capture date, inclusive.",
+            "title": "Date To"
+          },
+          "interior_exterior": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interior Exterior"
+          },
+          "lens_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lens Model"
+          },
+          "log_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Log Profile"
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "video",
+                  "photo",
+                  "audio"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "landscape",
+                  "portrait",
+                  "square"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orientation"
+          },
+          "review_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "none",
+                  "pending",
+                  "done"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review State"
+          },
+          "shot_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Size"
+          },
+          "tags": {
+            "description": "Taxonomy filters `field:value`, e.g. `location:harbour`. Values of one field are alternatives, different fields combine with AND. See `taxonomy_list`.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Tags",
+            "type": "array"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          }
+        },
+        "title": "MediaFilters",
+        "type": "object"
+      },
       "MergeIn": {
         "description": "Merge target.",
         "properties": {
@@ -3038,6 +3801,208 @@
           "version"
         ],
         "title": "ModelInfo",
+        "type": "object"
+      },
+      "NeedDetail": {
+        "description": "A needs list with items and candidates.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "purpose",
+          "status",
+          "created_by",
+          "created_at",
+          "items"
+        ],
+        "title": "NeedDetail",
+        "type": "object"
+      },
+      "NeedIn": {
+        "description": "New needs list.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemIn"
+            },
+            "maxItems": 50,
+            "title": "Items",
+            "type": "array"
+          },
+          "purpose": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "NeedIn",
+        "type": "object"
+      },
+      "NeedPage": {
+        "description": "One page of lists.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NeedSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          }
+        },
+        "required": [
+          "items",
+          "next_offset"
+        ],
+        "title": "NeedPage",
+        "type": "object"
+      },
+      "NeedPatch": {
+        "description": "Changes to a list.",
+        "properties": {
+          "purpose": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "NeedPatch",
+        "type": "object"
+      },
+      "NeedSummary": {
+        "description": "List with counts.",
+        "properties": {
+          "candidates": {
+            "title": "Candidates",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Items",
+            "type": "object"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "purpose",
+          "status",
+          "created_at",
+          "items",
+          "candidates"
+        ],
+        "title": "NeedSummary",
         "type": "object"
       },
       "PriorityIn": {
@@ -3239,6 +4204,24 @@
           "moved"
         ],
         "title": "QuarantineItem",
+        "type": "object"
+      },
+      "RedirectsIn": {
+        "description": "Admin-configured extra redirect URIs (exact match, https or loopback).",
+        "properties": {
+          "uris": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Uris",
+            "type": "array"
+          }
+        },
+        "required": [
+          "uris"
+        ],
+        "title": "RedirectsIn",
         "type": "object"
       },
       "ReembedOut": {
@@ -6009,6 +6992,202 @@
         ]
       }
     },
+    "/api/v1/admin/mcp": {
+      "get": {
+        "description": "Public URL, connector URL, connected clients and settings.",
+        "operationId": "mcp_status_api_v1_admin_mcp_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "MCP connector status",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/mcp/audit": {
+      "get": {
+        "description": "Newest first; filter by client and tool.",
+        "operationId": "mcp_audit_api_v1_admin_mcp_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Client Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tool",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tool"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "MCP call log",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/mcp/clients/{client_pk}/revoke": {
+      "post": {
+        "description": "Revoke the client and every token it holds.",
+        "operationId": "revoke_client_api_v1_admin_mcp_clients__client_pk__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "client_pk",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Client Pk",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Client",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/mcp/redirect-uris": {
+      "put": {
+        "description": "Replace the extra redirect URIs (clients still have to register them).",
+        "operationId": "put_redirect_uris_api_v1_admin_mcp_redirect_uris_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedirectsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Put Redirect Uris Api V1 Admin Mcp Redirect Uris Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Redirect Uris",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/pipeline/stages": {
       "put": {
         "description": "Choose which stages newly ingested assets get (``finalize`` is always included).",
@@ -8636,6 +9815,395 @@
         "summary": "Golden Stats",
         "tags": [
           "golden"
+        ]
+      }
+    },
+    "/api/v1/needs": {
+      "get": {
+        "description": "Lists newest first with item states and the number of open candidates.",
+        "operationId": "list_needs_api_v1_needs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "closed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List needs lists",
+        "tags": [
+          "needs"
+        ]
+      },
+      "post": {
+        "description": "Create a list with optional items.",
+        "operationId": "create_need_api_v1_needs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a needs list",
+        "tags": [
+          "needs"
+        ]
+      }
+    },
+    "/api/v1/needs/items/{item_id}": {
+      "patch": {
+        "description": "Change description, filters, wanted count or status.",
+        "operationId": "patch_item_api_v1_needs_items__item_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit an item",
+        "tags": [
+          "needs"
+        ]
+      }
+    },
+    "/api/v1/needs/items/{item_id}/candidates/{asset_id}": {
+      "put": {
+        "description": "Human decision on a candidate (source `human`).",
+        "operationId": "put_candidate_api_v1_needs_items__item_id__candidates__asset_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm, reject or add a candidate",
+        "tags": [
+          "needs"
+        ]
+      }
+    },
+    "/api/v1/needs/{need_id}": {
+      "get": {
+        "description": "Items with candidates, each with file name and poster for display.",
+        "operationId": "get_need_api_v1_needs__need_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "need_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Need Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Needs list with items and candidates",
+        "tags": [
+          "needs"
+        ]
+      },
+      "patch": {
+        "description": "Rename, change the purpose, close or reopen.",
+        "operationId": "patch_need_api_v1_needs__need_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "need_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Need Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit or close a list",
+        "tags": [
+          "needs"
+        ]
+      }
+    },
+    "/api/v1/needs/{need_id}/items": {
+      "post": {
+        "description": "Append wanted shots to a list.",
+        "operationId": "add_items_api_v1_needs__need_id__items_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "need_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Need Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/ItemIn"
+                },
+                "title": "Body",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add items",
+        "tags": [
+          "needs"
         ]
       }
     },

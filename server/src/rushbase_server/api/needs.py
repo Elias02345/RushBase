@@ -74,6 +74,66 @@ class NeedPage(BaseModel):
     next_offset: int | None
 
 
+class AssetBrief(BaseModel):
+    """What the UI shows of a candidate asset."""
+
+    filename: str
+    poster_url: str | None
+    summary: str | None
+    media_type: str
+
+
+class CandidateOut(BaseModel):
+    """An asset (or shot) that may fulfil an item."""
+
+    id: UUID
+    asset_id: UUID
+    shot_idx: int | None
+    score: float
+    status: str
+    source: str
+    asset: AssetBrief | None = None
+
+
+class ItemOut(BaseModel):
+    """A wanted shot with its candidates."""
+
+    id: UUID
+    description: str
+    filters: dict[str, Any]
+    count_wanted: int
+    status: str
+    confirmed: int
+    candidates: list[CandidateOut]
+
+
+class NeedDetail(BaseModel):
+    """A needs list with items and candidates."""
+
+    id: UUID
+    title: str
+    purpose: str
+    status: str
+    created_by: str
+    created_at: str
+    items: list[ItemOut]
+
+
+class ItemStatus(BaseModel):
+    """Item after an edit."""
+
+    id: UUID
+    status: str
+
+
+class CandidateResult(BaseModel):
+    """Candidate after a decision, with the resulting item status."""
+
+    id: UUID
+    status: str
+    item_status: str
+
+
 def _convert(item: ItemIn) -> tuple[str, dict[str, Any], int]:
     return item.description, item.filters.model_dump(mode="json"), item.count_wanted
 
@@ -97,7 +157,9 @@ async def list_needs(
     )
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create a needs list")
+@router.post(
+    "", response_model=NeedDetail, status_code=status.HTTP_201_CREATED, summary="Create a needs list"
+)
 async def create_need(body: NeedIn, editor: EditorDep, db: DbDep) -> dict[str, Any]:
     """Create a list with optional items."""
     need = await needs.create_list(
@@ -107,7 +169,9 @@ async def create_need(body: NeedIn, editor: EditorDep, db: DbDep) -> dict[str, A
     return await needs.detail(db, need.id)
 
 
-@router.get("/{need_id}", summary="Needs list with items and candidates")
+@router.get(
+    "/{need_id}", response_model=NeedDetail, summary="Needs list with items and candidates"
+)
 async def get_need(need_id: UUID, _: ViewerDep, db: DbDep) -> dict[str, Any]:
     """Items with candidates, each with file name and poster for display."""
     try:
@@ -135,7 +199,7 @@ async def get_need(need_id: UUID, _: ViewerDep, db: DbDep) -> dict[str, Any]:
     return data
 
 
-@router.patch("/{need_id}", summary="Edit or close a list")
+@router.patch("/{need_id}", response_model=NeedDetail, summary="Edit or close a list")
 async def patch_need(
     need_id: UUID, body: NeedPatch, editor: EditorDep, request: Request, db: DbDep
 ) -> dict[str, Any]:
@@ -160,7 +224,12 @@ async def patch_need(
     return await needs.detail(db, need_id)
 
 
-@router.post("/{need_id}/items", status_code=status.HTTP_201_CREATED, summary="Add items")
+@router.post(
+    "/{need_id}/items",
+    response_model=NeedDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add items",
+)
 async def add_items(need_id: UUID, body: list[ItemIn], _: EditorDep, db: DbDep) -> dict[str, Any]:
     """Append wanted shots to a list."""
     try:
@@ -172,8 +241,8 @@ async def add_items(need_id: UUID, body: list[ItemIn], _: EditorDep, db: DbDep) 
     return await needs.detail(db, need_id)
 
 
-@router.patch("/items/{item_id}", summary="Edit an item")
-async def patch_item(item_id: UUID, body: ItemPatch, _: EditorDep, db: DbDep) -> dict[str, str]:
+@router.patch("/items/{item_id}", response_model=ItemStatus, summary="Edit an item")
+async def patch_item(item_id: UUID, body: ItemPatch, _: EditorDep, db: DbDep) -> ItemStatus:
     """Change description, filters, wanted count or status."""
     try:
         item = await needs.load_item(db, item_id)
@@ -185,13 +254,17 @@ async def patch_item(item_id: UUID, body: ItemPatch, _: EditorDep, db: DbDep) ->
     for name, value in data.items():
         setattr(item, name, value)
     await db.commit()
-    return {"id": str(item.id), "status": item.status}
+    return ItemStatus(id=item.id, status=item.status)
 
 
-@router.put("/items/{item_id}/candidates/{asset_id}", summary="Confirm, reject or add a candidate")
+@router.put(
+    "/items/{item_id}/candidates/{asset_id}",
+    response_model=CandidateResult,
+    summary="Confirm, reject or add a candidate",
+)
 async def put_candidate(
     item_id: UUID, asset_id: UUID, body: CandidateIn, _: EditorDep, db: DbDep
-) -> dict[str, str]:
+) -> CandidateResult:
     """Human decision on a candidate (source `human`)."""
     try:
         item = await needs.load_item(db, item_id)
@@ -199,4 +272,4 @@ async def put_candidate(
     except needs.NeedsError as exc:
         raise _guard(exc) from exc
     await db.commit()
-    return {"id": str(row.id), "status": row.status, "item_status": item.status}
+    return CandidateResult(id=row.id, status=row.status, item_status=item.status)

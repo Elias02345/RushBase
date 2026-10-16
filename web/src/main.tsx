@@ -3,6 +3,7 @@ import "@fontsource-variable/jetbrains-mono";
 import "@rushbase/ui/styles.css";
 import "./styles/app.css";
 import "./styles/ai.css";
+import "./styles/needs.css";
 import "./i18n";
 
 import { RouterProvider } from "@tanstack/react-router";

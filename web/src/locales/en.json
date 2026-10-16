@@ -31,7 +31,8 @@
     "pending_other": "{{count}} open jobs",
     "review": "Review",
     "golden": "Golden set",
-    "taxonomy": "Taxonomy"
+    "taxonomy": "Taxonomy",
+    "needs": "Needs"
   },
   "theme": {
     "system": "Theme: system (click to change)",
@@ -482,7 +483,8 @@
       "rules": "Filing rules",
       "settings": "Settings",
       "backups": "Backups",
-      "search": "Search"
+      "search": "Search",
+      "mcp": "MCP / Claude"
     },
     "users": {
       "title": "Users",
@@ -751,5 +753,102 @@
     "eval": "Evaluation",
     "runEval": "Run evaluation",
     "runSummary": "{{labels}} labels, accuracy {{accuracy}}"
+  },
+  "needs": {
+    "heading": "Needs lists",
+    "lead": "Footage you still need. New material that fits is attached as a candidate; nobody is notified.",
+    "create": "New needs list",
+    "createConfirm": "Create",
+    "title": "Title",
+    "purpose": "Purpose",
+    "itemsHint": "Wanted shots, one per line",
+    "status": "Status of the lists",
+    "open": "Open",
+    "closed": "Closed",
+    "lists": "Needs lists",
+    "counts": "{{items}} items · {{candidates}} candidates",
+    "emptyTitle": "No needs lists",
+    "emptyText": "Create one here, or ask Claude to collect what is missing for a project.",
+    "pick": "Pick a list to see its items and candidates.",
+    "close": "Close list",
+    "reopen": "Reopen list",
+    "createdBy": "Created by {{who}}",
+    "creator": {
+      "user": "a person",
+      "mcp": "Claude"
+    },
+    "items": "Items",
+    "noItems": "This list has no items yet.",
+    "itemStatus": "Item status",
+    "itemState": {
+      "open": "open",
+      "fulfilled": "fulfilled",
+      "dropped": "dropped"
+    },
+    "progress": "{{done}} of {{wanted}} confirmed",
+    "candidates": "Candidates",
+    "noCandidates": "No candidates yet.",
+    "candidateStatus": {
+      "candidate": "candidate",
+      "confirmed": "confirmed",
+      "rejected": "rejected"
+    },
+    "source": {
+      "auto": "automatic",
+      "claude": "Claude",
+      "human": "person"
+    },
+    "confirm": "Confirm",
+    "reject": "Reject"
+  },
+  "mcp": {
+    "connector": {
+      "title": "Connector for claude.ai",
+      "lead": "Add this address in claude.ai under Settings > Connectors > Add custom connector.",
+      "copy": "Copy",
+      "copied": "Connector URL copied",
+      "missing": "MCP is switched off: RUSHBASE_PUBLIC_URL is not set. Set it to the public https address of this server and restart.",
+      "limits": "{{tools}} tools, no tool deletes or moves files. Rate limit: {{rate}} calls per minute and client."
+    },
+    "guide": {
+      "one": "Make the address reachable over the internet via HTTPS (reverse proxy, tunnel).",
+      "two": "In claude.ai open Settings > Connectors > Add custom connector and enter {{url}}.",
+      "three": "Sign in with your Rushbase account on the consent page and allow the scopes.",
+      "four": "Revoke access here at any time; the call log below shows what Claude did.",
+      "paths": "The paths /mcp, /.well-known/* and /oauth/* must not be blocked by a firewall or login wall."
+    },
+    "clients": {
+      "title": "Connected clients",
+      "name": "Client",
+      "scopes": "Scopes",
+      "lastUsed": "Last used",
+      "never": "never",
+      "state": "State",
+      "grants": "{{count}} active",
+      "revoked": "revoked",
+      "revoke": "Revoke",
+      "revokedToast": "Access revoked",
+      "empty": "No client has connected yet."
+    },
+    "redirects": {
+      "title": "Extra redirect URIs",
+      "lead": "claude.ai and local loopback addresses are always allowed. Add further https callback URLs here, one per line.",
+      "label": "Redirect URIs",
+      "saved": "Saved",
+      "invalid": "Only https URLs are allowed."
+    },
+    "audit": {
+      "title": "Call log",
+      "client": "Client",
+      "tool": "Tool",
+      "all": "All",
+      "at": "Time",
+      "duration": "Duration",
+      "size": "Characters",
+      "result": "Result",
+      "ok": "ok",
+      "failed": "failed",
+      "empty": "No calls recorded."
+    }
   }
 }
