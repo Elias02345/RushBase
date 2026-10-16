@@ -73,6 +73,41 @@ jobs:
       - name: Build
         run: pnpm --filter @rushbase/web build
 
+  desktop-rust:
+    # The Tauri shell: clippy and unit tests (the sidecar is a stub here; installers: desktop.yml).
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: System libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev libsoup-3.0-dev patchelf
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+      - name: Frontend build and sidecar stub (tauri-build validates both)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @rushbase/desktop build
+          triple="$(rustc -vV | sed -n 's/^host: //p')"
+          printf '#!/bin/sh\nexit 2\n' > "desktop/src-tauri/binaries/rushbase-${triple}"
+          chmod +x "desktop/src-tauri/binaries/rushbase-${triple}"
+      - run: cargo fmt --check
+        working-directory: desktop/src-tauri
+      - run: cargo clippy --all-targets -- -D warnings
+        working-directory: desktop/src-tauri
+      - run: cargo test
+        working-directory: desktop/src-tauri
+
   e2e:
     # Playwright against a production build served with the in-browser mock API.
     runs-on: ubuntu-latest
@@ -118,7 +153,7 @@ jobs:
       - name: ShellCheck
         run: |
           docker run --rm -v "$PWD:/mnt:ro" -w /mnt koalaman/shellcheck:stable -x -s bash \
-            install.sh update.sh revert-update.sh doctor.sh scripts/*.sh scripts/lib/*.sh deploy/test/guest-test.sh
+            install.sh update.sh revert-update.sh doctor.sh scripts/*.sh scripts/lib/*.sh deploy/test/guest-test.sh desktop/scripts/*.sh
 
   sandbox:
     # Full installer/updater/rollback/watchdog/doctor run inside a systemd container (slow).

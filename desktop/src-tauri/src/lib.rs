@@ -146,8 +146,21 @@ fn startup_check(handle: AppHandle) {
     });
 }
 
+/// webkit2gtk renders a blank window on Wayland with the proprietary NVIDIA driver unless its
+/// DMA-BUF renderer is off. Only set when the user has not chosen (docs/companion.md).
+fn apply_linux_webkit_workarounds() {
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none()
+        && system::is_wayland()
+        && std::path::Path::new("/proc/driver/nvidia").exists()
+    {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+}
+
 /// Build and run the application.
 pub fn run() {
+    apply_linux_webkit_workarounds();
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             tray::show_main(app)

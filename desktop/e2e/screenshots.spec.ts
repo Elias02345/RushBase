@@ -18,7 +18,9 @@ for (const scheme of ["light", "dark"] as const) {
   test(`processor running (${scheme})`, async ({ page }) => {
     await open(page, "running", scheme);
     await expect(page.getByRole("button", { name: /Pause \/ Stopp/ })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/[3-9] von 828 Aufträgen/, { timeout: 10_000 });
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/[3-9] von 828 Aufträgen/, {
+      timeout: 10_000,
+    });
     await page.screenshot({ path: `${OUT}/desktop-processor-running-${scheme}.png` });
   });
 
@@ -33,7 +35,10 @@ for (const scheme of ["light", "dark"] as const) {
     await page.getByRole("button", { name: "Bibliothek" }).click();
     await expect(page.getByRole("button", { name: /A001_C001\.mov/ }).first()).toBeVisible();
     await page.screenshot({ path: `${OUT}/desktop-library-${scheme}.png` });
-    await page.getByRole("button", { name: /A001_C001\.mov/ }).first().click();
+    await page
+      .getByRole("button", { name: /A001_C001\.mov/ })
+      .first()
+      .click();
     await expect(page.getByText("Szenen", { exact: true })).toBeVisible();
     await page.screenshot({ path: `${OUT}/desktop-library-detail-${scheme}.png` });
   });

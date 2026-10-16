@@ -8,9 +8,33 @@
 | M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | **done** — real UI against the real server, full-text search, real-stack E2E (`make e2e-real`) |
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
-| M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | planned |
+| M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | **done on Linux** — Windows/macOS builds and real Resolve untested (`docs/companion.md`) |
 | Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
 | M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
+
+## M6 companion
+
+Branch `feature/m6-companion`. Full guide: `docs/companion.md`; CLI contract: `docs/cli-json.md`.
+
+- **Worker library/CLI** (`worker/src/rushbase_worker/companion/`, `cli_companion.py`): `login`, `search`,
+  `browse`, `filters`, `asset get`, `select ...`, `paths resolve`, `export fcpxml|edl|csv`,
+  `resolve status|send|selftest`, `overview`, `mcp serve`; `process` records per-stage throughput for
+  the duration estimate.
+- **Local MCP server** (official `mcp` SDK 2.3.0, `MCPServer`): 18 tools, stdio and bearer-protected
+  streamable HTTP; tested with the SDK client in memory and over real stdio.
+- **Resolve** (ADR-0002): bridge script run by `ResolvePython`, tested against a stateful fake
+  `DaVinciResolveScript`. **Not run against a real Resolve**; `resolve selftest` exists for the owner.
+- **Desktop app** (`desktop/`, Tauri 2.12.4): Processor (backlog, hardware, one-click run, live
+  progress, graceful release, stop time, idle-only, GPU temperature guard), first-run wizard, Library
+  (search, filters, local playback, selection, exports, Send to Resolve), tray, autostart (off), updater
+  (off until keys exist). Worker as a PyInstaller sidecar (`desktop/scripts/build-sidecar.sh`).
+- **Packaging**: `.github/workflows/desktop.yml` (Windows, macOS universal, Linux), `deploy/aur`,
+  `deploy/docker/worker.Dockerfile` (cpu, cuda, vulkan, rocm).
+- **Screenshots**: `docs/screenshots/desktop-*.png` (mock host, Playwright).
+
+Open: Windows and macOS builds (CI only), graceful stop on Windows (`taskkill` without `/F`, the
+lease expires otherwise), real-Resolve verification of marker frame offsets and metadata key names,
+FCPXML against Apple's DTD, Wayland drag-out (hidden by design), a model benchmark in the wizard.
 
 ## M4 worker (AI stages)
 

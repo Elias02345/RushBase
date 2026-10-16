@@ -56,6 +56,16 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | MSW (Mock Service Worker) | mock API for demos and tests | MIT |
 | Playwright (@playwright/test), @axe-core/playwright | browser tests, accessibility checks | Apache-2.0, MPL-2.0 |
 
+## Companion app (desktop, Rust)
+
+| Crate / package | Use | Licence |
+| --- | --- | --- |
+| Tauri 2 (`tauri`, `tauri-build`, `@tauri-apps/api`, `@tauri-apps/cli`) | app shell | Apache-2.0 / MIT |
+| tauri-plugin-autostart, -updater, -dialog, -opener, -single-instance | platform integration | Apache-2.0 / MIT |
+| tauri-plugin-drag (`@crabnebula/tauri-plugin-drag`) | drag files out | Apache-2.0 / MIT |
+| serde, serde_json, shlex, libc, windows-sys | Rust helpers | MIT / Apache-2.0 |
+| PyInstaller | freezes the `rushbase` sidecar (build time only) | GPL-2.0-or-later with the bootloader exception |
+
 ## External tools and images (not bundled in the repository)
 
 | Software | Use | Licence |
