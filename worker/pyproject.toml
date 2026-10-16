@@ -18,7 +18,13 @@ dependencies = [
   "rawpy>=0.23",
   "opencv-python-headless>=4.10",
   "scenedetect==0.6.6",
+  "onnxruntime>=1.23",
+  "tokenizers>=0.21",
 ]
+
+[project.optional-dependencies]
+gpu = ["onnxruntime-gpu>=1.23"]
+nvml = ["nvidia-ml-py>=12"]
 
 [project.scripts]
 rushbase = "rushbase_worker.cli:app"
@@ -29,3 +35,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rushbase_worker"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"binaries.lock.json" = "rushbase_worker/data/binaries.lock.json"
+"models.lock.json" = "rushbase_worker/data/models.lock.json"

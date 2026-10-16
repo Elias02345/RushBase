@@ -11,6 +11,8 @@ from rushbase_core import Stage, relative_to_root, resolve_in_root
 from rushbase_core.layout import DERIVED_DIR, SYSTEM_DIR
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.models import Job
+from rushbase_worker.runtimes.manager import Runtimes
+from rushbase_worker.taxonomy import TaxonomySource
 from rushbase_worker.tools.toolbox import Toolbox
 
 
@@ -28,6 +30,8 @@ class Requirements:
 
     tools: tuple[str, ...] = ()
     gpu: bool = False
+    ai: bool = False
+    """AI stage: advertised only when its backends and models are installed (or downloadable)."""
 
 
 @dataclass(frozen=True)
@@ -39,6 +43,16 @@ class StageContext:
     library_root: Path
     output_root: Path | None = None
     """Where ``.rushbase/derived`` lives; ``None`` = the library root (set by `analyze`)."""
+    runtimes: Runtimes | None = None
+    """Inference runtimes (AI stages only)."""
+    taxonomy: TaxonomySource | None = None
+    """Approved taxonomy snapshot source (vision and classify)."""
+
+    def need_runtimes(self) -> Runtimes:
+        """The AI runtimes; a missing container is a deterministic setup error."""
+        if self.runtimes is None:
+            raise StageError("AI runtimes are not configured for this run", retryable=False)
+        return self.runtimes
 
     def source(self, rel_path: str) -> Path:
         """Local path of a library-relative file."""

@@ -1,0 +1,335 @@
+{
+  "schema": 1,
+  "models": {
+    "whisper-vad-silero-v5.1.2": {
+      "kind": "vad",
+      "display": "Silero VAD v5.1.2 (ggml, for whisper.cpp)",
+      "license": "MIT",
+      "files": [
+        {
+          "role": "model",
+          "repo": "ggml-org/whisper-vad",
+          "filename": "ggml-silero-v5.1.2.bin",
+          "revision": "9ffd54a1e1ee413ddf265af9913beaf518d1639b",
+          "size": 885098,
+          "sha256": "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
+        }
+      ]
+    },
+    "qwen3.5-9b-q8_0": {
+      "kind": "vlm",
+      "display": "Qwen3.5-9B Q8_0 + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "unsloth/Qwen3.5-9B-GGUF",
+          "filename": "Qwen3.5-9B-Q8_0.gguf",
+          "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+          "size": 9527502048,
+          "sha256": "809626574d0cb43d4becfa56169980da2bb448f2299270f7be443cb89d0a6ae4"
+        },
+        {
+          "role": "mmproj",
+          "repo": "unsloth/Qwen3.5-9B-GGUF",
+          "filename": "mmproj-F16.gguf",
+          "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+          "size": 918166080,
+          "sha256": "f70dc3509053962b0d0d3ee8a7eacebf5d60aa560cad78254ae8698516ae029f"
+        }
+      ]
+    },
+    "qwen3.5-9b-q4_k_m": {
+      "kind": "vlm",
+      "display": "Qwen3.5-9B Q4_K_M + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "unsloth/Qwen3.5-9B-GGUF",
+          "filename": "Qwen3.5-9B-Q4_K_M.gguf",
+          "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+          "size": 5680522464,
+          "sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8"
+        },
+        {
+          "role": "mmproj",
+          "repo": "unsloth/Qwen3.5-9B-GGUF",
+          "filename": "mmproj-F16.gguf",
+          "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+          "size": 918166080,
+          "sha256": "f70dc3509053962b0d0d3ee8a7eacebf5d60aa560cad78254ae8698516ae029f"
+        }
+      ]
+    },
+    "qwen3.5-4b-q8_0": {
+      "kind": "vlm",
+      "display": "Qwen3.5-4B Q8_0 + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "unsloth/Qwen3.5-4B-GGUF",
+          "filename": "Qwen3.5-4B-Q8_0.gguf",
+          "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+          "size": 4482403488,
+          "sha256": "10cc391b403021dd11c614679d2fd92f611c3681d29e29651b717316965d61e1"
+        },
+        {
+          "role": "mmproj",
+          "repo": "unsloth/Qwen3.5-4B-GGUF",
+          "filename": "mmproj-F16.gguf",
+          "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+          "size": 672423616,
+          "sha256": "cd88edcf8d031894960bb0c9c5b9b7e1fea6ebee02b9f7ce925a00d12891f864"
+        }
+      ]
+    },
+    "qwen3.5-4b-q4_k_m": {
+      "kind": "vlm",
+      "display": "Qwen3.5-4B Q4_K_M + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "unsloth/Qwen3.5-4B-GGUF",
+          "filename": "Qwen3.5-4B-Q4_K_M.gguf",
+          "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+          "size": 2740937888,
+          "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"
+        },
+        {
+          "role": "mmproj",
+          "repo": "unsloth/Qwen3.5-4B-GGUF",
+          "filename": "mmproj-F16.gguf",
+          "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+          "size": 672423616,
+          "sha256": "cd88edcf8d031894960bb0c9c5b9b7e1fea6ebee02b9f7ce925a00d12891f864"
+        }
+      ]
+    },
+    "qwen3.5-2b-q4_k_m": {
+      "kind": "vlm",
+      "display": "Qwen3.5-2B Q4_K_M + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "unsloth/Qwen3.5-2B-GGUF",
+          "filename": "Qwen3.5-2B-Q4_K_M.gguf",
+          "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+          "size": 1280835840,
+          "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223"
+        },
+        {
+          "role": "mmproj",
+          "repo": "unsloth/Qwen3.5-2B-GGUF",
+          "filename": "mmproj-F16.gguf",
+          "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+          "size": 668227264,
+          "sha256": "7035e9cb8d7c6a9681d07eef9a364783e86ea4cd73faab2eabb4f43a101830c7"
+        }
+      ]
+    },
+    "minicpm-v-4.6-q4_k_m": {
+      "kind": "vlm",
+      "display": "MiniCPM-V 4.6 Q4_K_M + mmproj F16",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "openbmb/MiniCPM-V-4.6-gguf",
+          "filename": "MiniCPM-V-4_6-Q4_K_M.gguf",
+          "revision": "afe9accb78d2995d214cd912920c9c92f4015faa",
+          "size": 529101504,
+          "sha256": "6b0c74962c44bc6bf4b655b9b02c13eda9d5a0491543ae976d1ac18e4b7892e2"
+        },
+        {
+          "role": "mmproj",
+          "repo": "openbmb/MiniCPM-V-4.6-gguf",
+          "filename": "mmproj-model-f16.gguf",
+          "revision": "afe9accb78d2995d214cd912920c9c92f4015faa",
+          "size": 1108746944,
+          "sha256": "ca931d861d0801d9003e50697cd764721a334107c0e0415a51168ee1938462de"
+        }
+      ]
+    },
+    "qwen3-vl-8b-q4_k_m": {
+      "kind": "vlm",
+      "display": "Qwen3-VL-8B-Instruct Q4_K_M + mmproj Q8_0 (regression baseline)",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
+          "filename": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
+          "revision": "f982a07559d4a2f6c8744d840bf6fccab30eea96",
+          "size": 5027784800,
+          "sha256": "67d1659bfe71b89d50b45a4ad1a9e5b997e5bb16ce5da66a6a6167abd569e9e2"
+        },
+        {
+          "role": "mmproj",
+          "repo": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
+          "filename": "mmproj-Qwen3VL-8B-Instruct-Q8_0.gguf",
+          "revision": "f982a07559d4a2f6c8744d840bf6fccab30eea96",
+          "size": 752289728,
+          "sha256": "c6ba85508d82f42590e6eb77d5340369ab6fecf107a7561d809523d8aa5f3bfd"
+        }
+      ]
+    },
+    "whisper-large-v3-turbo-q5_0": {
+      "kind": "asr",
+      "display": "Whisper large-v3-turbo q5_0 (ggml)",
+      "license": "MIT",
+      "files": [
+        {
+          "role": "model",
+          "repo": "ggerganov/whisper.cpp",
+          "filename": "ggml-large-v3-turbo-q5_0.bin",
+          "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+          "size": 574041195,
+          "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"
+        }
+      ]
+    },
+    "whisper-small-q8_0": {
+      "kind": "asr",
+      "display": "Whisper small q8_0 (ggml)",
+      "license": "MIT",
+      "files": [
+        {
+          "role": "model",
+          "repo": "ggerganov/whisper.cpp",
+          "filename": "ggml-small-q8_0.bin",
+          "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+          "size": 264464607,
+          "sha256": "49c8fb02b65e6049d5fa6c04f81f53b867b5ec9540406812c643f177317f779f"
+        }
+      ]
+    },
+    "siglip2-base-patch16-256": {
+      "kind": "embed-image",
+      "display": "SigLIP 2 base patch16-256 (ONNX: vision fp16 + int8, text int8)",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "vision-fp16",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "onnx/vision_model_fp16.onnx",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 186131676,
+          "sha256": "fe9ad8020a6d3d98d394c9be8f07064066135fc2f87ec11692de0b677c0ac4db"
+        },
+        {
+          "role": "vision-int8",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "onnx/vision_model_int8.onnx",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 94737653,
+          "sha256": "8243a496e524bf8fa19830ff42a40a4bae2e97acc2e288d4ae97601edf954977"
+        },
+        {
+          "role": "text-fp16",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "onnx/text_model_fp16.onnx",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 564862230,
+          "sha256": "80954edffdc689599e5d5bc6a1738380bc9e8139a18e5c8892485f248b6b4890"
+        },
+        {
+          "role": "text-int8",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "onnx/text_model_int8.onnx",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 283438275,
+          "sha256": "6f59b39d880c413042314b79302b74d0dd93b273caf8fbfdb1eb2df61a7fefd4"
+        },
+        {
+          "role": "tokenizer",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "tokenizer.json",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 34363039,
+          "sha256": "cb9140fae3ac5122c972d37adf83e1248471a38147ad76f8215c8872c6fd8322"
+        },
+        {
+          "role": "preprocessor",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "preprocessor_config.json",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 394,
+          "sha256": "d14ba2ee3fd816f3de8abaddc31953565128eaf37c73ad4bed32101a98465aff"
+        }
+      ]
+    },
+    "multilingual-e5-base": {
+      "kind": "embed-text",
+      "display": "multilingual-e5-base (ONNX quantized)",
+      "license": "MIT",
+      "files": [
+        {
+          "role": "model",
+          "repo": "Xenova/multilingual-e5-base",
+          "filename": "onnx/model_quantized.onnx",
+          "revision": "1ec9243030a27d1a115d5c340572074c125b58b2",
+          "size": 278647662,
+          "sha256": "df7a9a29309e3ad491e1783adf8baee710262cc06079c7cbab63c630277fac94"
+        },
+        {
+          "role": "tokenizer",
+          "repo": "Xenova/multilingual-e5-base",
+          "filename": "tokenizer.json",
+          "revision": "1ec9243030a27d1a115d5c340572074c125b58b2",
+          "size": 17082660,
+          "sha256": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626"
+        }
+      ]
+    },
+    "ced-mini": {
+      "kind": "audio-events",
+      "display": "CED-Mini (ONNX, AudioSet 527 classes)",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "mispeech/ced-mini",
+          "filename": "model.onnx",
+          "revision": "26c3ebcae85d4330f4fc26763f029539a3afcda0",
+          "size": 10890069,
+          "sha256": "2a86374dbe1fa03e96b0acf6a02618ac71852d12aa3d72a030b062ff1e5c5434"
+        },
+        {
+          "role": "config",
+          "repo": "mispeech/ced-mini",
+          "filename": "config.json",
+          "revision": "26c3ebcae85d4330f4fc26763f029539a3afcda0",
+          "size": 25058,
+          "sha256": "4036cba16f3759f5588e731029327969ff30a475fe23268fa698530cd7fd10ea"
+        }
+      ]
+    },
+    "ced-small": {
+      "kind": "audio-events",
+      "display": "CED-Small (ONNX, AudioSet 527 classes)",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "role": "model",
+          "repo": "mispeech/ced-small",
+          "filename": "model.onnx",
+          "revision": "06bb40c5ec089e96867ebc5246be02441f4a71e4",
+          "size": 22785539,
+          "sha256": "18fa4fa30c1872c322c6b08f2824c9dd6f7fe149b8aa21320ddceb77007cff75"
+        },
+        {
+          "role": "config",
+          "repo": "mispeech/ced-small",
+          "filename": "config.json",
+          "revision": "06bb40c5ec089e96867ebc5246be02441f4a71e4",
+          "size": 25059,
+          "sha256": "8b76f3ed8b7a443cbcc7d124d23c7faf222e690f338e4753920697282978cac9"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+# Grouping layer: AudioSet classes (looked up by display name, never by index) -> Rushbase tags.
+# Thresholds are defaults; override per tag with RUSHBASE_EVENT_THRESHOLDS='{"gunshot":0.5}'.
+# A class name that does not exist in the model's label map fails at startup (ADR-0009).
+
+[tags.speech]
+classes = ["Speech", "Male speech", "Female speech", "Child speech", "Conversation", "Narration"]
+threshold = 0.5
+de = "Sprache"
+en = "Speech"
+
+[tags.music]
+classes = ["Music"]
+threshold = 0.5
+de = "Musik"
+en = "Music"
+
+[tags.applause]
+classes = ["Applause", "Clapping", "Cheering"]
+threshold = 0.4
+de = "Applaus"
+en = "Applause"
+
+[tags.wind]
+classes = ["Wind", "Wind noise (microphone)"]
+threshold = 0.4
+de = "Wind"
+en = "Wind"
+
+[tags.gunshot]
+classes = ["Gunshot", "Machine gun", "Fusillade", "Artillery fire", "Cap gun"]
+threshold = 0.35
+de = "Schuss"
+en = "Gunshot"
+
+[tags.explosion]
+classes = ["Explosion", "Boom"]
+threshold = 0.35
+de = "Explosion"
+en = "Explosion"
+
+[tags.silence]
+classes = ["Silence"]
+threshold = 0.5
+de = "Stille"
+en = "Silence"

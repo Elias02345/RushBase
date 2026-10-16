@@ -1,8 +1,116 @@
 {
   "exiftool": {
-    "version": "13.59",
-    "url": "https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.59.tar.gz/download",
+    "checksum_source": "https://exiftool.org/checksums.txt",
     "sha256": "668ea3acececb7235fbd0f4900e72d5f12c9b07e5c778fd36cb1e9b5828fd65a",
-    "checksum_source": "https://exiftool.org/checksums.txt"
+    "url": "https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.59.tar.gz/download",
+    "version": "13.59"
+  },
+  "llama.cpp": {
+    "platforms": {
+      "linux-x64-cpu": {
+        "name": "llama-b11681-bin-ubuntu-x64.tar.gz",
+        "sha256": "a3f47bfd4bc91181534e87bfa24161205fdef91adcd0a026d20e683241b2ba7d",
+        "size": 17880401,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-x64.tar.gz"
+      },
+      "linux-x64-cuda-12.8": {
+        "name": "llama-b11681-bin-ubuntu-cuda-12.8-x64.tar.gz",
+        "runtime_bundle": {
+          "name": "cudart-llama-b11681-bin-ubuntu-cuda-12.8-x64.tar.gz",
+          "sha256": "9445563f1ea8bae7acf09448f2da907cda223afd682a86d5fb5ba63b111303cc",
+          "size": 594377710,
+          "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/cudart-llama-b11681-bin-ubuntu-cuda-12.8-x64.tar.gz"
+        },
+        "sha256": "b920cfbdb0ec6bd46d7f20eeaa7c5d4eb760a73f7359a1e63146025674168863",
+        "size": 172566272,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-cuda-12.8-x64.tar.gz"
+      },
+      "linux-x64-cuda-13.4": {
+        "name": "llama-b11681-bin-ubuntu-cuda-13.4-x64.tar.gz",
+        "runtime_bundle": {
+          "name": "cudart-llama-b11681-bin-ubuntu-cuda-13.4-x64.tar.gz",
+          "sha256": "67856523bc4fee404da1ce20d6119478276da35f48214aa7c690054fbded09f8",
+          "size": 440236528,
+          "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/cudart-llama-b11681-bin-ubuntu-cuda-13.4-x64.tar.gz"
+        },
+        "sha256": "ad7894da74137664a6e46271c5e363977f8fabf64c40c8a7e5ff2c4e1935d1e5",
+        "size": 153710025,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-cuda-13.4-x64.tar.gz"
+      },
+      "linux-x64-rocm": {
+        "name": "llama-b11681-bin-ubuntu-rocm-10.0-x64.tar.gz",
+        "sha256": "8ad75b6c11308c850465484e086c8d778283ebcc6edefc0993cf9e74fccb93f0",
+        "size": 245108228,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-rocm-10.0-x64.tar.gz"
+      },
+      "linux-x64-sycl": {
+        "name": "llama-b11681-bin-ubuntu-sycl-fp16-x64.tar.gz",
+        "sha256": "455c8eead7e941e0d01f8f9b40d515f3f8891319d89f3d3f8bea9a56e65972c8",
+        "size": 57220206,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-sycl-fp16-x64.tar.gz"
+      },
+      "linux-x64-vulkan": {
+        "name": "llama-b11681-bin-ubuntu-vulkan-x64.tar.gz",
+        "sha256": "5f4e8b45b27ad60cc328ce45334ffeaf8c27d1a692d324caa1d1fd06071e7241",
+        "size": 30525838,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-ubuntu-vulkan-x64.tar.gz"
+      },
+      "macos-arm64-metal": {
+        "name": "llama-b11681-bin-macos-arm64.tar.gz",
+        "sha256": "a98b30f90e2c01d34dcc6bf49d4cd20936a72735e3101aaa421424abeae42f3e",
+        "size": 12220443,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-macos-arm64.tar.gz"
+      },
+      "windows-x64-cpu": {
+        "name": "llama-b11681-bin-win-cpu-x64.zip",
+        "sha256": "07006066db26ba20863785ec8fdd55028226c8eafcdb8db5a1484e98ebf01676",
+        "size": 19565747,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-win-cpu-x64.zip"
+      },
+      "windows-x64-cuda-12.4": {
+        "name": "llama-b11681-bin-win-cuda-12.4-x64.zip",
+        "runtime_bundle": {
+          "name": "cudart-llama-bin-win-cuda-12.4-x64.zip",
+          "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+          "size": 391443627,
+          "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/cudart-llama-bin-win-cuda-12.4-x64.zip"
+        },
+        "sha256": "c3b9605f70f53beafd1a36fa360d32a22f8d5a0c6dcb1276f2d8b69a3db777ca",
+        "size": 266609470,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-win-cuda-12.4-x64.zip"
+      },
+      "windows-x64-cuda-13.4": {
+        "name": "llama-b11681-bin-win-cuda-13.4-x64.zip",
+        "runtime_bundle": {
+          "name": "cudart-llama-bin-win-cuda-13.4-x64.zip",
+          "sha256": "738f8c251ac22b70c3ae6f83a10cf222725df0395246a2cf58f32bdb85fbe668",
+          "size": 423535356,
+          "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/cudart-llama-bin-win-cuda-13.4-x64.zip"
+        },
+        "sha256": "56e2f75b9ce69952b613ea95c6d54f4bf30c7261f4cda1ae954c7bcad3a114e5",
+        "size": 154609844,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-win-cuda-13.4-x64.zip"
+      },
+      "windows-x64-vulkan": {
+        "name": "llama-b11681-bin-win-vulkan-x64.zip",
+        "sha256": "059a995618a5b7163c64e88d16bf395280f45cd0460c2a71b05e2aae5ada8a00",
+        "size": 32209242,
+        "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11681/llama-b11681-bin-win-vulkan-x64.zip"
+      }
+    },
+    "published_at": "2026-10-16T05:47:38Z",
+    "tag": "b11681"
+  },
+  "whisper.cpp": {
+    "note": "No upstream GPU binaries: CI builds publish Rushbase release assets (see .github/workflows/whisper-build.yml); `platforms` is filled from those.",
+    "platforms": {},
+    "tag": "v1.9.5",
+    "upstream_cpu_fallback": {
+      "name": "whisper-bin-ubuntu-x64.tar.gz",
+      "release": "b5454",
+      "sha256": "a72becf15d7917f990f6313867a52638b82b7f9ef237fb0c980dac56a135781c",
+      "size": 10364195,
+      "url": "https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-ubuntu-x64.tar.gz"
+    }
   }
 }

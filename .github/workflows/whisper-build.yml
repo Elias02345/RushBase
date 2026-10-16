@@ -1,0 +1,105 @@
+name: whisper-build
+
+# Builds whisper.cpp (no upstream GPU binaries exist) and publishes the binaries as release
+# assets of this repository with SHA-256 checksums (ADR-0008). The worker pins them in
+# worker/binaries.lock.json (`whisper.cpp.platforms`).
+on:
+  workflow_dispatch:
+    inputs:
+      whisper_tag:
+        description: whisper.cpp tag to build
+        default: v1.9.5
+  push:
+    tags:
+      - "whisper-*"
+
+env:
+  WHISPER_TAG: ${{ inputs.whisper_tag || 'v1.9.5' }}
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [cpu, vulkan, cuda]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build in a CUDA devel container
+        run: |
+          out="$PWD/out/whisper.cpp-${WHISPER_TAG}-linux-x64-${{ matrix.backend }}"
+          CUDA_ARCHS="75;80;86;89" worker/scripts/build-whisper-docker.sh "${{ matrix.backend }}" "$out" "$WHISPER_TAG"
+      - name: Package
+        run: |
+          cd out && for d in */; do tar -czf "${d%/}.tar.gz" "$d"; done
+          sha256sum *.tar.gz | tee SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: whisper-linux-${{ matrix.backend }}
+          path: out/*.tar.gz
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (Metal)
+        run: |
+          out="$PWD/out/whisper.cpp-${WHISPER_TAG}-macos-arm64-metal"
+          worker/scripts/build-whisper.sh metal "$out" "$WHISPER_TAG"
+          cd out && tar -czf "whisper.cpp-${WHISPER_TAG}-macos-arm64-metal.tar.gz" "whisper.cpp-${WHISPER_TAG}-macos-arm64-metal"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: whisper-macos-metal
+          path: out/*.tar.gz
+
+  windows:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [cpu, vulkan, cuda]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Jimver/cuda-toolkit@v0.2.19
+        if: matrix.backend == 'cuda'
+        with:
+          cuda: "12.8.1"
+      - name: Install Vulkan SDK
+        if: matrix.backend == 'vulkan'
+        run: choco install vulkan-sdk -y
+      - name: Build
+        shell: bash
+        run: |
+          curl -fsSL "https://github.com/ggml-org/whisper.cpp/archive/refs/tags/${WHISPER_TAG}.tar.gz" -o src.tgz
+          mkdir src && tar -xzf src.tgz -C src --strip-components=1
+          flags="-DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_SERVER=OFF -DGGML_NATIVE=OFF"
+          [ "${{ matrix.backend }}" = vulkan ] && flags="$flags -DGGML_VULKAN=ON"
+          [ "${{ matrix.backend }}" = cuda ] && flags="$flags -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86;89"
+          cmake -S src -B build $flags
+          cmake --build build --config Release --target whisper-cli
+          name="whisper.cpp-${WHISPER_TAG}-windows-x64-${{ matrix.backend }}"
+          mkdir -p "out/$name" && cp build/bin/Release/whisper-cli.exe "out/$name/"
+          cd out && 7z a "$name.zip" "$name"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: whisper-windows-${{ matrix.backend }}
+          path: out/*.zip
+
+  publish:
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum * | tee SHA256SUMS
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: whisper-${{ env.WHISPER_TAG }}
+          name: whisper.cpp ${{ env.WHISPER_TAG }} builds
+          files: dist/*
