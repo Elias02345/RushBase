@@ -262,10 +262,23 @@ STAGE_OUTPUT_MODELS: dict[Stage, type[BaseModel]] = {
     Stage.PREVIEW: PreviewOutput,
     Stage.SHOTS: ShotsOutput,
 }
-"""Stages with a typed contract. AI stages are added in milestone M4."""
+"""Technical stages. The AI stages live in :mod:`rushbase_core.results_ai`."""
+
+
+def stage_output_model(stage: Stage) -> type[BaseModel] | None:
+    """The contract model of ``stage`` (``None`` for stages without one, e.g. ``finalize``)."""
+    from rushbase_core import results_ai  # local import: results_ai depends on this module
+
+    ai: dict[Stage, type[BaseModel]] = {
+        Stage.AUDIO: results_ai.AudioOutput,
+        Stage.EMBED: results_ai.EmbedOutput,
+        Stage.VISION: results_ai.VisionOutput,
+        Stage.CLASSIFY: results_ai.ClassifyOutput,
+    }
+    return STAGE_OUTPUT_MODELS.get(stage) or ai.get(stage)
 
 
 def parse_stage_output(stage: Stage, output: dict[str, Any]) -> BaseModel | None:
-    """Validate ``output`` for ``stage``; returns ``None`` for stages without a contract yet."""
-    model = STAGE_OUTPUT_MODELS.get(stage)
+    """Validate ``output`` for ``stage``; returns ``None`` for stages without a contract."""
+    model = stage_output_model(stage)
     return None if model is None else model.model_validate(output)
