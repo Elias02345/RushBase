@@ -15,7 +15,7 @@ from rushbase_core import LibraryError
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.logging import configure_logging
 from rushbase_server.main import load_settings, serve
-from rushbase_server.services import backup
+from rushbase_server.services import backup, rebuild
 from rushbase_server.settings import Settings
 
 app = typer.Typer(
@@ -140,3 +140,43 @@ def backup_restore(
         raise typer.Exit(1) from exc
     command.upgrade(_migrate_config(), "head")
     typer.echo(f"[OK] restored {source.name}; migrations applied")
+
+
+@app.command("rebuild-from-sidecars")
+def rebuild_from_sidecars(
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Only report what would be created or updated.")
+    ] = False,
+) -> None:
+    """Recreate batches, assets, files, metadata and shots from the sidecars on the share."""
+    settings = load_settings()
+    configure_logging(settings.log_level)
+    if settings.library_root is None:
+        typer.echo("[ERROR] RUSHBASE_LIBRARY_ROOT is not set", err=True)
+        raise typer.Exit(2)
+    root = settings.library_root
+
+    async def run() -> rebuild.RebuildReport:
+        engine = create_engine(settings)
+        try:
+            async with create_session_factory(engine)() as session:
+                report = await rebuild.rebuild_from_sidecars(session, root, dry_run=dry_run)
+                if not dry_run:
+                    await session.commit()
+                return report
+        finally:
+            await engine.dispose()
+
+    report = asyncio.run(run())
+    prefix = "[DRY-RUN] " if dry_run else "[OK] "
+    typer.echo(
+        f"{prefix}{report.sidecars} sidecars: {report.created} to create/created, "
+        f"{report.updated} updated, {len(report.invalid)} invalid, "
+        f"{len(report.conflicts)} conflicts, {len(report.missing_files)} missing files"
+    )
+    for line in [*report.invalid, *report.conflicts]:
+        typer.echo(f"[WARN] {line}", err=True)
+    for path in report.missing_files[:20]:
+        typer.echo(f"[WARN] missing file: {path}", err=True)
+    if report.invalid or report.conflicts:
+        raise typer.Exit(1)

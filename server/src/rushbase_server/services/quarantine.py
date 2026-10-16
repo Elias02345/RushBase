@@ -10,6 +10,7 @@ re-creates the job plan. Moves use the same rename-only, never-overwrite helper 
 import asyncio
 import json
 import logging
+import os
 from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from datetime import datetime
@@ -86,15 +87,13 @@ def _undo_moves(root: Path, moves: list[QuarantineMove]) -> None:
 
 
 def _prune_empty(root: Path, rel_dir: str) -> None:
-    """Remove ``rel_dir`` and its empty parents up to (not including) the quarantine root."""
-    stop = resolve_in_root(root, f"{SYSTEM_DIR}/{QUARANTINE_DIR}")
-    current = resolve_in_root(root, rel_dir)
-    while current != stop and current.is_dir():
+    """Remove empty directories below ``rel_dir`` and ``rel_dir`` itself (best effort)."""
+    top = resolve_in_root(root, rel_dir)
+    for directory, _subdirs, _names in os.walk(top, topdown=False):
         try:
-            current.rmdir()
+            Path(directory).rmdir()
         except OSError:
-            return
-        current = current.parent
+            continue
 
 
 async def _failure_of(session: AsyncSession, asset_id: UUID) -> dict[str, Any]:
@@ -290,7 +289,13 @@ async def retry_asset(
     await session.flush()
     if asset.batch_id is not None:
         await queue.refresh_batch_status(session, asset.batch_id, now)
-    await asyncio.to_thread(_prune_empty, root, quarantine_dir(asset.id))
+    await asyncio.to_thread(_clear_quarantine_dir, root, quarantine_dir(asset.id))
+
+
+def _clear_quarantine_dir(root: Path, rel_dir: str) -> None:
+    """Delete ``error.json`` and the (now empty) quarantine folder of a restored asset."""
+    resolve_in_root(root, f"{rel_dir}/{ERROR_FILE}").unlink(missing_ok=True)
+    _prune_empty(root, rel_dir)
 
 
 async def list_quarantined(session: AsyncSession) -> list[tuple[Asset, str]]:

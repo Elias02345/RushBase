@@ -152,13 +152,12 @@ async def test_card_waits_until_every_member_is_analysed(
             )
             await session.commit()
         await run_workers(server, worker, library_root)
-        first = str(first)
         async with server.runtime.session_factory() as session:
             await session.execute(update(Job).where(Job.asset_id == second).values(not_before=None))
             await session.commit()
         await finalize_all(server)
         by_id = {str(a.id): a for a in await all_assets(server)}
-        assert by_id[first].status == "review"
+        assert by_id[str(first)].status == "review"
         assert (library_root / base / "C0001.MP4").exists()
         await run_workers(server, worker, library_root)
         await finalize_all(server)
@@ -184,3 +183,19 @@ async def test_card_with_foreign_files_is_filed_file_by_file_keeping_structure(
         readme = files["Input/trip/CARD_C/MISC/readme.txt"]
         assert readme.rel_path.startswith("Content/other/")
         assert {a.status for a in await all_assets(server)} == {"filed"}
+
+
+async def test_existing_folder_spelling_is_adopted_case_insensitively(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        admin = await server.setup_admin()
+        (library_root / "Content" / "VIDEO").mkdir(parents=True)
+        put_file(library_root, "Input/shoot/clip.mov", b"clip")
+        await scan(server)
+        worker = await enroll(server, admin)
+        await run_workers(server, worker, library_root)
+        await finalize_all(server)
+        files = await files_of(server)
+        assert files["Input/shoot/clip.mov"].rel_path.startswith("Content/VIDEO/2026/")
+        assert [p.name for p in (library_root / "Content").iterdir()] == ["VIDEO"]
