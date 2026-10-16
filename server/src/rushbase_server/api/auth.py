@@ -1,5 +1,7 @@
 """First-run setup, login/logout, current user, personal API tokens and user management."""
 
+import asyncio
+import logging
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
@@ -19,6 +21,7 @@ from rushbase_server.api.deps import (
     RuntimeDep,
     client_ip,
 )
+from rushbase_server.db import upgrade_to_head
 from rushbase_server.models import ApiToken, Library, Session, User
 from rushbase_server.services import audit, backup
 from rushbase_server.services.security import (
@@ -31,6 +34,7 @@ from rushbase_server.services.security import (
     verify_password,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["auth"])
 
 Role = Literal["admin", "editor", "viewer"]
@@ -213,6 +217,52 @@ async def setup(
     csrf = await _create_session(request, response, runtime, db, user)
     await db.commit()
     return LoginOut(user=UserOut.of(user), csrf_token=csrf)
+
+
+class RestoreIn(BaseModel):
+    """Which backup of the share to restore."""
+
+    backup_name: str = Field(min_length=1, max_length=300)
+
+
+class RestoreOut(BaseModel):
+    """Result of a restore."""
+
+    ok: bool
+
+
+_restore_lock = asyncio.Lock()
+
+
+@router.post(
+    "/setup/restore",
+    response_model=RestoreOut,
+    summary="Restore a backup from the share instead of running the setup wizard",
+)
+async def restore_setup(body: RestoreIn, request: Request, runtime: RuntimeDep) -> RestoreOut:
+    """Only works while the database is empty; restores, migrates and re-binds the library."""
+    root = runtime.binding.root
+    if root is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "RUSHBASE_LIBRARY_ROOT is not configured")
+    offered = {b.name: b for b in backup.list_backups(backup.backup_dir(root))}
+    chosen = offered.get(body.backup_name)
+    if chosen is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "backup not found")
+    async with _restore_lock:
+        try:
+            await backup.restore_backup(
+                runtime.engine, runtime.pg_tools, runtime.engine.url, chosen.path
+            )
+        except backup.BackupError as exc:
+            raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        await runtime.engine.dispose()
+        await upgrade_to_head(runtime.settings)
+        try:
+            await runtime.binding.init_and_bind()
+        except (ServerLeaseHeldError, LibraryError, OSError) as exc:
+            raise HTTPException(status.HTTP_409_CONFLICT, f"library not usable: {exc}") from exc
+    logger.info("restored backup %s from %s", chosen.name, client_ip(request))
+    return RestoreOut(ok=True)
 
 
 @router.post("/auth/login", response_model=LoginOut, summary="Sign in")

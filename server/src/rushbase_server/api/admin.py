@@ -33,6 +33,16 @@ class EnrollmentOut(BaseModel):
     expires_at: datetime
 
 
+class EnrollmentTokenOut(BaseModel):
+    """An enrollment token without its secret (which is only shown at creation)."""
+
+    id: UUID
+    note: str
+    created_at: datetime
+    expires_at: datetime
+    used_at: datetime | None
+
+
 class WorkerOut(BaseModel):
     """A registered worker."""
 
@@ -80,6 +90,59 @@ async def create_enrollment_token(
     )
     await db.commit()
     return EnrollmentOut(id=token.id, token=plaintext, expires_at=token.expires_at)
+
+
+@router.get(
+    "/enrollment-tokens",
+    response_model=list[EnrollmentTokenOut],
+    summary="List enrollment tokens",
+)
+async def list_enrollment_tokens(_: AdminDep, db: DbDep) -> list[EnrollmentTokenOut]:
+    """Newest first; the token secrets are never returned again."""
+    rows = (
+        (await db.execute(select(EnrollmentToken).order_by(EnrollmentToken.created_at.desc())))
+        .scalars()
+        .all()
+    )
+    return [
+        EnrollmentTokenOut(
+            id=t.id,
+            note=t.note,
+            created_at=t.created_at,
+            expires_at=t.expires_at,
+            used_at=t.used_at,
+        )
+        for t in rows
+    ]
+
+
+@router.post(
+    "/enrollment-tokens/{token_id}/revoke",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke an unused enrollment token",
+)
+async def revoke_enrollment_token(
+    token_id: UUID, admin: AdminDep, request: Request, runtime: RuntimeDep, db: DbDep
+) -> None:
+    """Expire an unused token immediately (idempotent). Used tokens cannot be revoked."""
+    token = await db.get(EnrollmentToken, token_id)
+    if token is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "enrollment token not found")
+    if token.used_at is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "token was already used")
+    now = runtime.clock.now()
+    if token.expires_at > now:
+        token.expires_at = now
+        audit.record(
+            db,
+            actor_kind="user",
+            actor_id=admin.user.id,
+            action="enrollment_token.revoke",
+            target_kind="enrollment_token",
+            target_id=token.id,
+            ip=client_ip(request),
+        )
+    await db.commit()
 
 
 @router.get("/workers", response_model=list[WorkerOut], summary="List workers")

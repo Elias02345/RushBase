@@ -18,8 +18,8 @@ target_metadata = Base.metadata
 
 def run_migrations_online() -> None:
     """Run migrations with a short-lived synchronous psycopg connection."""
-    settings = Settings()
-    engine = create_engine(settings.database_url.get_secret_value())
+    url = config.attributes.get("database_url") or Settings().database_url.get_secret_value()
+    engine = create_engine(url)
     with engine.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():

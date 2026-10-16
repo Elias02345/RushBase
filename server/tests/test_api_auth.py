@@ -212,3 +212,38 @@ async def test_password_reset_ends_sessions_and_admin_cannot_demote_self(
         assert changed.status_code == 200
         async with server.runtime.session_factory() as session:
             assert (await session.execute(select(Session))).scalars().all() == []
+
+
+async def test_enrollment_tokens_list_never_exposes_secrets_and_can_be_revoked(
+    server_factory: ServerFactory, database_url: str, tmp_path: Path
+) -> None:
+    async with server_factory(database_url, library_root=tmp_path / "lib") as server:
+        csrf = await server.setup_admin()
+        client = server.client
+        created = await client.post(
+            "/api/v1/admin/enrollment-tokens", json={"note": "laptop"}, headers=csrf
+        )
+        token = created.json()
+        listed = (await client.get("/api/v1/admin/enrollment-tokens")).json()
+        assert [t["id"] for t in listed] == [token["id"]]
+        assert listed[0]["note"] == "laptop"
+        assert listed[0]["used_at"] is None
+        assert token["token"] not in str(listed)
+        assert "token_hash" not in listed[0]
+
+        revoke_url = f"/api/v1/admin/enrollment-tokens/{token['id']}/revoke"
+        assert (await client.post(revoke_url, headers=csrf)).status_code == 204
+        assert (await client.post(revoke_url, headers=csrf)).status_code == 204
+        enroll = await client.post(
+            "/api/v1/worker/enroll",
+            json={"token": token["token"], "name": "w", "capabilities": {}},
+        )
+        assert enroll.status_code in (401, 403)
+        missing = await client.post(
+            "/api/v1/admin/enrollment-tokens/00000000-0000-0000-0000-000000000000/revoke",
+            headers=csrf,
+        )
+        assert missing.status_code == 404
+        async with server.runtime.session_factory() as session:
+            actions = set((await session.execute(select(AuditLog.action))).scalars())
+        assert "enrollment_token.revoke" in actions

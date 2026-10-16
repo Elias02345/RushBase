@@ -213,3 +213,28 @@ async def test_wrong_library_for_the_database_is_refused(
         async with app.router.lifespan_context(app):
             pytest.fail("must not start")
     assert open_library(other).server_lease is None  # lease handed back after the mismatch
+
+
+async def test_setup_restore_endpoint_restores_a_backup_on_an_empty_database(
+    server_factory: ServerFactory, database_url: str, fresh_database_url: str, library_root: Path
+) -> None:
+    need_pg_tools()
+    async with server_factory(database_url, library_root=library_root) as server:
+        await server.setup_admin()
+        info = await server.runtime.backup_now()
+    migrate(fresh_database_url)
+    async with server_factory(fresh_database_url, library_root=library_root) as replacement:
+        client = replacement.client
+        missing = await client.post("/api/v1/setup/restore", json={"backup_name": "nope.dump"})
+        assert missing.status_code == 404
+        traversal = await client.post("/api/v1/setup/restore", json={"backup_name": "../x"})
+        assert traversal.status_code == 404
+        restored = await client.post("/api/v1/setup/restore", json={"backup_name": info.name})
+        assert restored.status_code == 200, restored.text
+        assert (await client.get("/api/v1/setup")).json()["needs_setup"] is False
+        login = await client.post(
+            "/api/v1/auth/login", json={"username": "admin", "password": "correct horse battery"}
+        )
+        assert login.status_code == 200
+        again = await client.post("/api/v1/setup/restore", json={"backup_name": info.name})
+        assert again.status_code == 409
