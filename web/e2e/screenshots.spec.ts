@@ -21,7 +21,9 @@ for (const scheme of ["light", "dark"] as const) {
         await page.screenshot({ path: `${OUT}/${name}-${scheme}.png`, animations: "disabled" });
       };
 
-      await page.addInitScript(() => window.sessionStorage.setItem("rushbase.mock.scenario", "fresh"));
+      await page.addInitScript(() =>
+        window.sessionStorage.setItem("rushbase.mock.scenario", "fresh"),
+      );
       await page.goto("/setup");
       await page.getByRole("button", { name: "Weiter" }).click();
       await page.getByLabel("Benutzername").fill("elias");
@@ -41,7 +43,10 @@ for (const scheme of ["light", "dark"] as const) {
 
       await page.getByRole("link", { name: "Bibliothek" }).click();
       await expect(page.getByText(/\d+ Treffer/)).toBeVisible();
-      await page.locator(".rb-tile__media").nth(1).hover({ position: { x: 150, y: 60 } });
+      await page
+        .locator(".rb-tile__media")
+        .nth(1)
+        .hover({ position: { x: 150, y: 60 } });
       await shot("library");
 
       await page.locator(".rb-tile__media").nth(7).click();

@@ -13,13 +13,7 @@
 
 export type MediaType = "video" | "photo" | "audio" | "other";
 export type AssetStatus =
-  | "ingesting"
-  | "processing"
-  | "review"
-  | "filed"
-  | "quarantined"
-  | "trashed"
-  | "duplicate";
+  "ingesting" | "processing" | "review" | "filed" | "quarantined" | "trashed" | "duplicate";
 export type Orientation = "landscape" | "portrait" | "square";
 export type SortKey = "capture_desc" | "capture_asc" | "name_asc" | "size_desc" | "duration_desc";
 
@@ -167,7 +161,11 @@ export interface FilingRule {
   name: string;
   enabled: boolean;
   /** Empty fields match everything. */
-  when: { media_type: MediaType | null; camera_model: string | null; batch_contains: string | null };
+  when: {
+    media_type: MediaType | null;
+    camera_model: string | null;
+    batch_contains: string | null;
+  };
   /** Path template below `Content/`, for example `{year}/{month}/{camera}`. */
   target: string;
 }

@@ -16,7 +16,13 @@ import { useTranslation } from "react-i18next";
 
 import type { AssetSummary, SortKey } from "../api/contracts";
 import { useAssets, useFacets } from "../api/queries";
-import { formatBytes, formatDate, formatDuration, formatNumber, formatResolution } from "../lib/format";
+import {
+  formatBytes,
+  formatDate,
+  formatDuration,
+  formatNumber,
+  formatResolution,
+} from "../lib/format";
 import { assetTone } from "../lib/status";
 import type { LibrarySearch } from "../routes/search";
 import { AssetGrid, type SelectModifiers } from "./library/AssetGrid";
@@ -43,13 +49,17 @@ export function LibraryPage() {
   const [text, setText] = useState(search.q ?? "");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const anchor = useRef(0);
+  const pushedQuery = useRef<string | undefined>(search.q);
   const [listHeight, setListHeight] = useState(520);
 
   const view = search.view ?? "grid";
   const query = useMemo(() => ({ ...search, view: undefined }), [search]);
   const assets = useAssets(query);
   const facets = useFacets();
-  const items = useMemo(() => assets.data?.pages.flatMap((page) => page.items) ?? [], [assets.data]);
+  const items = useMemo(
+    () => assets.data?.pages.flatMap((page) => page.items) ?? [],
+    [assets.data],
+  );
   const total = assets.data?.pages[0]?.total ?? null;
 
   const update = useCallback(
@@ -65,10 +75,19 @@ export function LibraryPage() {
   );
 
   // URL -> field (top-bar search, back button); field -> URL is debounced below.
-  useEffect(() => setText(search.q ?? ""), [search.q]);
+  // Only external changes (not our own debounced push) overwrite what the user is typing.
+  useEffect(() => {
+    if (search.q === pushedQuery.current) return;
+    pushedQuery.current = search.q;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from the URL, an external system
+    setText(search.q ?? "");
+  }, [search.q]);
   useEffect(() => {
     if (text === (search.q ?? "")) return;
-    const handle = window.setTimeout(() => update({ q: text.trim() || undefined }), 250);
+    const handle = window.setTimeout(() => {
+      pushedQuery.current = text.trim() || undefined;
+      update({ q: pushedQuery.current });
+    }, 250);
     return () => window.clearTimeout(handle);
   }, [text, search.q, update]);
 
@@ -107,7 +126,8 @@ export function LibraryPage() {
     });
   };
 
-  const openAsset = (asset: AssetSummary) => void navigate({ to: "/assets/$id", params: { id: asset.id } });
+  const openAsset = (asset: AssetSummary) =>
+    void navigate({ to: "/assets/$id", params: { id: asset.id } });
 
   const activeFilters = FILTER_KEYS.filter((key) => search[key]);
   const columns: DataColumn<AssetSummary>[] = [
@@ -117,8 +137,18 @@ export function LibraryPage() {
       width: "minmax(0, 2.2fr)",
       cell: (a) => <strong>{a.title ?? a.filename}</strong>,
     },
-    { key: "type", header: t("library.col.type"), width: "90px", cell: (a) => t(`media.${a.media_type}`) },
-    { key: "duration", header: t("library.col.duration"), width: "90px", cell: (a) => formatDuration(a.duration_ms) },
+    {
+      key: "type",
+      header: t("library.col.type"),
+      width: "90px",
+      cell: (a) => t(`media.${a.media_type}`),
+    },
+    {
+      key: "duration",
+      header: t("library.col.duration"),
+      width: "90px",
+      cell: (a) => formatDuration(a.duration_ms),
+    },
     {
       key: "res",
       header: t("library.col.resolution"),
@@ -126,13 +156,26 @@ export function LibraryPage() {
       cell: (a) => formatResolution(a.width, a.height) ?? "",
     },
     { key: "camera", header: t("library.col.camera"), cell: (a) => a.camera_model ?? "" },
-    { key: "date", header: t("library.col.date"), width: "120px", cell: (a) => formatDate(a.capture_at) },
-    { key: "size", header: t("library.col.size"), width: "90px", align: "end", cell: (a) => formatBytes(a.size_total) },
+    {
+      key: "date",
+      header: t("library.col.date"),
+      width: "120px",
+      cell: (a) => formatDate(a.capture_at),
+    },
+    {
+      key: "size",
+      header: t("library.col.size"),
+      width: "90px",
+      align: "end",
+      cell: (a) => formatBytes(a.size_total),
+    },
     {
       key: "status",
       header: t("library.col.status"),
       width: "130px",
-      cell: (a) => <StatusChip tone={assetTone(a.status)}>{t(`assetStatus.${a.status}`)}</StatusChip>,
+      cell: (a) => (
+        <StatusChip tone={assetTone(a.status)}>{t(`assetStatus.${a.status}`)}</StatusChip>
+      ),
     },
   ];
 
@@ -147,7 +190,11 @@ export function LibraryPage() {
               size="sm"
               icon={<FilterX size={14} />}
               onClick={() =>
-                update(Object.fromEntries(FILTER_KEYS.map((k) => [k, undefined])) as Partial<LibrarySearch>)
+                update(
+                  Object.fromEntries(
+                    FILTER_KEYS.map((k) => [k, undefined]),
+                  ) as Partial<LibrarySearch>,
+                )
               }
             >
               {t("library.clearFilters")}
@@ -209,12 +256,18 @@ export function LibraryPage() {
 
         <div className="library__summary" aria-live="polite">
           <span>
-            {total !== null ? t("library.count", { count: total, formatted: formatNumber(total) }) : ""}
+            {total !== null
+              ? t("library.count", { count: total, formatted: formatNumber(total) })
+              : ""}
           </span>
           <ul className="chips">
             {activeFilters.map((key) => (
               <li key={key}>
-                <button type="button" className="filter-chip" onClick={() => update({ [key]: undefined })}>
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => update({ [key]: undefined })}
+                >
                   {key === "date_from" || key === "date_to"
                     ? `${t(key === "date_from" ? "library.from" : "library.to")} ${search[key]}`
                     : valueLabel(t, key, String(search[key]))}
@@ -230,7 +283,10 @@ export function LibraryPage() {
             <div className="skeleton-grid" aria-busy="true">
               {Array.from({ length: 12 }, (_, i) => (
                 <div key={i}>
-                  <Skeleton style={{ aspectRatio: "16 / 9", width: "100%", height: "auto" }} radius={16} />
+                  <Skeleton
+                    style={{ aspectRatio: "16 / 9", width: "100%", height: "auto" }}
+                    radius={16}
+                  />
                   <Skeleton height={14} width="70%" style={{ marginTop: 12 }} />
                 </div>
               ))}
@@ -245,7 +301,11 @@ export function LibraryPage() {
             <EmptyState
               icon={<FolderSearch size={28} />}
               title={t("library.emptyTitle")}
-              description={activeFilters.length > 0 || search.q ? t("library.emptyFiltered") : t("library.emptyFresh")}
+              description={
+                activeFilters.length > 0 || search.q
+                  ? t("library.emptyFiltered")
+                  : t("library.emptyFresh")
+              }
               action={
                 activeFilters.length > 0 || search.q ? (
                   <Button
@@ -254,7 +314,9 @@ export function LibraryPage() {
                       setText("");
                       update({
                         q: undefined,
-                        ...(Object.fromEntries(FILTER_KEYS.map((k) => [k, undefined])) as Partial<LibrarySearch>),
+                        ...(Object.fromEntries(
+                          FILTER_KEYS.map((k) => [k, undefined]),
+                        ) as Partial<LibrarySearch>),
                       });
                     }}
                   >
@@ -289,10 +351,20 @@ export function LibraryPage() {
         {selected.size > 0 ? (
           <div className="bulkbar" role="region" aria-label={t("library.bulk")}>
             <strong>{t("library.selected", { count: selected.size })}</strong>
-            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set(items.map((a) => a.id)))}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelected(new Set(items.map((a) => a.id)))}
+            >
               {t("library.selectLoaded")}
             </Button>
-            <Button size="sm" variant="secondary" icon={<ListPlus size={14} />} disabled title={t("library.soon")}>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<ListPlus size={14} />}
+              disabled
+              title={t("library.soon")}
+            >
               {t("library.addToCollection")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>

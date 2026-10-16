@@ -103,16 +103,13 @@ const adminRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   loginRoute,
   setupRoute,
-  appRoute.addChildren([
-    dashboardRoute,
-    libraryRoute,
-    assetRoute,
-    processingRoute,
-    adminRoute,
-  ]),
+  appRoute.addChildren([dashboardRoute, libraryRoute, assetRoute, processingRoute, adminRoute]),
 ]);
 
-export function createAppRouter(queryClient: QueryClient, history?: Parameters<typeof createRouter>[0]["history"]) {
+export function createAppRouter(
+  queryClient: QueryClient,
+  history?: Parameters<typeof createRouter>[0]["history"],
+) {
   return createRouter({
     routeTree,
     context: { queryClient },

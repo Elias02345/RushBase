@@ -4,7 +4,9 @@ import { expect, test, type Page } from "@playwright/test";
 import { login } from "./helpers";
 
 async function expectNoViolations(page: Page) {
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.nodes[0]?.html ?? ""}`)).toEqual([]);
 }
 
@@ -32,7 +34,9 @@ test("login, dashboard, library search and filter, asset detail, processing", as
   const search = page.getByRole("searchbox", { name: "Material durchsuchen" });
   await search.fill("Harbour");
   await expect(page).toHaveURL(/q=Harbour/);
-  await expect(page.getByRole("group", { name: "Treffer" }).getByRole("button").first()).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "Treffer" }).getByRole("button").first(),
+  ).toBeVisible();
   await search.fill("");
 
   // Facet filter, then keyboard focus on the first tile.
@@ -89,7 +93,9 @@ test("admin can create a worker token and preview filing rules", async ({ page }
   await page.getByRole("link", { name: "Verwaltung" }).click();
   await page.getByRole("tab", { name: "Worker-Tokens" }).click();
   await page.getByRole("button", { name: "Token erstellen" }).click();
-  await expect(page.getByRole("dialog", { name: "Token erstellt" })).toContainText("rushbase enroll");
+  await expect(page.getByRole("dialog", { name: "Token erstellt" })).toContainText(
+    "rushbase enroll",
+  );
   await page.keyboard.press("Escape");
   await page.getByRole("tab", { name: "Ablageregeln" }).click();
   await page.getByRole("button", { name: /Vorschau/ }).click();

@@ -79,7 +79,8 @@ function uuid(index: number): string {
 }
 
 function filename(media: MediaType, index: number, camera: string): string {
-  if (media === "photo") return `IMG_${(2000 + index).toString()}.${camera.includes("Apple") ? "HEIC" : "JPG"}`;
+  if (media === "photo")
+    return `IMG_${(2000 + index).toString()}.${camera.includes("Apple") ? "HEIC" : "JPG"}`;
   if (media === "audio") return `REC_${(100 + index).toString()}.wav`;
   if (camera.includes("Sony")) return `C${(40 + index).toString().padStart(4, "0")}.MP4`;
   if (camera.includes("DJI")) return `DJI_${(20260000 + index).toString()}_D.MP4`;
@@ -111,9 +112,14 @@ export function buildAssets(): AssetSummary[] {
     const width = media === "audio" ? null : portrait ? (is4k ? 2160 : 1080) : is4k ? 3840 : 1920;
     const height = media === "audio" ? null : portrait ? (is4k ? 3840 : 1920) : is4k ? 2160 : 1080;
     const durationMs =
-      media === "video" ? random.int(4, 410) * 1000 + random.int(0, 999) : media === "audio" ? random.int(30, 900) * 1000 : null;
+      media === "video"
+        ? random.int(4, 410) * 1000 + random.int(0, 999)
+        : media === "audio"
+          ? random.int(30, 900) * 1000
+          : null;
     const hasMedia = status !== "ingesting";
-    const analysed = hasMedia && (status === "filed" || status === "review" || status === "duplicate");
+    const analysed =
+      hasMedia && (status === "filed" || status === "review" || status === "duplicate");
     const id = uuid(index + 1);
     assets.push({
       id,
@@ -121,12 +127,19 @@ export function buildAssets(): AssetSummary[] {
       status,
       title: random.next() < 0.45 ? random.pick(TITLES) : null,
       filename: filename(media, index, camera),
-      capture_at: new Date(NOW - random.int(0, 330) * DAY - random.int(0, 80_000) * 1000).toISOString(),
+      capture_at: new Date(
+        NOW - random.int(0, 330) * DAY - random.int(0, 80_000) * 1000,
+      ).toISOString(),
       duration_ms: durationMs,
       width,
       height,
       fps: media === "video" ? random.pick([23.976, 25, 25, 29.97, 50, 59.94]) : null,
-      codec: media === "audio" ? "PCM" : media === "photo" ? random.pick(["JPEG", "HEIC"]) : random.pick(CODECS.slice(0, 4)),
+      codec:
+        media === "audio"
+          ? "PCM"
+          : media === "photo"
+            ? random.pick(["JPEG", "HEIC"])
+            : random.pick(CODECS.slice(0, 4)),
       camera_model: media === "audio" ? null : camera,
       lens_model: media === "audio" ? null : random.pick(LENSES),
       log_profile: media === "video" ? random.pick(LOG_PROFILES) : null,
@@ -172,10 +185,15 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
     };
   };
   const filed = summary.status === "filed" || summary.status === "review";
-  const rel = filed ? `${dir}/${summary.filename}` : `Input/${summary.batch_label ?? "Unsorted"}/${summary.filename}`;
-  const random = createRandom(summary.id.length * 7919 + Number.parseInt(summary.id.slice(1, 8), 16));
+  const rel = filed
+    ? `${dir}/${summary.filename}`
+    : `Input/${summary.batch_label ?? "Unsorted"}/${summary.filename}`;
+  const random = createRandom(
+    summary.id.length * 7919 + Number.parseInt(summary.id.slice(1, 8), 16),
+  );
   const durationMs = summary.duration_ms ?? 0;
-  const shotCount = summary.media_type === "video" ? Math.max(1, Math.min(9, Math.round(durationMs / 22_000))) : 0;
+  const shotCount =
+    summary.media_type === "video" ? Math.max(1, Math.min(9, Math.round(durationMs / 22_000))) : 0;
   const shots: Shot[] = [];
   let cursor = 0;
   for (let idx = 0; idx < shotCount; idx++) {
@@ -208,11 +226,16 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
       focal_length_mm: summary.lens_model ? random.pick([24, 35, 50, 85]) : null,
       aperture: summary.lens_model ? random.pick([1.4, 2.0, 2.8, 4.0]) : null,
     },
-    exposure: summary.media_type === "audio" ? {} : {
-      iso: random.pick([100, 400, 800, 1600, 3200]),
-      shutter: isVideo ? `1/${(summary.fps ?? 25) * 2}` : `1/${random.pick([125, 250, 500, 1000])}`,
-      white_balance_k: random.pick([3200, 4300, 5600, 6500]),
-    },
+    exposure:
+      summary.media_type === "audio"
+        ? {}
+        : {
+            iso: random.pick([100, 400, 800, 1600, 3200]),
+            shutter: isVideo
+              ? `1/${(summary.fps ?? 25) * 2}`
+              : `1/${random.pick([125, 250, 500, 1000])}`,
+            white_balance_k: random.pick([3200, 4300, 5600, 6500]),
+          },
     video: isVideo
       ? {
           codec: summary.codec,
@@ -243,7 +266,13 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
   return {
     ...summary,
     files: [
-      { role: "original", rel_path: rel, size: summary.size_total, blake3: random.int(0, 1e9).toString(16).padStart(8, "0").repeat(8), paths: toPaths(rel) },
+      {
+        role: "original",
+        rel_path: rel,
+        size: summary.size_total,
+        blake3: random.int(0, 1e9).toString(16).padStart(8, "0").repeat(8),
+        paths: toPaths(rel),
+      },
       ...(isVideo
         ? [
             {
@@ -263,11 +292,29 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
     content_rel_dir: filed ? dir : null,
     duplicate_of: summary.status === "duplicate" ? uuid(40) : null,
     history: [
-      { at: new Date(base + 3_600_000).toISOString(), action: "ingest.grouped", details: { batch: summary.batch_label } },
-      { at: new Date(base + 3_650_000).toISOString(), action: "stage.probe", details: { ok: true, duration_ms: 420 } },
-      { at: new Date(base + 3_700_000).toISOString(), action: "stage.preview", details: { ok: true, duration_ms: 18_400 } },
+      {
+        at: new Date(base + 3_600_000).toISOString(),
+        action: "ingest.grouped",
+        details: { batch: summary.batch_label },
+      },
+      {
+        at: new Date(base + 3_650_000).toISOString(),
+        action: "stage.probe",
+        details: { ok: true, duration_ms: 420 },
+      },
+      {
+        at: new Date(base + 3_700_000).toISOString(),
+        action: "stage.preview",
+        details: { ok: true, duration_ms: 18_400 },
+      },
       ...(filed
-        ? [{ at: new Date(base + 3_800_000).toISOString(), action: "filing.moved", details: { to: rel } }]
+        ? [
+            {
+              at: new Date(base + 3_800_000).toISOString(),
+              action: "filing.moved",
+              details: { to: rel },
+            },
+          ]
         : []),
     ],
   };
@@ -280,25 +327,97 @@ export function buildFacets(assets: AssetSummary[]): Facet[] {
       const value = pick(asset);
       if (value) map.set(value, (map.get(value) ?? 0) + 1);
     }
-    return [...map.entries()].sort((a, b) => b[1] - a[1]).map(([value, n]) => ({ value, count: n }));
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, n]) => ({ value, count: n }));
   };
-  const times = assets.map((a) => a.capture_at).filter((v): v is string => Boolean(v)).sort();
+  const times = assets
+    .map((a) => a.capture_at)
+    .filter((v): v is string => Boolean(v))
+    .sort();
   return [
-    { key: "media_type", label_de: "Medientyp", label_en: "Media type", kind: "enum", values: count((a) => a.media_type) },
-    { key: "status", label_de: "Status", label_en: "Status", kind: "enum", values: count((a) => a.status) },
-    { key: "camera_model", label_de: "Kamera", label_en: "Camera", kind: "enum", values: count((a) => a.camera_model) },
-    { key: "lens_model", label_de: "Objektiv", label_en: "Lens", kind: "enum", values: count((a) => a.lens_model) },
-    { key: "log_profile", label_de: "Log-Profil", label_en: "Log profile", kind: "enum", values: count((a) => a.log_profile) },
-    { key: "orientation", label_de: "Ausrichtung", label_en: "Orientation", kind: "enum", values: count((a) => a.orientation) },
-    { key: "capture_at", label_de: "Aufnahmedatum", label_en: "Capture date", kind: "date", min: times[0], max: times[times.length - 1] },
+    {
+      key: "media_type",
+      label_de: "Medientyp",
+      label_en: "Media type",
+      kind: "enum",
+      values: count((a) => a.media_type),
+    },
+    {
+      key: "status",
+      label_de: "Status",
+      label_en: "Status",
+      kind: "enum",
+      values: count((a) => a.status),
+    },
+    {
+      key: "camera_model",
+      label_de: "Kamera",
+      label_en: "Camera",
+      kind: "enum",
+      values: count((a) => a.camera_model),
+    },
+    {
+      key: "lens_model",
+      label_de: "Objektiv",
+      label_en: "Lens",
+      kind: "enum",
+      values: count((a) => a.lens_model),
+    },
+    {
+      key: "log_profile",
+      label_de: "Log-Profil",
+      label_en: "Log profile",
+      kind: "enum",
+      values: count((a) => a.log_profile),
+    },
+    {
+      key: "orientation",
+      label_de: "Ausrichtung",
+      label_en: "Orientation",
+      kind: "enum",
+      values: count((a) => a.orientation),
+    },
+    {
+      key: "capture_at",
+      label_de: "Aufnahmedatum",
+      label_en: "Capture date",
+      kind: "date",
+      min: times[0],
+      max: times[times.length - 1],
+    },
   ];
 }
 
 export function buildUsers(): User[] {
   return [
-    { id: "u0000000-0000-4000-8000-000000000001", username: "elias", display_name: "Elias", role: "admin", locale: "de", disabled: false, last_login_at: new Date(NOW - 3_600_000).toISOString() },
-    { id: "u0000000-0000-4000-8000-000000000002", username: "mara", display_name: "Mara Voss", role: "editor", locale: "de", disabled: false, last_login_at: new Date(NOW - 2 * DAY).toISOString() },
-    { id: "u0000000-0000-4000-8000-000000000003", username: "jonas", display_name: "Jonas Weber", role: "viewer", locale: "en", disabled: false, last_login_at: null },
+    {
+      id: "u0000000-0000-4000-8000-000000000001",
+      username: "elias",
+      display_name: "Elias",
+      role: "admin",
+      locale: "de",
+      disabled: false,
+      last_login_at: new Date(NOW - 3_600_000).toISOString(),
+    },
+    {
+      id: "u0000000-0000-4000-8000-000000000002",
+      username: "mara",
+      display_name: "Mara Voss",
+      role: "editor",
+      locale: "de",
+      disabled: false,
+      last_login_at: new Date(NOW - 2 * DAY).toISOString(),
+    },
+    {
+      id: "u0000000-0000-4000-8000-000000000003",
+      username: "jonas",
+      display_name: "Jonas Weber",
+      role: "viewer",
+      locale: "en",
+      disabled: false,
+      last_login_at: null,
+    },
   ];
 }
 
@@ -316,7 +435,12 @@ export function buildWorkers(online: boolean): Worker[] {
       last_seen_at: seen(online ? 4_000 : 6 * 3_600_000),
       last_stage: "preview",
       current_job_id: online ? "j0000000-0000-4000-8000-000000000001" : null,
-      capabilities: { backends: ["cuda", "cpu"], vram_mb: 16384, ram_mb: 65536, stages: ["probe", "hash", "preview", "shots"] },
+      capabilities: {
+        backends: ["cuda", "cpu"],
+        vram_mb: 16384,
+        ram_mb: 65536,
+        stages: ["probe", "hash", "preview", "shots"],
+      },
     },
     {
       id: "w0000000-0000-4000-8000-000000000002",
@@ -337,16 +461,72 @@ export function buildWorkers(online: boolean): Worker[] {
 export function buildBatches(): Batch[] {
   const at = (days: number) => new Date(NOW - days * DAY).toISOString();
   return [
-    { id: MOCK_BATCH_IDS[0] as string, input_path: "Input/Lake trip", label: "Lake trip", hint_date: "2026-10-03", status: "processing", priority: 5, paused: false, first_seen_at: at(2), completed_at: null },
-    { id: MOCK_BATCH_IDS[1] as string, input_path: "Input/Alpine drone day", label: "Alpine drone day", hint_date: "2026-09-28", status: "waiting", priority: 0, paused: true, first_seen_at: at(4), completed_at: null },
-    { id: MOCK_BATCH_IDS[2] as string, input_path: "Input/Interview Weber", label: "Interview Weber", hint_date: null, status: "done", priority: 0, paused: false, first_seen_at: at(9), completed_at: at(8) },
-    { id: MOCK_BATCH_IDS[3] as string, input_path: "Input/Card A7S3 01", label: "Card A7S3 01", hint_date: "2026-10-11", status: "scanning", priority: 0, paused: false, first_seen_at: at(0.2), completed_at: null },
-    { id: MOCK_BATCH_IDS[4] as string, input_path: "Input/@auto/2026-10-09", label: "City B-roll", hint_date: "2026-10-09", status: "done", priority: -5, paused: false, first_seen_at: at(3), completed_at: at(2.5) },
+    {
+      id: MOCK_BATCH_IDS[0] as string,
+      input_path: "Input/Lake trip",
+      label: "Lake trip",
+      hint_date: "2026-10-03",
+      status: "processing",
+      priority: 5,
+      paused: false,
+      first_seen_at: at(2),
+      completed_at: null,
+    },
+    {
+      id: MOCK_BATCH_IDS[1] as string,
+      input_path: "Input/Alpine drone day",
+      label: "Alpine drone day",
+      hint_date: "2026-09-28",
+      status: "waiting",
+      priority: 0,
+      paused: true,
+      first_seen_at: at(4),
+      completed_at: null,
+    },
+    {
+      id: MOCK_BATCH_IDS[2] as string,
+      input_path: "Input/Interview Weber",
+      label: "Interview Weber",
+      hint_date: null,
+      status: "done",
+      priority: 0,
+      paused: false,
+      first_seen_at: at(9),
+      completed_at: at(8),
+    },
+    {
+      id: MOCK_BATCH_IDS[3] as string,
+      input_path: "Input/Card A7S3 01",
+      label: "Card A7S3 01",
+      hint_date: "2026-10-11",
+      status: "scanning",
+      priority: 0,
+      paused: false,
+      first_seen_at: at(0.2),
+      completed_at: null,
+    },
+    {
+      id: MOCK_BATCH_IDS[4] as string,
+      input_path: "Input/@auto/2026-10-09",
+      label: "City B-roll",
+      hint_date: "2026-10-09",
+      status: "done",
+      priority: -5,
+      paused: false,
+      first_seen_at: at(3),
+      completed_at: at(2.5),
+    },
   ];
 }
 
 export function buildStatus(workersOnline: number, paused: boolean): SystemStatus {
-  const stage = (queued: number, leased: number, done: number, bytes: number, duration: number) => ({
+  const stage = (
+    queued: number,
+    leased: number,
+    done: number,
+    bytes: number,
+    duration: number,
+  ) => ({
     jobs: { queued, leased, done },
     pending_jobs: queued + leased,
     pending_files: queued + leased,
@@ -364,7 +544,15 @@ export function buildStatus(workersOnline: number, paused: boolean): SystemStatu
       shots: stage(18, 0, 205, 11_200_000_000, 3_980_000),
       finalize: stage(3, 0, 190, 600_000_000, 0),
     },
-    assets: { filed: 214, processing: 12, review: 9, quarantined: 5, ingesting: 4, duplicate: 4, trashed: 0 },
+    assets: {
+      filed: 214,
+      processing: 12,
+      review: 9,
+      quarantined: 5,
+      ingesting: 4,
+      duplicate: 4,
+      trashed: 0,
+    },
     input_files: { copying: 3, stable: 14, grouped: 258, ignored: 12, gone: 1 },
     batches: { scanning: 1, waiting: 1, processing: 1, done: 2, error: 0 },
     workers_online: workersOnline,
@@ -380,9 +568,27 @@ export function defaultFilingRules(): FilingRulesDoc {
   return {
     fallback: "{year}/{month}/Unsorted",
     rules: [
-      { id: "r1", name: "Drone footage", enabled: true, when: { media_type: "video", camera_model: "DJI Mavic 3 Pro", batch_contains: null }, target: "{year}/Drone/{batch}" },
-      { id: "r2", name: "Photos by month", enabled: true, when: { media_type: "photo", camera_model: null, batch_contains: null }, target: "{year}/{month}/Photos" },
-      { id: "r3", name: "Interviews", enabled: false, when: { media_type: "video", camera_model: null, batch_contains: "Interview" }, target: "{year}/Interviews/{batch}" },
+      {
+        id: "r1",
+        name: "Drone footage",
+        enabled: true,
+        when: { media_type: "video", camera_model: "DJI Mavic 3 Pro", batch_contains: null },
+        target: "{year}/Drone/{batch}",
+      },
+      {
+        id: "r2",
+        name: "Photos by month",
+        enabled: true,
+        when: { media_type: "photo", camera_model: null, batch_contains: null },
+        target: "{year}/{month}/Photos",
+      },
+      {
+        id: "r3",
+        name: "Interviews",
+        enabled: false,
+        when: { media_type: "video", camera_model: null, batch_contains: "Interview" },
+        target: "{year}/Interviews/{batch}",
+      },
     ],
   };
 }

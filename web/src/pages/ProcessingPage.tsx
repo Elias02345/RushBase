@@ -42,7 +42,9 @@ function QueuePanel() {
   if (!status) return <Skeleton height={240} radius={22} />;
   const stages = STAGE_ORDER.filter((name) => status.stages[name]);
   if (stages.length === 0) {
-    return <EmptyState title={t("processing.queueEmpty")} description={t("processing.queueEmptyText")} />;
+    return (
+      <EmptyState title={t("processing.queueEmpty")} description={t("processing.queueEmptyText")} />
+    );
   }
   return (
     <ul className="stage-grid">
@@ -60,7 +62,11 @@ function QueuePanel() {
               <h3>{t(`stages.${name}`)}</h3>
               <span className="stage-card__n">{formatNumber(stage.pending_jobs)}</span>
             </div>
-            <div className="stackbar" role="img" aria-label={t("processing.stageBar", { done, running: leased, queued, failed })}>
+            <div
+              className="stackbar"
+              role="img"
+              aria-label={t("processing.stageBar", { done, running: leased, queued, failed })}
+            >
               <span style={{ flexGrow: done, background: "var(--rb-filed-solid)" }} />
               <span className="stackbar__run" style={{ flexGrow: leased }} />
               <span style={{ flexGrow: queued, background: "var(--rb-waiting-solid)" }} />
@@ -70,7 +76,9 @@ function QueuePanel() {
             <p className="muted">
               {t("processing.stageFacts", {
                 bytes: formatBytes(stage.pending_bytes),
-                duration: stage.pending_duration_ms ? formatDurationWords(stage.pending_duration_ms) : "–",
+                duration: stage.pending_duration_ms
+                  ? formatDurationWords(stage.pending_duration_ms)
+                  : "–",
               })}
             </p>
           </li>
@@ -85,7 +93,12 @@ function BatchesPanel({ canEdit }: { canEdit: boolean }) {
   const batches = useBatches();
   const { pause, priority } = useBatchControl();
   const columns: DataColumn<Batch>[] = [
-    { key: "label", header: t("processing.batch"), width: "minmax(0, 2fr)", cell: (b) => <strong>{b.label}</strong> },
+    {
+      key: "label",
+      header: t("processing.batch"),
+      width: "minmax(0, 2fr)",
+      cell: (b) => <strong>{b.label}</strong>,
+    },
     {
       key: "status",
       header: t("library.col.status"),
@@ -96,7 +109,12 @@ function BatchesPanel({ canEdit }: { canEdit: boolean }) {
         </StatusChip>
       ),
     },
-    { key: "seen", header: t("processing.firstSeen"), width: "150px", cell: (b) => formatRelative(b.first_seen_at) },
+    {
+      key: "seen",
+      header: t("processing.firstSeen"),
+      width: "150px",
+      cell: (b) => formatRelative(b.first_seen_at),
+    },
     {
       key: "priority",
       header: t("processing.priority"),
@@ -110,7 +128,10 @@ function BatchesPanel({ canEdit }: { canEdit: boolean }) {
             disabled={!canEdit}
             onClick={() => priority.mutate({ id: b.id, value: Math.max(-100, b.priority - 5) })}
           />
-          <span className="stepper-inline__n" aria-label={t("processing.priorityValue", { value: b.priority })}>
+          <span
+            className="stepper-inline__n"
+            aria-label={t("processing.priorityValue", { value: b.priority })}
+          >
             {b.priority}
           </span>
           <IconButton
@@ -150,7 +171,9 @@ function BatchesPanel({ canEdit }: { canEdit: boolean }) {
         columns={columns}
         getRowId={(b) => b.id}
         rowHeight={60}
-        empty={<EmptyState title={t("dashboard.noBatches")} description={t("dashboard.noBatchesText")} />}
+        empty={
+          <EmptyState title={t("dashboard.noBatches")} description={t("dashboard.noBatchesText")} />
+        }
       />
     </Card>
   );
@@ -164,13 +187,23 @@ function WorkersPanel({ isAdmin }: { isAdmin: boolean }) {
   if (!isAdmin) {
     return (
       <Card>
-        <p>{t("processing.workersCount", { online: status?.workers_online ?? 0, total: status?.workers_total ?? 0 })}</p>
+        <p>
+          {t("processing.workersCount", {
+            online: status?.workers_online ?? 0,
+            total: status?.workers_total ?? 0,
+          })}
+        </p>
         <p className="muted">{t("processing.workersAdminOnly")}</p>
       </Card>
     );
   }
   const columns: DataColumn<Worker>[] = [
-    { key: "name", header: t("processing.worker"), width: "minmax(0, 1.4fr)", cell: (w) => <strong>{w.name}</strong> },
+    {
+      key: "name",
+      header: t("processing.worker"),
+      width: "minmax(0, 1.4fr)",
+      cell: (w) => <strong>{w.name}</strong>,
+    },
     { key: "platform", header: t("processing.platform"), cell: (w) => w.platform ?? "–" },
     {
       key: "status",
@@ -182,12 +215,18 @@ function WorkersPanel({ isAdmin }: { isAdmin: boolean }) {
         </StatusChip>
       ),
     },
-    { key: "seen", header: t("processing.lastSeen"), width: "150px", cell: (w) => formatRelative(w.last_seen_at) },
+    {
+      key: "seen",
+      header: t("processing.lastSeen"),
+      width: "150px",
+      cell: (w) => formatRelative(w.last_seen_at),
+    },
     {
       key: "stage",
       header: t("processing.lastStage"),
       width: "120px",
-      cell: (w) => (w.last_stage ? t(`stages.${w.last_stage}`, { defaultValue: w.last_stage }) : "–"),
+      cell: (w) =>
+        w.last_stage ? t(`stages.${w.last_stage}`, { defaultValue: w.last_stage }) : "–",
     },
     {
       key: "actions",
@@ -195,7 +234,12 @@ function WorkersPanel({ isAdmin }: { isAdmin: boolean }) {
       width: "120px",
       align: "end",
       cell: (w) => (
-        <Button size="sm" variant="ghost" icon={<Unplug size={14} />} onClick={() => revoke.mutate(w.id)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={<Unplug size={14} />}
+          onClick={() => revoke.mutate(w.id)}
+        >
           {t("processing.revoke")}
         </Button>
       ),
@@ -209,7 +253,9 @@ function WorkersPanel({ isAdmin }: { isAdmin: boolean }) {
         columns={columns}
         getRowId={(w) => w.id}
         rowHeight={56}
-        empty={<EmptyState title={t("dashboard.noWorkerTitle")} description={t("dashboard.noWorker")} />}
+        empty={
+          <EmptyState title={t("dashboard.noWorkerTitle")} description={t("dashboard.noWorker")} />
+        }
       />
     </Card>
   );
@@ -238,7 +284,9 @@ function QuarantinePanel({ canEdit }: { canEdit: boolean }) {
           <li key={a.id}>
             <div>
               <strong>{a.title ?? a.filename}</strong>
-              <div className="muted">{a.batch_label ?? ""} · {a.filename}</div>
+              <div className="muted">
+                {a.batch_label ?? ""} · {a.filename}
+              </div>
             </div>
             <Button
               size="sm"
@@ -248,7 +296,8 @@ function QuarantinePanel({ canEdit }: { canEdit: boolean }) {
               loading={retry.isPending && retry.variables === a.id}
               onClick={() =>
                 retry.mutate(a.id, {
-                  onSuccess: () => toast.push({ title: t("processing.retryQueued"), tone: "success" }),
+                  onSuccess: () =>
+                    toast.push({ title: t("processing.retryQueued"), tone: "success" }),
                 })
               }
             >
@@ -291,7 +340,13 @@ export function ProcessingPage() {
       </header>
       <Tabs
         value={tab}
-        onValueChange={(value) => void navigate({ to: "/processing", search: { tab: value as ProcessingTab }, replace: true })}
+        onValueChange={(value) =>
+          void navigate({
+            to: "/processing",
+            search: { tab: value as ProcessingTab },
+            replace: true,
+          })
+        }
       >
         <TabsList aria-label={t("processing.sections")}>
           <TabsTrigger value="queue">{t("processing.tabs.queue")}</TabsTrigger>

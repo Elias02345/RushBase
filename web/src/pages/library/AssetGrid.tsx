@@ -1,6 +1,13 @@
 import { AssetTile, StatusChip } from "@rushbase/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import type { AssetSummary } from "../../api/contracts";
@@ -34,7 +41,14 @@ export function tileFacts(asset: AssetSummary): string[] {
 }
 
 /** Virtualised, keyboard-navigable grid of asset tiles. */
-export function AssetGrid({ items, scrollRef, selected, onToggle, onOpen, onNearEnd }: AssetGridProps) {
+export function AssetGrid({
+  items,
+  scrollRef,
+  selected,
+  onToggle,
+  onOpen,
+  onNearEnd,
+}: AssetGridProps) {
   const { t } = useTranslation();
   const innerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);
@@ -90,13 +104,13 @@ export function AssetGrid({ items, scrollRef, selected, onToggle, onOpen, onNear
       ArrowDown: cols,
       ArrowUp: -cols,
     };
-    let next = focusIndex;
-    if (event.key in keys) next = focusIndex + (keys[event.key] ?? 0);
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = items.length - 1;
+    let target: number;
+    if (event.key in keys) target = focusIndex + (keys[event.key] ?? 0);
+    else if (event.key === "Home") target = 0;
+    else if (event.key === "End") target = items.length - 1;
     else return;
     event.preventDefault();
-    next = Math.min(items.length - 1, Math.max(0, next));
+    const next = Math.min(items.length - 1, Math.max(0, target));
     setFocusIndex(next);
     pendingFocus.current = true;
     virtualizer.scrollToIndex(Math.floor(next / cols), { align: "auto" });

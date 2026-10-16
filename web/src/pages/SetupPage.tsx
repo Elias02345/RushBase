@@ -114,7 +114,11 @@ export function SetupPage() {
       if (!name) return;
       restore.mutate(name, {
         onSuccess: () => {
-          toast.push({ title: t("setup.restored"), description: t("setup.restoredText"), tone: "success" });
+          toast.push({
+            title: t("setup.restored"),
+            description: t("setup.restoredText"),
+            tone: "success",
+          });
           void navigate({ to: "/login" });
         },
       });
@@ -200,7 +204,9 @@ export function SetupPage() {
                     className={`mode-card${language === code ? " mode-card--selected" : ""}`}
                     onClick={() => void setLanguage(code)}
                   >
-                    <span className="mode-card__title">{code === "de" ? "Deutsch" : "English"}</span>
+                    <span className="mode-card__title">
+                      {code === "de" ? "Deutsch" : "English"}
+                    </span>
                     <span className="mode-card__text">
                       {code === "de" ? t("setup.language.deText") : t("setup.language.enText")}
                     </span>
@@ -223,7 +229,7 @@ export function SetupPage() {
               <p className="wizard__lead">{t("setup.admin.lead")}</p>
               <div className="form-grid">
                 <Field label={t("setup.admin.displayName")}>
-                  {({ invalid: _i, ...control }) => (
+                  {(control) => (
                     <Input
                       {...control}
                       autoComplete="name"
@@ -233,7 +239,7 @@ export function SetupPage() {
                   )}
                 </Field>
                 <Field label={t("setup.admin.username")}>
-                  {({ invalid: _i, ...control }) => (
+                  {(control) => (
                     <Input
                       {...control}
                       autoComplete="username"
@@ -247,7 +253,7 @@ export function SetupPage() {
                   label={t("setup.admin.password")}
                   hint={t("setup.admin.passwordHint", { count: MIN_PASSWORD })}
                 >
-                  {({ invalid: _i, ...control }) => (
+                  {(control) => (
                     <Input
                       {...control}
                       type="password"
@@ -320,7 +326,7 @@ export function SetupPage() {
               </div>
               {effectiveMode === "new" ? (
                 <Field label={t("setup.library.name")} className="wizard__field">
-                  {({ invalid: _i, ...control }) => (
+                  {(control) => (
                     <Input
                       {...control}
                       value={libraryName}
@@ -331,7 +337,7 @@ export function SetupPage() {
               ) : null}
               {effectiveMode === "restore" && status ? (
                 <Field label={t("setup.library.backup")} className="wizard__field">
-                  {({ invalid: _i, ...control }) => (
+                  {(control) => (
                     <Select
                       id={control.id}
                       value={backupName || status.backups[0]?.name || ""}
@@ -351,7 +357,9 @@ export function SetupPage() {
                   {t("common.back")}
                 </Button>
                 <Button type="submit" size="lg" loading={setup.isPending || restore.isPending}>
-                  {effectiveMode === "restore" ? t("setup.library.doRestore") : t("setup.library.create")}
+                  {effectiveMode === "restore"
+                    ? t("setup.library.doRestore")
+                    : t("setup.library.create")}
                 </Button>
               </div>
             </form>
@@ -366,7 +374,7 @@ export function SetupPage() {
               <div className="form-grid">
                 {(["windows", "macos", "linux"] as const).map((os) => (
                   <Field key={os} label={t(`os.${os}`)} hint={t(`setup.paths.hint.${os}`)}>
-                    {({ invalid: _i, ...control }) => (
+                    {(control) => (
                       <Input
                         {...control}
                         className="rb-input--mono"

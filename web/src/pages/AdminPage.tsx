@@ -17,11 +17,18 @@ import {
 } from "@rushbase/ui";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, Copy, DatabaseBackup, Eye, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ApiError } from "../api/client";
-import type { EnrollmentTokenInfo, FilingPreview, FilingRule, FilingRulesDoc, MediaType } from "../api/contracts";
+import type {
+  EnrollmentTokenInfo,
+  FilingPreview,
+  FilingRule,
+  FilingRulesDoc,
+  MediaType,
+  PathMapping,
+} from "../api/contracts";
 import {
   useBackups,
   useCreateBackup,
@@ -50,7 +57,10 @@ function useCopy() {
   const toast = useToast();
   return async (text: string) => {
     const ok = await copyText(text);
-    toast.push({ title: ok ? t("common.copied") : t("common.copyFailed"), tone: ok ? "success" : "error" });
+    toast.push({
+      title: ok ? t("common.copied") : t("common.copyFailed"),
+      tone: ok ? "success" : "error",
+    });
   };
 }
 
@@ -65,7 +75,12 @@ function UsersPanel() {
   const create = useCreateUser();
   const update = useUpdateUser();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ username: "", display_name: "", password: "", role: "viewer" as Role });
+  const [form, setForm] = useState({
+    username: "",
+    display_name: "",
+    password: "",
+    role: "viewer" as Role,
+  });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -105,7 +120,12 @@ function UsersPanel() {
         />
       ),
     },
-    { key: "login", header: t("admin.users.lastLogin"), width: "170px", cell: (u) => formatDateTime(u.last_login_at) },
+    {
+      key: "login",
+      header: t("admin.users.lastLogin"),
+      width: "170px",
+      cell: (u) => formatDateTime(u.last_login_at),
+    },
     {
       key: "active",
       header: t("admin.users.active"),
@@ -140,26 +160,58 @@ function UsersPanel() {
           rowHeight={64}
         />
       </Card>
-      <Dialog open={open} onOpenChange={setOpen} title={t("admin.users.add")} closeLabel={t("common.close")}>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title={t("admin.users.add")}
+        closeLabel={t("common.close")}
+      >
         <form className="form-grid" onSubmit={submit}>
           <Field label={t("setup.admin.displayName")}>
-            {({ invalid: _i, ...c }) => (
-              <Input {...c} value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} />
+            {(c) => (
+              <Input
+                {...c}
+                value={form.display_name}
+                onChange={(e) => setForm({ ...form, display_name: e.target.value })}
+              />
             )}
           </Field>
           <Field label={t("setup.admin.username")}>
-            {({ invalid: _i, ...c }) => (
-              <Input {...c} required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+            {(c) => (
+              <Input
+                {...c}
+                required
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+              />
             )}
           </Field>
-          <Field label={t("setup.admin.password")} hint={t("setup.admin.passwordHint", { count: 10 })} error={create.error ? apiMessage(create.error, t("common.error")) : undefined}>
+          <Field
+            label={t("setup.admin.password")}
+            hint={t("setup.admin.passwordHint", { count: 10 })}
+            error={create.error ? apiMessage(create.error, t("common.error")) : undefined}
+          >
             {({ invalid, ...c }) => (
-              <Input {...c} invalid={invalid} type="password" autoComplete="new-password" required minLength={10} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <Input
+                {...c}
+                invalid={invalid}
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={10}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
             )}
           </Field>
           <Field label={t("admin.users.role")}>
             {({ id }) => (
-              <Select id={id} value={form.role} onValueChange={(role) => setForm({ ...form, role: role as Role })} options={ROLES.map((r) => ({ value: r, label: t(`roles.${r}`) }))} />
+              <Select
+                id={id}
+                value={form.role}
+                onValueChange={(role) => setForm({ ...form, role: role as Role })}
+                options={ROLES.map((r) => ({ value: r, label: t(`roles.${r}`) }))}
+              />
             )}
           </Field>
           <Button type="submit" loading={create.isPending}>
@@ -181,8 +233,18 @@ function TokensPanel() {
   const [created, setCreated] = useState<string | null>(null);
 
   const columns: DataColumn<EnrollmentTokenInfo>[] = [
-    { key: "note", header: t("admin.tokens.note"), width: "minmax(0, 1.4fr)", cell: (x) => x.note || "–" },
-    { key: "created", header: t("admin.tokens.created"), width: "170px", cell: (x) => formatDateTime(x.created_at) },
+    {
+      key: "note",
+      header: t("admin.tokens.note"),
+      width: "minmax(0, 1.4fr)",
+      cell: (x) => x.note || "–",
+    },
+    {
+      key: "created",
+      header: t("admin.tokens.created"),
+      width: "170px",
+      cell: (x) => formatDateTime(x.created_at),
+    },
     {
       key: "state",
       header: t("library.col.status"),
@@ -202,13 +264,20 @@ function TokensPanel() {
       width: "120px",
       align: "end",
       cell: (x) => (
-        <Button size="sm" variant="ghost" disabled={Boolean(x.revoked_at || x.used_at)} onClick={() => revoke.mutate(x.id)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={Boolean(x.revoked_at || x.used_at)}
+          onClick={() => revoke.mutate(x.id)}
+        >
           {t("admin.tokens.revoke")}
         </Button>
       ),
     },
   ];
-  const command = created ? `rushbase enroll --server ${window.location.origin} --token ${created}` : "";
+  const command = created
+    ? `rushbase enroll --server ${window.location.origin} --token ${created}`
+    : "";
 
   return (
     <>
@@ -226,7 +295,12 @@ function TokensPanel() {
             });
           }}
         >
-          <Input aria-label={t("admin.tokens.note")} placeholder={t("admin.tokens.notePlaceholder")} value={note} onChange={(e) => setNote(e.target.value)} />
+          <Input
+            aria-label={t("admin.tokens.note")}
+            placeholder={t("admin.tokens.notePlaceholder")}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
           <Button type="submit" icon={<Plus size={16} />} loading={create.isPending}>
             {t("admin.tokens.create")}
           </Button>
@@ -239,7 +313,9 @@ function TokensPanel() {
           columns={columns}
           getRowId={(x) => x.id}
           rowHeight={56}
-          empty={<EmptyState title={t("admin.tokens.empty")} description={t("admin.tokens.emptyText")} />}
+          empty={
+            <EmptyState title={t("admin.tokens.empty")} description={t("admin.tokens.emptyText")} />
+          }
         />
       </Card>
       <Dialog
@@ -264,19 +340,18 @@ const MEDIA_OPTIONS: MediaType[] = ["video", "photo", "audio", "other"];
 const ANY = "__any__";
 
 function RulesPanel() {
-  const { t } = useTranslation();
   const rules = useFilingRules();
+  return rules.data ? <RulesEditor initial={rules.data} /> : null;
+}
+
+function RulesEditor({ initial }: { initial: FilingRulesDoc }) {
+  const { t } = useTranslation();
   const save = useSaveFilingRules();
   const preview = usePreviewFilingRules();
   const toast = useToast();
-  const [doc, setDoc] = useState<FilingRulesDoc | null>(null);
+  const [doc, setDoc] = useState<FilingRulesDoc>(initial);
   const [result, setResult] = useState<FilingPreview | null>(null);
 
-  useEffect(() => {
-    if (rules.data && !doc) setDoc(rules.data);
-  }, [rules.data, doc]);
-
-  if (!doc) return null;
   const patch = (id: string, change: Partial<FilingRule>) =>
     setDoc({ ...doc, rules: doc.rules.map((r) => (r.id === id ? { ...r, ...change } : r)) });
   const move = (index: number, delta: number) => {
@@ -302,7 +377,11 @@ function RulesPanel() {
           </Button>
           <Button
             loading={save.isPending}
-            onClick={() => save.mutate(doc, { onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }) })}
+            onClick={() =>
+              save.mutate(doc, {
+                onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }),
+              })
+            }
           >
             {t("common.save")}
           </Button>
@@ -313,15 +392,40 @@ function RulesPanel() {
         {doc.rules.map((rule, index) => (
           <li key={rule.id} className="rule">
             <div className="rule__top">
-              <Input aria-label={t("admin.rules.name")} value={rule.name} onChange={(e) => patch(rule.id, { name: e.target.value })} />
-              <Switch label={t("admin.rules.enabled")} checked={rule.enabled} onCheckedChange={(enabled) => patch(rule.id, { enabled })} />
-              <Button size="sm" variant="ghost" aria-label={t("admin.rules.up")} disabled={index === 0} onClick={() => move(index, -1)}>
+              <Input
+                aria-label={t("admin.rules.name")}
+                value={rule.name}
+                onChange={(e) => patch(rule.id, { name: e.target.value })}
+              />
+              <Switch
+                label={t("admin.rules.enabled")}
+                checked={rule.enabled}
+                onCheckedChange={(enabled) => patch(rule.id, { enabled })}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={t("admin.rules.up")}
+                disabled={index === 0}
+                onClick={() => move(index, -1)}
+              >
                 <ArrowUp size={14} />
               </Button>
-              <Button size="sm" variant="ghost" aria-label={t("admin.rules.down")} disabled={index === doc.rules.length - 1} onClick={() => move(index, 1)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={t("admin.rules.down")}
+                disabled={index === doc.rules.length - 1}
+                onClick={() => move(index, 1)}
+              >
                 <ArrowDown size={14} />
               </Button>
-              <Button size="sm" variant="ghost" aria-label={t("admin.rules.remove")} onClick={() => setDoc({ ...doc, rules: doc.rules.filter((r) => r.id !== rule.id) })}>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={t("admin.rules.remove")}
+                onClick={() => setDoc({ ...doc, rules: doc.rules.filter((r) => r.id !== rule.id) })}
+              >
                 <Trash2 size={14} />
               </Button>
             </div>
@@ -331,24 +435,54 @@ function RulesPanel() {
                   <Select
                     id={id}
                     value={rule.when.media_type ?? ANY}
-                    onValueChange={(v) => patch(rule.id, { when: { ...rule.when, media_type: v === ANY ? null : (v as MediaType) } })}
-                    options={[{ value: ANY, label: t("admin.rules.any") }, ...MEDIA_OPTIONS.map((m) => ({ value: m, label: t(`media.${m}`) }))]}
+                    onValueChange={(v) =>
+                      patch(rule.id, {
+                        when: { ...rule.when, media_type: v === ANY ? null : (v as MediaType) },
+                      })
+                    }
+                    options={[
+                      { value: ANY, label: t("admin.rules.any") },
+                      ...MEDIA_OPTIONS.map((m) => ({ value: m, label: t(`media.${m}`) })),
+                    ]}
                   />
                 )}
               </Field>
               <Field label={t("admin.rules.camera")}>
-                {({ invalid: _i, ...c }) => (
-                  <Input {...c} value={rule.when.camera_model ?? ""} placeholder={t("admin.rules.any")} onChange={(e) => patch(rule.id, { when: { ...rule.when, camera_model: e.target.value || null } })} />
+                {(c) => (
+                  <Input
+                    {...c}
+                    value={rule.when.camera_model ?? ""}
+                    placeholder={t("admin.rules.any")}
+                    onChange={(e) =>
+                      patch(rule.id, {
+                        when: { ...rule.when, camera_model: e.target.value || null },
+                      })
+                    }
+                  />
                 )}
               </Field>
               <Field label={t("admin.rules.batch")}>
-                {({ invalid: _i, ...c }) => (
-                  <Input {...c} value={rule.when.batch_contains ?? ""} placeholder={t("admin.rules.any")} onChange={(e) => patch(rule.id, { when: { ...rule.when, batch_contains: e.target.value || null } })} />
+                {(c) => (
+                  <Input
+                    {...c}
+                    value={rule.when.batch_contains ?? ""}
+                    placeholder={t("admin.rules.any")}
+                    onChange={(e) =>
+                      patch(rule.id, {
+                        when: { ...rule.when, batch_contains: e.target.value || null },
+                      })
+                    }
+                  />
                 )}
               </Field>
               <Field label={t("admin.rules.target")}>
-                {({ invalid: _i, ...c }) => (
-                  <Input {...c} className="rb-input--mono" value={rule.target} onChange={(e) => patch(rule.id, { target: e.target.value })} />
+                {(c) => (
+                  <Input
+                    {...c}
+                    className="rb-input--mono"
+                    value={rule.target}
+                    onChange={(e) => patch(rule.id, { target: e.target.value })}
+                  />
                 )}
               </Field>
             </div>
@@ -364,7 +498,13 @@ function RulesPanel() {
               ...doc,
               rules: [
                 ...doc.rules,
-                { id: `r${Date.now()}`, name: t("admin.rules.newName"), enabled: true, when: { media_type: null, camera_model: null, batch_contains: null }, target: "{year}/{month}" },
+                {
+                  id: `r${Date.now()}`,
+                  name: t("admin.rules.newName"),
+                  enabled: true,
+                  when: { media_type: null, camera_model: null, batch_contains: null },
+                  target: "{year}/{month}",
+                },
               ],
             })
           }
@@ -372,12 +512,24 @@ function RulesPanel() {
           {t("admin.rules.add")}
         </Button>
         <Field label={t("admin.rules.fallback")} className="rule__fallback">
-          {({ invalid: _i, ...c }) => <Input {...c} className="rb-input--mono" value={doc.fallback} onChange={(e) => setDoc({ ...doc, fallback: e.target.value })} />}
+          {(c) => (
+            <Input
+              {...c}
+              className="rb-input--mono"
+              value={doc.fallback}
+              onChange={(e) => setDoc({ ...doc, fallback: e.target.value })}
+            />
+          )}
         </Field>
       </div>
       {result ? (
         <Card title={t("admin.rules.previewTitle")} className="preview-card">
-          <p className="muted">{t("admin.rules.previewSummary", { count: result.items.length, unmatched: result.unmatched })}</p>
+          <p className="muted">
+            {t("admin.rules.previewSummary", {
+              count: result.items.length,
+              unmatched: result.unmatched,
+            })}
+          </p>
           <ul className="preview-list">
             {result.items.map((item) => (
               <li key={item.asset_id}>
@@ -394,20 +546,19 @@ function RulesPanel() {
 }
 
 function SettingsPanel() {
-  const { t } = useTranslation();
   const mapping = usePathMapping();
+  return mapping.data ? <SettingsForm initial={mapping.data} /> : null;
+}
+
+function SettingsForm({ initial }: { initial: PathMapping }) {
+  const { t } = useTranslation();
   const save = useSavePathMapping();
   const toast = useToast();
-  const [form, setForm] = useState({ windows: "", macos: "", linux: "" });
-  useEffect(() => {
-    if (mapping.data) {
-      setForm({
-        windows: mapping.data.windows ?? "",
-        macos: mapping.data.macos ?? "",
-        linux: mapping.data.linux ?? "",
-      });
-    }
-  }, [mapping.data]);
+  const [form, setForm] = useState({
+    windows: initial.windows ?? "",
+    macos: initial.macos ?? "",
+    linux: initial.linux ?? "",
+  });
   return (
     <Card title={t("admin.settings.paths")}>
       <p className="muted">{t("setup.paths.lead")}</p>
@@ -416,15 +567,26 @@ function SettingsPanel() {
         onSubmit={(event) => {
           event.preventDefault();
           save.mutate(
-            { windows: form.windows.trim() || null, macos: form.macos.trim() || null, linux: form.linux.trim() || null },
+            {
+              windows: form.windows.trim() || null,
+              macos: form.macos.trim() || null,
+              linux: form.linux.trim() || null,
+            },
             { onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }) },
           );
         }}
       >
         {(["windows", "macos", "linux"] as const).map((os) => (
           <Field key={os} label={t(`os.${os}`)} hint={t(`setup.paths.hint.${os}`)}>
-            {({ invalid: _i, ...c }) => (
-              <Input {...c} className="rb-input--mono" spellCheck={false} placeholder={t(`setup.paths.example.${os}`)} value={form[os]} onChange={(e) => setForm({ ...form, [os]: e.target.value })} />
+            {(c) => (
+              <Input
+                {...c}
+                className="rb-input--mono"
+                spellCheck={false}
+                placeholder={t(`setup.paths.example.${os}`)}
+                value={form[os]}
+                onChange={(e) => setForm({ ...form, [os]: e.target.value })}
+              />
             )}
           </Field>
         ))}
@@ -450,7 +612,11 @@ function BackupsPanel() {
         <Button
           icon={<DatabaseBackup size={16} />}
           loading={create.isPending}
-          onClick={() => create.mutate(undefined, { onSuccess: () => toast.push({ title: t("admin.backups.done"), tone: "success" }) })}
+          onClick={() =>
+            create.mutate(undefined, {
+              onSuccess: () => toast.push({ title: t("admin.backups.done"), tone: "success" }),
+            })
+          }
         >
           {t("admin.backups.now")}
         </Button>
@@ -460,14 +626,35 @@ function BackupsPanel() {
           label={t("admin.backups.title")}
           rows={backups.data ?? []}
           columns={[
-            { key: "name", header: t("admin.backups.file"), width: "minmax(0, 2fr)", cell: (b) => <code>{b.name}</code> },
+            {
+              key: "name",
+              header: t("admin.backups.file"),
+              width: "minmax(0, 2fr)",
+              cell: (b) => <code>{b.name}</code>,
+            },
             { key: "kind", header: t("admin.backups.kind"), width: "110px", cell: (b) => b.kind },
-            { key: "date", header: t("admin.tokens.created"), width: "170px", cell: (b) => formatDateTime(b.created_at) },
-            { key: "size", header: t("library.col.size"), width: "100px", align: "end", cell: (b) => formatBytes(b.size) },
+            {
+              key: "date",
+              header: t("admin.tokens.created"),
+              width: "170px",
+              cell: (b) => formatDateTime(b.created_at),
+            },
+            {
+              key: "size",
+              header: t("library.col.size"),
+              width: "100px",
+              align: "end",
+              cell: (b) => formatBytes(b.size),
+            },
           ]}
           getRowId={(b) => b.name}
           rowHeight={52}
-          empty={<EmptyState title={t("admin.backups.empty")} description={t("admin.backups.emptyText")} />}
+          empty={
+            <EmptyState
+              title={t("admin.backups.empty")}
+              description={t("admin.backups.emptyText")}
+            />
+          }
         />
       </Card>
     </>
@@ -486,7 +673,12 @@ export function AdminPage() {
           <p className="page__lead">{t("admin.lead")}</p>
         </div>
       </header>
-      <Tabs value={tab} onValueChange={(value) => void navigate({ to: "/admin", search: { tab: value as AdminTab }, replace: true })}>
+      <Tabs
+        value={tab}
+        onValueChange={(value) =>
+          void navigate({ to: "/admin", search: { tab: value as AdminTab }, replace: true })
+        }
+      >
         <TabsList aria-label={t("admin.sections")}>
           <TabsTrigger value="users">{t("admin.tabs.users")}</TabsTrigger>
           <TabsTrigger value="workers">{t("admin.tabs.workers")}</TabsTrigger>
@@ -494,11 +686,21 @@ export function AdminPage() {
           <TabsTrigger value="settings">{t("admin.tabs.settings")}</TabsTrigger>
           <TabsTrigger value="backups">{t("admin.tabs.backups")}</TabsTrigger>
         </TabsList>
-        <TabsContent value="users"><UsersPanel /></TabsContent>
-        <TabsContent value="workers"><TokensPanel /></TabsContent>
-        <TabsContent value="rules"><RulesPanel /></TabsContent>
-        <TabsContent value="settings"><SettingsPanel /></TabsContent>
-        <TabsContent value="backups"><BackupsPanel /></TabsContent>
+        <TabsContent value="users">
+          <UsersPanel />
+        </TabsContent>
+        <TabsContent value="workers">
+          <TokensPanel />
+        </TabsContent>
+        <TabsContent value="rules">
+          <RulesPanel />
+        </TabsContent>
+        <TabsContent value="settings">
+          <SettingsPanel />
+        </TabsContent>
+        <TabsContent value="backups">
+          <BackupsPanel />
+        </TabsContent>
       </Tabs>
     </div>
   );

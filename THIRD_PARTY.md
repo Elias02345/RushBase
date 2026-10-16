@@ -41,6 +41,13 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | TypeScript | compiler | Apache-2.0 |
 | ESLint, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals | lint | MIT |
 | Prettier | formatting | MIT |
+| Radix UI primitives (dialog, tabs, select, checkbox, switch, tooltip, toast, visually-hidden) | accessible components | MIT |
+| cmdk | command palette | MIT |
+| lucide-react | icons | ISC |
+| @tanstack/react-virtual | virtualised lists | MIT |
+| @fontsource-variable/figtree, @fontsource-variable/jetbrains-mono | self-hosted fonts (Figtree, JetBrains Mono) | OFL-1.1 (font), MIT (package) |
+| MSW (Mock Service Worker) | mock API for demos and tests | MIT |
+| Playwright (@playwright/test), @axe-core/playwright | browser tests, accessibility checks | Apache-2.0, MPL-2.0 |
 
 ## External tools and images (not bundled in the repository)
 

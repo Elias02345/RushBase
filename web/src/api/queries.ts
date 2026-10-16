@@ -152,7 +152,8 @@ export function useBackups() {
 export function usePathMapping() {
   return useQuery({
     queryKey: keys.pathMapping,
-    queryFn: (): Promise<PathMapping> => unwrap(contract.GET("/api/v1/admin/settings/path-mapping")),
+    queryFn: (): Promise<PathMapping> =>
+      unwrap(contract.GET("/api/v1/admin/settings/path-mapping")),
   });
 }
 
@@ -235,7 +236,9 @@ export function useRevokeWorker() {
   return useMutation({
     mutationFn: (id: string) =>
       unwrap(
-        api.POST("/api/v1/admin/workers/{worker_id}/revoke", { params: { path: { worker_id: id } } }),
+        api.POST("/api/v1/admin/workers/{worker_id}/revoke", {
+          params: { path: { worker_id: id } },
+        }),
       ),
     onSuccess: () => void client.invalidateQueries({ queryKey: keys.workers }),
   });
@@ -257,7 +260,9 @@ export function useBatchControl() {
     mutationFn: ({ id, paused }: { id: string; paused: boolean }) =>
       unwrap(
         api.POST(
-          paused ? "/api/v1/admin/batches/{batch_id}/pause" : "/api/v1/admin/batches/{batch_id}/resume",
+          paused
+            ? "/api/v1/admin/batches/{batch_id}/pause"
+            : "/api/v1/admin/batches/{batch_id}/resume",
           { params: { path: { batch_id: id } } },
         ),
       ),
@@ -310,7 +315,10 @@ export function useUpdateUser() {
       role?: Role;
       disabled?: boolean;
       password?: string;
-    }) => unwrap(api.PATCH("/api/v1/admin/users/{user_id}", { params: { path: { user_id: id } }, body })),
+    }) =>
+      unwrap(
+        api.PATCH("/api/v1/admin/users/{user_id}", { params: { path: { user_id: id } }, body }),
+      ),
     onSuccess: () => void client.invalidateQueries({ queryKey: keys.users }),
   });
 }

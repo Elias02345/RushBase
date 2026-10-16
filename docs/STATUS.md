@@ -5,7 +5,7 @@
 | M0 Foundation | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media | **done** (pending review) |
 | M1 Server core | Schema and migrations, library init, input scanner, queue with leasing, worker API, auth, backups, server lease | **done** (pending review) |
 | M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | planned |
-| M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | planned |
+| M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | web shell done (runs on mocks until the read APIs land) |
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
 | M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | planned |
@@ -88,3 +88,44 @@ The OpenAPI schema (`/openapi.json`, client in `packages/api-client`) documents 
 - `scripts/kill-test.sh` starts a private server with short timings when nothing listens on 18080;
   against a running dev server set `KILL_TEST_USER`/`KILL_TEST_PASSWORD` (it then needs minutes
   because of the default 120 s lease).
+
+## M3 web UI
+
+The web app (`web/`, shared components in `packages/ui`) is complete against mocked read endpoints.
+Stack, styling and the colour/motion language are in `docs/adr/0013-web-ui-stack.md`.
+
+```sh
+make setup
+VITE_MOCK=1 pnpm --filter @rushbase/web dev        # demo on http://127.0.0.1:15173, no server needed
+# sign in as elias (admin), mara (editor) or jonas (viewer) with the password rushbase-demo-pass
+pnpm --filter @rushbase/web build:mock && pnpm --filter @rushbase/web preview:mock
+```
+
+Against a real server run `make dev` (the Vite proxy forwards `/api/v1/*` and `/api/health`).
+Mock scenarios (set `sessionStorage["rushbase.mock.scenario"]`): `fresh` shows the setup wizard,
+`no-workers` shows the empty worker state.
+
+Tests: `pnpm -r test` (Vitest + Testing Library + MSW) and the browser suite
+
+```sh
+export PLAYWRIGHT_BROWSERS_PATH="$PWD/.toolchain/playwright"
+pnpm --filter @rushbase/web exec playwright install chromium   # once
+pnpm --filter @rushbase/web e2e                                 # login to processing, axe checks, light and dark
+pnpm --filter @rushbase/web screenshots                         # refreshes docs/screenshots/
+```
+
+### Contracts the UI expects (`web/src/api/contracts.ts`)
+
+Specified for the server agent and mocked until they are in OpenAPI: `GET /api/v1/assets`,
+`GET /api/v1/assets/{id}`, `GET /api/v1/facets`, `GET /api/v1/stats`. Assumptions on details the
+specification left open: `sprite_tiles` is `{cols, rows, count}` (frames row by row);
+`metadata.normalized` is grouped by top-level key (`camera`, `lens`, `exposure`, `video`, `audio`,
+`location`; unknown groups and flat scalars are shown too); date filters are `YYYY-MM-DD`; `sort` is
+one of `capture_desc|capture_asc|name_asc|size_desc|duration_desc`; `cursor` is opaque.
+
+Proposed endpoints without a server implementation yet (the UI degrades to an error state):
+`POST /api/v1/assets/{id}/retry`, `GET /api/v1/admin/enrollment-tokens`,
+`POST /api/v1/admin/enrollment-tokens/{id}/revoke`, `GET|PUT /api/v1/admin/settings/path-mapping`,
+`GET|PUT /api/v1/admin/filing-rules`, `POST /api/v1/admin/filing-rules/preview`,
+`POST /api/v1/setup/restore`. The worker command shown in the wizard is
+`rushbase enroll --server <origin> --token <token>`.

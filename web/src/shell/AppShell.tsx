@@ -86,7 +86,12 @@ export function AppShell() {
 
   const go = useCallback(
     (target: "dashboard" | "library" | "processing" | "admin") => {
-      const to = { dashboard: "/", library: "/library", processing: "/processing", admin: "/admin" } as const;
+      const to = {
+        dashboard: "/",
+        library: "/library",
+        processing: "/processing",
+        admin: "/admin",
+      } as const;
       if (target === "admin" && !isAdmin) return;
       void navigate({ to: to[target] });
     },
@@ -178,7 +183,12 @@ export function AppShell() {
         </Link>
         <nav aria-label={t("nav.main")} className="sidebar__nav">
           {NAV.filter((item) => !item.admin || isAdmin).map((item) => (
-            <Link key={item.to} to={item.to} className="navlink" activeOptions={{ exact: item.to === "/" }}>
+            <Link
+              key={item.to}
+              to={item.to}
+              className="navlink"
+              activeOptions={{ exact: item.to === "/" }}
+            >
               <item.icon size={20} aria-hidden="true" />
               <span className="navlink__label">{t(item.label)}</span>
               {item.to === "/processing" && pending > 0 ? (

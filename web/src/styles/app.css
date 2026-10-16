@@ -1293,7 +1293,11 @@ a {
     width: 2px;
     height: 2.2rem;
     justify-self: center;
-    background: repeating-linear-gradient(0deg, var(--rb-border-strong) 0 6px, transparent 6px 12px);
+    background: repeating-linear-gradient(
+      0deg,
+      var(--rb-border-strong) 0 6px,
+      transparent 6px 12px
+    );
   }
   .flow i {
     top: 0;

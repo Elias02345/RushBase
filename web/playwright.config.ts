@@ -18,7 +18,11 @@ export default defineConfig({
   },
   projects: [
     { name: "e2e", testIgnore: /screenshots\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
-    { name: "screenshots", testMatch: /screenshots\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "screenshots",
+      testMatch: /screenshots\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
   webServer: {
     command: `pnpm exec vite build && pnpm exec vite preview --port ${PORT}`,

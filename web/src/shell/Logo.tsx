@@ -22,7 +22,10 @@ export function Logo({ size = 32 }: { size?: number }) {
         strokeDasharray="40 17"
         transform="rotate(-70 16 16)"
       />
-      <path d="M14 12.6v6.8a.6.6 0 0 0 .9.5l5.4-3.4a.6.6 0 0 0 0-1l-5.4-3.4a.6.6 0 0 0-.9.5Z" className="logo__play" />
+      <path
+        d="M14 12.6v6.8a.6.6 0 0 0 .9.5l5.4-3.4a.6.6 0 0 0 0-1l-5.4-3.4a.6.6 0 0 0-.9.5Z"
+        className="logo__play"
+      />
     </svg>
   );
 }

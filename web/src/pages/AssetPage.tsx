@@ -49,7 +49,9 @@ function MetadataGroups({ detail }: { detail: AssetDetail }) {
   }
   if (loose.length > 0) groups.push(["other", loose]);
   if (groups.length === 0) {
-    return <EmptyState compact title={t("asset.noMetadata")} description={t("asset.noMetadataText")} />;
+    return (
+      <EmptyState compact title={t("asset.noMetadata")} description={t("asset.noMetadataText")} />
+    );
   }
   return (
     <div className="meta-groups">
@@ -76,7 +78,10 @@ function FilesPanel({ detail }: { detail: AssetDetail }) {
   const [os, setOs] = useState<Os>(detectOs());
   const copy = async (text: string) => {
     const ok = await copyText(text);
-    toast.push({ title: ok ? t("common.copied") : t("common.copyFailed"), tone: ok ? "success" : "error" });
+    toast.push({
+      title: ok ? t("common.copied") : t("common.copyFailed"),
+      tone: ok ? "success" : "error",
+    });
   };
   return (
     <div>
@@ -106,7 +111,12 @@ function FilesPanel({ detail }: { detail: AssetDetail }) {
               </div>
               <code className="codeblock codeblock--path">{path}</code>
               <div className="file-list__actions">
-                <Button size="sm" variant="secondary" icon={<Copy size={14} />} onClick={() => void copy(path)}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon={<Copy size={14} />}
+                  onClick={() => void copy(path)}
+                >
                   {t("asset.copyPath")}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => void copy(file.rel_path)}>
@@ -134,7 +144,11 @@ function ShotTimeline({
   const total = detail.duration_ms ?? 0;
   if (detail.shots.length === 0 || total === 0) return null;
   const label = (shot: Shot) =>
-    t("asset.shotLabel", { n: shot.idx + 1, start: formatDuration(shot.start_ms), end: formatDuration(shot.end_ms) });
+    t("asset.shotLabel", {
+      n: shot.idx + 1,
+      start: formatDuration(shot.start_ms),
+      end: formatDuration(shot.end_ms),
+    });
   return (
     <div className="timeline">
       <h3 className="timeline__title">{t("asset.shots", { count: detail.shots.length })}</h3>
@@ -154,13 +168,21 @@ function ShotTimeline({
             />
           );
         })}
-        <span className="timeline__playhead" style={{ left: `${Math.min(100, (current / total) * 100)}%` }} aria-hidden="true" />
+        <span
+          className="timeline__playhead"
+          style={{ left: `${Math.min(100, (current / total) * 100)}%` }}
+          aria-hidden="true"
+        />
       </div>
       <ul className="keyframes" aria-label={t("asset.keyframes")}>
         {detail.shots.flatMap((shot) =>
           shot.keyframes.map((frame) => (
             <li key={frame.url}>
-              <button type="button" onClick={() => onSeek(frame.t_ms)} aria-label={t("asset.jumpTo", { time: formatDuration(frame.t_ms) })}>
+              <button
+                type="button"
+                onClick={() => onSeek(frame.t_ms)}
+                aria-label={t("asset.jumpTo", { time: formatDuration(frame.t_ms) })}
+              >
                 <img src={frame.url} alt="" loading="lazy" width={160} height={90} />
                 <span>{formatDuration(frame.t_ms)}</span>
               </button>
@@ -199,7 +221,9 @@ function Stage({ detail }: { detail: AssetDetail }) {
         ) : detail.poster_url ? (
           <>
             <img src={detail.poster_url} alt={detail.title ?? detail.filename} />
-            {detail.media_type === "video" ? <p className="stage__note">{t("asset.noProxy")}</p> : null}
+            {detail.media_type === "video" ? (
+              <p className="stage__note">{t("asset.noProxy")}</p>
+            ) : null}
           </>
         ) : (
           <p className="stage__note stage__note--center">{t("asset.noPreview")}</p>
@@ -270,7 +294,9 @@ export function AssetPage() {
                   .join(" · ")}
               </p>
             </div>
-            <StatusChip tone={assetTone(detail.status)}>{t(`assetStatus.${detail.status}`)}</StatusChip>
+            <StatusChip tone={assetTone(detail.status)}>
+              {t(`assetStatus.${detail.status}`)}
+            </StatusChip>
           </header>
           <div className="asset-layout">
             <Stage detail={detail} key={detail.id} />

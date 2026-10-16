@@ -18,10 +18,7 @@ export function LoginPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    login.mutate(
-      { username, password },
-      { onSuccess: () => router.history.push(redirect ?? "/") },
-    );
+    login.mutate({ username, password }, { onSuccess: () => router.history.push(redirect ?? "/") });
   };
 
   const error = login.error;
@@ -53,7 +50,7 @@ export function LoginPage() {
         </h1>
         <p className="auth-card__lead">{t("login.lead")}</p>
         <Field label={t("login.username")}>
-          {({ invalid: _invalid, ...control }) => (
+          {(control) => (
             <Input
               {...control}
               name="username"

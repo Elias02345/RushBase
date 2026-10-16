@@ -40,7 +40,15 @@ function Station({
   );
 }
 
-function Count({ tone, n, label }: { tone: Parameters<typeof StatusChip>[0]["tone"]; n: number; label: string }) {
+function Count({
+  tone,
+  n,
+  label,
+}: {
+  tone: Parameters<typeof StatusChip>[0]["tone"];
+  n: number;
+  label: string;
+}) {
   return (
     <div className="count">
       <span className="count__n">{formatNumber(n)}</span>
@@ -65,7 +73,10 @@ function PipelineFlow({ status }: { status: SystemStatus }) {
         <Count tone="copying" n={files.copying ?? 0} label={t("status.copying")} />
         <Count tone="waiting" n={files.stable ?? 0} label={t("status.waiting")} />
       </Station>
-      <div className={`flow${files.copying || files.stable ? " flow--active" : ""}`} aria-hidden="true">
+      <div
+        className={`flow${files.copying || files.stable ? " flow--active" : ""}`}
+        aria-hidden="true"
+      >
         <i /> <i /> <i />
       </div>
       <Station
@@ -132,7 +143,9 @@ export function DashboardPage() {
               : t("common.loading")}
           </p>
         </div>
-        {s?.queue_paused ? <StatusChip tone="waiting">{t("dashboard.queuePaused")}</StatusChip> : null}
+        {s?.queue_paused ? (
+          <StatusChip tone="waiting">{t("dashboard.queuePaused")}</StatusChip>
+        ) : null}
       </header>
 
       <Card title={t("dashboard.pipeline")} className="dash-pipeline">
@@ -140,7 +153,14 @@ export function DashboardPage() {
       </Card>
 
       <div className="dash-grid">
-        <Card title={t("dashboard.workers")} actions={<Link to="/processing" search={{ tab: "workers" }} className="link">{t("dashboard.allWorkers")}</Link>}>
+        <Card
+          title={t("dashboard.workers")}
+          actions={
+            <Link to="/processing" search={{ tab: "workers" }} className="link">
+              {t("dashboard.allWorkers")}
+            </Link>
+          }
+        >
           {!s ? (
             <Skeleton height={90} />
           ) : s.workers_online === 0 ? (
@@ -169,7 +189,9 @@ export function DashboardPage() {
                     <li key={w.id}>
                       <Cpu size={16} aria-hidden="true" /> <strong>{w.name}</strong>
                       <span className="muted">
-                        {w.last_stage ? ` · ${t(`stages.${w.last_stage}`, { defaultValue: w.last_stage })}` : ""}
+                        {w.last_stage
+                          ? ` · ${t(`stages.${w.last_stage}`, { defaultValue: w.last_stage })}`
+                          : ""}
                       </span>
                     </li>
                   ))
@@ -179,11 +201,22 @@ export function DashboardPage() {
           )}
         </Card>
 
-        <Card title={t("dashboard.recentBatches")} actions={<Link to="/processing" search={{ tab: "batches" }} className="link">{t("dashboard.allBatches")}</Link>}>
+        <Card
+          title={t("dashboard.recentBatches")}
+          actions={
+            <Link to="/processing" search={{ tab: "batches" }} className="link">
+              {t("dashboard.allBatches")}
+            </Link>
+          }
+        >
           {batches.isLoading ? (
             <Skeleton height={120} />
           ) : recent.length === 0 ? (
-            <EmptyState compact title={t("dashboard.noBatches")} description={t("dashboard.noBatchesText")} />
+            <EmptyState
+              compact
+              title={t("dashboard.noBatches")}
+              description={t("dashboard.noBatchesText")}
+            />
           ) : (
             <ul className="plain-list plain-list--rows">
               {recent.map((b) => (

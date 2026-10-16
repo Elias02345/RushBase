@@ -60,7 +60,12 @@ function EnumFacet({
   return (
     <section className="facet">
       <h3 className="facet__title">
-        <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen(!open)}
+        >
           {label}
           <ChevronDown size={16} aria-hidden="true" className={open ? "" : "facet__chev--closed"} />
         </button>
@@ -86,7 +91,9 @@ function EnumFacet({
           {values.length > VISIBLE ? (
             <li>
               <Button variant="ghost" size="sm" onClick={() => setAll(!all)}>
-                {all ? t("library.showLess") : t("library.showMore", { count: values.length - VISIBLE })}
+                {all
+                  ? t("library.showLess")
+                  : t("library.showMore", { count: values.length - VISIBLE })}
               </Button>
             </li>
           ) : null}
@@ -134,7 +141,10 @@ export function FacetSidebar({
                     type="date"
                     value={search.date_from ?? ""}
                     min={typeof facet.min === "string" ? facet.min.slice(0, 10) : undefined}
-                    max={search.date_to ?? (typeof facet.max === "string" ? facet.max.slice(0, 10) : undefined)}
+                    max={
+                      search.date_to ??
+                      (typeof facet.max === "string" ? facet.max.slice(0, 10) : undefined)
+                    }
                     onChange={(e) => onChange({ date_from: e.target.value || undefined })}
                   />
                 </label>
