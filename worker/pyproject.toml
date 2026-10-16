@@ -20,11 +20,15 @@ dependencies = [
   "scenedetect==0.6.6",
   "onnxruntime>=1.23",
   "tokenizers>=0.21",
+  "mcp==2.3.0",
 ]
 
 [project.optional-dependencies]
 gpu = ["onnxruntime-gpu>=1.23"]
 nvml = ["nvidia-ml-py>=12"]
+
+[dependency-groups]
+sidecar = ["pyinstaller>=6.11"]
 
 [project.scripts]
 rushbase = "rushbase_worker.cli:app"

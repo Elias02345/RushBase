@@ -21,6 +21,18 @@ All notable changes to this project are documented here. The format follows
   re-classified assets; administration page "MCP / Claude" (connector URL, clients with revoke,
   extra redirect URIs, call log). `/health` reports `warnings` (`mcp_public_url_missing`).
 - Docs: `docs/mcp.md` (connect to claude.ai, scopes, troubleshooting, generated tool reference).
+### Added (milestone M6, companion)
+
+- Desktop app (Tauri 2): Processor with backlog, hardware, one-click processing, live progress,
+  graceful stop, stop time, idle-only and GPU temperature guard; first-run wizard; Library with local
+  playback, selection, exports and Send to Resolve; tray, autostart and updater (both off by default).
+- CLI: `login`, `search`, `browse`, `filters`, `asset get`, `select`, `paths resolve`, `export`,
+  `resolve status|send|selftest`, `overview`, `mcp serve`, all with `--json` (`docs/cli-json.md`).
+- Local MCP server (stdio and bearer-protected HTTP) mirroring the CLI; no tool deletes or moves files.
+- DaVinci Resolve Studio integration (idempotent import, metadata, markers, clip colour) and exports
+  to FCPXML 1.10, CMX 3600 EDL and metadata CSV.
+- Installers workflow (Windows, macOS universal, Linux), AUR package, headless worker Docker images.
+- `packages/ui`: `ProgressBar`.
 
 ### Added (milestone M4, server and web)
 

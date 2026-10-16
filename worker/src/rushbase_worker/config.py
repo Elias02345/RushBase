@@ -135,6 +135,17 @@ class WorkerSettings(BaseSettings):
     )
     transcript_chunk_seconds: float = Field(default=30.0, gt=0)
 
+    # --- DaVinci Resolve bridge (docs/companion.md, ADR-0002) ---
+    resolve_python: Path | None = Field(
+        default=None, description="Interpreter for the bridge (default: Resolve's ResolvePython)."
+    )
+    resolve_script_api: Path | None = Field(
+        default=None, description="RESOLVE_SCRIPT_API override."
+    )
+    resolve_script_lib: Path | None = Field(
+        default=None, description="RESOLVE_SCRIPT_LIB override."
+    )
+
     @classmethod
     def settings_customise_sources(
         cls,

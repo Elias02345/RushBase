@@ -15,6 +15,7 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | Alembic | migrations | MIT |
 | psycopg 3 (+ binary) | PostgreSQL driver (bundles libpq) | LGPL-3.0-only |
 | Typer | CLI | MIT |
+| mcp (official Model Context Protocol SDK, 2.3.0) | local MCP server of the companion | MIT |
 | argon2-cffi | argon2id password hashing | MIT |
 | blake3 (BLAKE3 Python bindings) | file fingerprints and hashes | MIT / Apache-2.0 |
 | HTTPX | HTTP client | BSD-3-Clause |
@@ -56,6 +57,16 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | @fontsource-variable/figtree, @fontsource-variable/jetbrains-mono | self-hosted fonts (Figtree, JetBrains Mono) | OFL-1.1 (font), MIT (package) |
 | MSW (Mock Service Worker) | mock API for demos and tests | MIT |
 | Playwright (@playwright/test), @axe-core/playwright | browser tests, accessibility checks | Apache-2.0, MPL-2.0 |
+
+## Companion app (desktop, Rust)
+
+| Crate / package | Use | Licence |
+| --- | --- | --- |
+| Tauri 2 (`tauri`, `tauri-build`, `@tauri-apps/api`, `@tauri-apps/cli`) | app shell | Apache-2.0 / MIT |
+| tauri-plugin-autostart, -updater, -dialog, -opener, -single-instance | platform integration | Apache-2.0 / MIT |
+| tauri-plugin-drag (`@crabnebula/tauri-plugin-drag`) | drag files out | Apache-2.0 / MIT |
+| serde, serde_json, shlex, libc, windows-sys | Rust helpers | MIT / Apache-2.0 |
+| PyInstaller | freezes the `rushbase` sidecar (build time only) | GPL-2.0-or-later with the bootloader exception |
 
 ## External tools and images (not bundled in the repository)
 

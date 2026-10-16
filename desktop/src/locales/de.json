@@ -1,0 +1,282 @@
+{
+  "common": {
+    "browse": "Durchsuchen",
+    "cancel": "Abbrechen",
+    "clear": "Leeren",
+    "close": "Schließen",
+    "notifications": "Hinweise",
+    "ok": "OK",
+    "refresh": "Aktualisieren",
+    "remove": "Entfernen",
+    "retry": "Erneut versuchen",
+    "save": "Speichern"
+  },
+  "nav": {
+    "label": "Hauptnavigation",
+    "processor": "Dieser PC",
+    "library": "Bibliothek",
+    "settings": "Einstellungen"
+  },
+  "stage": {
+    "probe": "Analyse",
+    "hash": "Prüfsumme",
+    "preview": "Vorschau",
+    "shots": "Szenen",
+    "audio": "Audio",
+    "embed": "Suchindex",
+    "vision": "Bildbeschreibung",
+    "classify": "Einordnung"
+  },
+  "hero": {
+    "eyebrow": "Wartet auf diesen Rechner",
+    "files_one": "{{count}} Datei",
+    "files_other": "{{count}} Dateien",
+    "hours": "{{hours}} Std. Material",
+    "perStage": "Wartende Aufträge je Schritt",
+    "estimate": "Dauer etwa {{duration}} · fertig gegen {{at}} Uhr",
+    "estimateMeasured": "nach deinen letzten Läufen",
+    "estimateDefault": "Richtwert, wird mit jedem Lauf genauer",
+    "allDone": "Alles verarbeitet",
+    "allDoneHint": "Neues Material erscheint hier, sobald der Server es eingelesen hat.",
+    "lastRun": "Letzter Lauf: {{when}} · {{count}} Aufträge erledigt"
+  },
+  "processor": {
+    "start": "Verarbeiten",
+    "cliMissing": "Das Worker-Programm lässt sich nicht starten",
+    "modelsMissing_one": "{{count}} KI-Modell fehlt",
+    "modelsMissing_other": "{{count}} KI-Modelle fehlen",
+    "modelsMissingHint": "Ohne die Modelle laufen nur die technischen Schritte. Der Download wird per Prüfsumme verifiziert.",
+    "loadModels": "Modelle laden"
+  },
+  "issue": {
+    "startSetup": "Einrichtung starten",
+    "no_server": {
+      "title": "Noch kein Server verbunden",
+      "fix": "Verbinde diesen Rechner mit deinem Rushbase-Server, dann siehst du hier sofort, was zu tun ist."
+    },
+    "not_enrolled": {
+      "title": "Dieser Rechner ist noch nicht angemeldet",
+      "fix": "Hole im Webbereich unter Verarbeitung ein Anmelde-Token und trage es in der Einrichtung ein."
+    },
+    "server_unreachable": {
+      "title": "Server nicht erreichbar",
+      "fix": "Prüfe Netzwerk und Server-Adresse in den Einstellungen."
+    },
+    "mount": {
+      "title": "Bibliothek nicht eingebunden",
+      "fix": "Der Ordner muss die Bibliothek des Servers enthalten (.rushbase/library.json)."
+    }
+  },
+  "hardware": {
+    "title": "Dieser Rechner",
+    "noGpu": "Keine Grafikkarte erkannt",
+    "cores_one": "{{count}} Kern",
+    "cores_other": "{{count}} Kerne",
+    "vram": "Grafikspeicher",
+    "backend": "Backend {{name}}",
+    "profile": "Profil {{name}}",
+    "models": "Modelle {{installed}}/{{total}}",
+    "live": "Live-Werte der Grafikkarte"
+  },
+  "options": {
+    "title": "Optionen",
+    "stages": "Schritte",
+    "until": "Stoppen um",
+    "untilHint": "Laufende Aufträge werden sauber zurückgegeben.",
+    "maxTemp": "Max. GPU-Temperatur (°C)",
+    "maxTempHint": "Pausiert über diesem Wert und läuft nach dem Abkühlen weiter. 0 = aus.",
+    "maxTempUnavailable": "Nur mit nvidia-smi verfügbar.",
+    "idleOnly": "Nur wenn der Rechner ruht ({{minutes}} Min.)"
+  },
+  "run": {
+    "running": "Läuft",
+    "stopping": "Wird sauber beendet …",
+    "waitingIdle": "Wartet, bis der Rechner ruht",
+    "waitingTemp": "Pausiert: Grafikkarte kühlt ab",
+    "finished": "Fertig {{reason}}",
+    "reason": {
+      "empty": "(Warteschlange leer)",
+      "stop_time": "(Stopp-Zeit erreicht)",
+      "sigint": "(gestoppt)",
+      "sigterm": "(gestoppt)",
+      "stopped": "(gestoppt)"
+    },
+    "items": "{{done}} von {{total}} Aufträgen",
+    "currentStage": "Gerade: {{stage}}",
+    "progress": "Fortschritt",
+    "rate": "{{rate}} Aufträge/Min.",
+    "rateUnknown": "Geschwindigkeit wird ermittelt …",
+    "eta": "noch {{duration}} (gegen {{at}} Uhr)",
+    "failed_one": "{{count}} Fehler",
+    "failed_other": "{{count}} Fehler",
+    "released_one": "{{count}} zurückgegeben",
+    "released_other": "{{count}} zurückgegeben",
+    "stop": "Pause / Stopp",
+    "cancel": "Abbrechen",
+    "backlogLeft": "Noch {{count}} Aufträge in der Warteschlange."
+  },
+  "log": {
+    "title": "Ereignisse",
+    "empty": "Noch nichts passiert.",
+    "done": "{{stage}} fertig in {{seconds}} s",
+    "failed": "{{stage}} fehlgeschlagen: {{error}}",
+    "released": "{{stage}} zurückgegeben",
+    "stopped": "Gestoppt ({{reason}})",
+    "started": "Lauf gestartet",
+    "other": "{{event}}"
+  },
+  "models": {
+    "title": "KI-Modelle laden",
+    "description": "Lädt die zu deiner Hardware passenden Modelle und Programme, prüft jede Datei per SHA-256 und setzt abgebrochene Downloads fort.",
+    "start": "Download starten",
+    "retry": "Erneut versuchen",
+    "cancel": "Abbrechen",
+    "idle": "Bereit.",
+    "progress": "Download-Fortschritt",
+    "verifying": "Prüfsumme wird geprüft …",
+    "installed": "Installiert: {{list}}",
+    "finished": "Alle Modelle sind installiert und geprüft."
+  },
+  "library": {
+    "search": "Suchen, z. B. „Boot im Hafen bei Nacht“",
+    "sort": "Sortierung",
+    "all": "alle",
+    "count_one": "{{count}} Treffer",
+    "count_other": "{{count}} Treffer",
+    "sorts": {
+      "-date": "Neueste zuerst",
+      "date": "Älteste zuerst",
+      "filename": "Dateiname",
+      "-size": "Größte zuerst",
+      "-duration": "Längste zuerst"
+    },
+    "more": "Mehr laden",
+    "empty": "Nichts gefunden",
+    "emptyText": "Ändere die Suche oder setze die Filter zurück.",
+    "offlineTitle": "Die Bibliothek braucht den Server",
+    "offlineText": "Suche und Filter kommen vom Server. Verarbeiten kannst du auch ohne.",
+    "loginNeeded": "Anmeldung nötig",
+    "loginNeededText": "Melde dich einmal mit deinem Rushbase-Konto an, damit die App suchen darf.",
+    "select": "{{name}} auswählen",
+    "review": "Prüfen",
+    "detail": "Details",
+    "noPlayback": "Keine Wiedergabe möglich. Ist die Bibliothek eingebunden?",
+    "original": "Original (lokal)",
+    "proxy": "Proxy",
+    "notMounted": "Original nicht eingebunden",
+    "shots": "Szenen",
+    "pickShot": "Szene {{index}} wählen",
+    "addToBasket": "In die Auswahl",
+    "updateBasket": "Auswahl aktualisieren",
+    "addShots_one": "{{count}} Szene in die Auswahl",
+    "addShots_other": "{{count}} Szenen in die Auswahl",
+    "copyPath": "Pfad kopieren",
+    "reveal": "Im Dateimanager zeigen",
+    "dragOut": "Datei herausziehen",
+    "dragOff": {
+      "wayland": "Herausziehen geht unter Wayland nicht: nutze „Pfad kopieren“ oder „Im Dateimanager zeigen“.",
+      "network_mount": "Dateien auf Netzlaufwerken werden nicht direkt gezogen. Nutze „An Resolve senden“ oder den Pfad.",
+      "path_too_long": "Der Pfad ist zu lang zum Herausziehen. Nutze den kopierten Pfad.",
+      "unknown": "Herausziehen ist hier nicht verfügbar."
+    }
+  },
+  "basket": {
+    "button": "Auswahl ({{count}})",
+    "title": "Auswahl ({{count}})",
+    "empty": "Noch nichts ausgewählt. Wähle Clips oder einzelne Szenen in der Bibliothek.",
+    "shots_one": "{{count}} Szene",
+    "shots_other": "{{count}} Szenen",
+    "whole": "ganze Datei",
+    "csv": "Metadaten-CSV",
+    "clear": "Leeren",
+    "exported": "Gespeichert: {{file}}",
+    "exportFailed": "Export fehlgeschlagen",
+    "sendToResolve": "An Resolve senden",
+    "resolveHint": "„An Resolve senden“ erscheint, sobald DaVinci Resolve Studio läuft und Skripting auf „Lokal“ steht. Die Exporte funktionieren immer.",
+    "confirmTitle": "In Resolve importieren?",
+    "confirmText": "Die Clips werden in das geöffnete Projekt „{{project}}“ importiert. Bestehende Clips bleiben unberührt.",
+    "confirmSend": "Importieren",
+    "bin": "Ordner im Medienpool",
+    "markers": "Marker an Szenengrenzen setzen",
+    "metadata": "Beschreibung und Stichwörter setzen",
+    "sent": "{{imported}} importiert, {{existing}} schon vorhanden in „{{project}}“",
+    "sendFailed": "Senden an Resolve fehlgeschlagen"
+  },
+  "wizard": {
+    "steps": "Einrichtungsschritte",
+    "step": {
+      "server": "Server",
+      "account": "Konto",
+      "library": "Bibliothek",
+      "hardware": "Hardware",
+      "check": "Check"
+    },
+    "defaultName": "Mein Rechner",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "finish": "Fertig",
+    "alreadyEnrolled": "Schon angemeldet, weiter",
+    "server": {
+      "title": "Mit dem Server verbinden",
+      "help": "Öffne im Web unter Verarbeitung „Rechner hinzufügen“ und kopiere den Befehl oder das Token hierher.",
+      "url": "Server-Adresse",
+      "token": "Anmelde-Token oder ganzer Befehl",
+      "tokenHint": "Du kannst den Befehl „rushbase enroll --server … --token …“ einfach einfügen.",
+      "name": "Name dieses Rechners",
+      "connect": "Verbinden"
+    },
+    "serverMissing": "Bitte Server-Adresse und Token angeben.",
+    "account": {
+      "title": "Bei Rushbase anmelden",
+      "help": "Für Suche und Bibliothek legt die App einmalig ein persönliches Zugriffstoken an. Das Passwort wird nicht gespeichert.",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "signIn": "Anmelden"
+    },
+    "library": {
+      "title": "Bibliothek einbinden",
+      "help": "Wähle den Ordner, unter dem die Bibliothek auf diesem Rechner liegt (Netzlaufwerk oder lokal).",
+      "root": "Ordner der Bibliothek",
+      "hint": "Darin muss .rushbase/library.json liegen. Die App prüft, ob es die Bibliothek des Servers ist.",
+      "verify": "Prüfen und speichern"
+    },
+    "mountFailed": "Die Bibliothek passt nicht zum Server.",
+    "hardware": {
+      "title": "Modelle",
+      "missing_one": "{{count}} Modell fehlt noch. Du kannst es jetzt laden oder später im Verarbeiten-Bereich.",
+      "missing_other": "{{count}} Modelle fehlen noch. Du kannst sie jetzt laden oder später im Verarbeiten-Bereich.",
+      "complete": "Alle Modelle für diese Hardware sind installiert."
+    },
+    "check": {
+      "title": "Systemcheck",
+      "help": "Prüft ffmpeg, ExifTool, Bibliothek, Server und Datenordner.",
+      "run": "Prüfen",
+      "failed": "Der Check konnte nicht ausgeführt werden."
+    }
+  },
+  "settings": {
+    "connection": "Verbindung",
+    "server": "Server-Adresse",
+    "libraryRoot": "Ordner der Bibliothek",
+    "libraryRootHint": "Wird nur lesend verwendet.",
+    "cli": "Worker-Befehl",
+    "cliHint": "Leer = das mitgelieferte Programm. Für die Entwicklung z. B. „uv run rushbase“.",
+    "saved": "Gespeichert",
+    "wizard": "Einrichtung wiederholen",
+    "appearance": "Darstellung",
+    "language": "Sprache",
+    "theme": "Farbschema",
+    "themeSystem": "Wie das System",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "system": "System",
+    "autostart": "Beim Anmelden starten (minimiert im Tray)",
+    "trayOn": "Tray aktiv",
+    "trayOff": "Kein Tray verfügbar",
+    "updaterOn": "Updates aktiv",
+    "updaterOff": "Updates aus",
+    "updaterHintOn": "Die App sucht auf GitHub nach signierten Updates.",
+    "updaterHintOff": "Dieser Build enthält keinen Update-Schlüssel. Neue Versionen lädst du manuell.",
+    "quit": "Beenden (Aufträge werden zurückgegeben)"
+  }
+}

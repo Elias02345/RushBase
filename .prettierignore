@@ -12,3 +12,6 @@ packages/api-client/openapi.json
 *.py
 *.md
 worker/tests/fixtures/
+desktop/src-tauri/gen
+desktop/src-tauri/target
+desktop/dist-mock

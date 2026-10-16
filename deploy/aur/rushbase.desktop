@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Rushbase
+Comment=Process footage on your own GPU and browse the Rushbase library
+Exec=rushbase-desktop
+Icon=rushbase
+Terminal=false
+Categories=AudioVideo;Video;
+StartupWMClass=rushbase-desktop

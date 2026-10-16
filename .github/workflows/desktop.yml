@@ -1,0 +1,153 @@
+name: Desktop
+
+# Builds the companion installers (Windows MSI/NSIS, macOS universal DMG, Linux AppImage/deb/rpm)
+# with the worker CLI frozen as a sidecar. Runs on release tags and on demand; pushes and pull
+# requests are covered by ci.yml (desktop lint, typecheck, tests, clippy are part of it).
+#
+# Optional signing secrets (builds are unsigned when they are missing):
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD   updater signature (latest.json)
+#   RUSHBASE_UPDATER_PUBKEY (repository variable)                   public half, compiled into the app
+#   APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
+#   APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID                         macOS signing and notarisation
+#   WINDOWS_CERTIFICATE, WINDOWS_CERTIFICATE_PASSWORD               Windows code signing (PFX, base64)
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Create or update a draft GitHub release with the installers"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-22.04
+            args: "--bundles appimage,deb,rpm"
+          - name: macOS (universal)
+            os: macos-14
+            args: "--target universal-apple-darwin --bundles dmg"
+          - name: Windows
+            os: windows-latest
+            args: "--bundles msi,nsis"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux system libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev libsoup-3.0-dev patchelf rpm xdg-utils
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The sidecar is a PyInstaller build of `rushbase`, one per target triple. A universal macOS
+      # app needs both architectures; the arm64 binary is built natively, x86_64 under Rosetta.
+      - name: Build the sidecar (Linux, Windows)
+        if: runner.os != 'macOS'
+        shell: bash
+        run: bash desktop/scripts/build-sidecar.sh
+
+      - name: Build the sidecars (macOS arm64 and x86_64)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          TARGET_TRIPLE=aarch64-apple-darwin bash desktop/scripts/build-sidecar.sh
+          arch -x86_64 /bin/bash -c 'TARGET_TRIPLE=x86_64-apple-darwin bash desktop/scripts/build-sidecar.sh' || \
+            echo "::warning::x86_64 sidecar could not be built; the universal bundle needs it"
+
+      - name: Import the Windows signing certificate
+        if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+        run: |
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\cert.pfx", [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+
+      - name: Build installers
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUSHBASE_UPDATER_PUBKEY: ${{ vars.RUSHBASE_UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: desktop
+          args: ${{ matrix.args }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          releaseName: "Rushbase ${{ github.ref_name }}"
+          releaseDraft: true
+          prerelease: false
+          # Without a tag or the manual release switch the installers are only uploaded as artifacts.
+          uploadWorkflowArtifacts: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release) }}
+          includeUpdaterJson: ${{ vars.RUSHBASE_UPDATER_PUBKEY != '' }}
+
+      - name: Upload installers
+        if: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rushbase-${{ runner.os }}
+          path: |
+            desktop/src-tauri/target/**/release/bundle/**/*.AppImage
+            desktop/src-tauri/target/**/release/bundle/**/*.deb
+            desktop/src-tauri/target/**/release/bundle/**/*.rpm
+            desktop/src-tauri/target/**/release/bundle/**/*.dmg
+            desktop/src-tauri/target/**/release/bundle/**/*.msi
+            desktop/src-tauri/target/**/release/bundle/**/*-setup.exe
+          if-no-files-found: error
+
+  worker-image:
+    name: Worker image (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [cpu, cuda, vulkan, rocm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/worker.Dockerfile
+          build-args: VARIANT=${{ matrix.variant }}
+          push: false
+          cache-from: type=gha,scope=worker-${{ matrix.variant }}
+          cache-to: type=gha,scope=worker-${{ matrix.variant }},mode=max

@@ -1,0 +1,43 @@
+# Maintainer: Rushbase contributors
+# Repackages the official AppImage of a release for Arch-based distributions.
+# After a release: bump pkgver, run `updpkgsums`, `makepkg -si` (or push to the AUR).
+pkgname=rushbase-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Rushbase companion: process footage on your own GPU and browse the library with local originals"
+arch=('x86_64')
+url="https://github.com/Elias02345/Rushbase"
+license=('Apache-2.0')
+depends=('webkit2gtk-4.1' 'gtk3' 'libsoup3' 'libayatana-appindicator' 'ffmpeg')
+optdepends=(
+  'nvidia-utils: GPU temperature and power readout (nvidia-smi)'
+  'davinci-resolve-studio: "Send to Resolve" (Studio edition only)'
+  'xprintidle: "only while idle" on X11'
+)
+provides=('rushbase')
+conflicts=('rushbase')
+options=('!strip' '!debug')
+_appimage="Rushbase_${pkgver}_amd64.AppImage"
+source=("${_appimage}::${url}/releases/download/v${pkgver}/${_appimage}"
+        "rushbase.desktop"
+        "rushbase.png")
+noextract=("${_appimage}")
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP')
+
+package() {
+  install -Dm755 "${srcdir}/${_appimage}" "${pkgdir}/opt/rushbase/Rushbase.AppImage"
+  # webkit2gtk on Wayland with NVIDIA often shows a blank window without this (docs/companion.md);
+  # the launcher also runs the AppImage extracted, so no FUSE is needed.
+  install -d "${pkgdir}/usr/bin"
+  cat > "${pkgdir}/usr/bin/rushbase-desktop" <<'EOF'
+#!/bin/sh
+export WEBKIT_DISABLE_DMABUF_RENDERER="${WEBKIT_DISABLE_DMABUF_RENDERER:-1}"
+export APPIMAGE_EXTRACT_AND_RUN=1
+exec /opt/rushbase/Rushbase.AppImage "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/rushbase-desktop"
+  install -Dm644 "${srcdir}/rushbase.desktop" "${pkgdir}/usr/share/applications/rushbase.desktop"
+  install -Dm644 "${srcdir}/rushbase.png" "${pkgdir}/usr/share/pixmaps/rushbase.png"
+}
