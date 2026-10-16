@@ -4681,6 +4681,28 @@
         ]
       }
     },
+    "/api/v1/worker/status": {
+      "get": {
+        "description": "The same backlog snapshot for enrolled workers (shown when a processing PC starts).",
+        "operationId": "worker_status_api_v1_worker_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Worker Status",
+        "tags": [
+          "worker"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "description": "503 when the database is down, the library is unreadable or the lease was lost.",

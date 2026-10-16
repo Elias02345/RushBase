@@ -95,7 +95,9 @@ class PreviewStage:
         files.append(describe("poster", poster, ctx.rel(poster), *image.size))
         sprite = directory / f"sprite-{settings.sprite_tiles}x1-{settings.sprite_tile_width}.jpg"
         size = await video_preview.make_sprite(tools, settings, source, duration, sprite, lut)
-        files.append(describe("thumbnail", sprite, ctx.rel(sprite), *size))
+        files.append(
+            describe("sprite", sprite, ctx.rel(sprite), *size, tiles=settings.sprite_tiles)
+        )
         if settings.proxy_enabled:
             proxy = directory / "proxy.mp4"
             await video_preview.make_proxy(tools, settings, source, proxy, lut)

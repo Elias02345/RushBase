@@ -204,7 +204,11 @@ def derived_links(asset: Asset) -> dict[str, Any]:
             links["proxy_url"] = derived_url(asset.id, item["rel_path"])
         elif item.get("kind") == "waveform" and links["waveform_url"] is None:
             links["waveform_url"] = derived_url(asset.id, item["rel_path"])
+        elif item.get("kind") == "sprite" and not links["sprite_url"]:
+            links["sprite_url"] = derived_url(asset.id, item["rel_path"])
+            links["sprite_tiles"] = item.get("tiles")
         elif item.get("kind") == "other" and (m := _SPRITE.match(name)) and not links["sprite_url"]:
+            # Legacy naming convention from before the ``sprite`` kind existed.
             links["sprite_url"] = derived_url(asset.id, item["rel_path"])
             links["sprite_tiles"] = int(m[1]) if m[1] else None
     return links

@@ -274,7 +274,7 @@ def worker_run(
 
 @app.command()
 def status(as_json: JsonOption = False) -> None:
-    """Show the server backlog (needs `RUSHBASE_API_TOKEN`) and the local worker state."""
+    """Show the server backlog (worker key or `RUSHBASE_API_TOKEN`) and the local worker state."""
     settings = WorkerSettings()
     identity = load_identity(settings)
     server_url = settings.server_url or (identity.server_url if identity else None)
@@ -289,13 +289,14 @@ def status(as_json: JsonOption = False) -> None:
     if server_url:
 
         async def fetch() -> tuple[dict[str, Any], dict[str, Any] | None, str | None]:
-            async with WorkerClient(server_url, retries=0, timeout=10.0) as client:
+            key = load_api_key(settings)
+            async with WorkerClient(server_url, api_key=key, retries=0, timeout=10.0) as client:
                 health = await client.health()
-                if not settings.api_token:
+                if not settings.api_token and not key:
                     return (
                         health,
                         None,
-                        "set RUSHBASE_API_TOKEN (personal token) to read the backlog",
+                        "enroll this worker or set RUSHBASE_API_TOKEN to read the backlog",
                     )
                 try:
                     return health, await client.status(settings.api_token), None

@@ -85,7 +85,7 @@ Common fields: `job_id`, `stage`, `asset_id`, `duration_ms`, `error`, `retryable
 
 `data`: `enrolled`, `worker` (identity or null), `last_run` (or null), `server`
 (`{url, reachable, health}` or `{url, reachable: false, error}`), `backlog` (the server's
-`/api/v1/status` document, only with `RUSHBASE_API_TOKEN`; otherwise null with `backlog_note`).
+`/api/v1/status` document, read with the worker key (`/api/v1/worker/status`) or `RUSHBASE_API_TOKEN`; null with `backlog_note` when neither is available).
 Exit code 4 when the server is configured but unreachable.
 
 ## `rushbase analyze FILE [--stages S] [--output-dir DIR] [--raw] --json`

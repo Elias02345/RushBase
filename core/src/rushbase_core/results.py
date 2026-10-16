@@ -193,12 +193,16 @@ class HashOutput(_Model):
 class DerivedFile(_Model):
     """A file the worker wrote under ``.rushbase/derived/<asset-id>/``."""
 
-    kind: Literal["thumbnail", "poster", "proxy", "waveform", "photo_preview", "keyframe", "other"]
+    kind: Literal[
+        "thumbnail", "poster", "sprite", "proxy", "waveform", "photo_preview", "keyframe", "other"
+    ]
     rel_path: str
     width: int | None = None
     height: int | None = None
     size: int | None = None
     mime: str | None = None
+    tiles: int | None = Field(default=None, ge=1)
+    """Number of horizontal tiles (``kind="sprite"`` hover-scrub sheets only)."""
 
 
 class PreviewOutput(_Model):

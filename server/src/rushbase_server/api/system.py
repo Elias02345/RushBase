@@ -5,11 +5,13 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_server import get_version
-from rushbase_server.api.deps import DbDep, RuntimeDep, ViewerDep
+from rushbase_server.api.deps import DbDep, RuntimeDep, ViewerDep, WorkerDep
 from rushbase_server.db import database_reachable
 from rushbase_server.models import User
+from rushbase_server.runtime import Runtime
 from rushbase_server.services import stats
 
 router = APIRouter()
@@ -88,6 +90,16 @@ class StatusOut(BaseModel):
 @router.get("/api/v1/status", response_model=StatusOut, tags=["system"])
 async def system_status(_: ViewerDep, runtime: RuntimeDep, db: DbDep) -> StatusOut:
     """Backlog per stage (jobs, files, bytes, media duration), assets, inputs and workers."""
+    return await _status(runtime, db)
+
+
+@router.get("/api/v1/worker/status", response_model=StatusOut, tags=["worker"])
+async def worker_status(_: WorkerDep, runtime: RuntimeDep, db: DbDep) -> StatusOut:
+    """The same backlog snapshot for enrolled workers (shown when a processing PC starts)."""
+    return await _status(runtime, db)
+
+
+async def _status(runtime: Runtime, db: AsyncSession) -> StatusOut:
     snapshot = await stats.system_status(
         db, runtime.clock.now(), runtime.settings.worker_online_seconds
     )

@@ -35,7 +35,12 @@ def atomic_output(final: Path) -> Iterator[Path]:
 
 
 def describe(
-    kind: str, final: Path, rel_path: str, width: int | None = None, height: int | None = None
+    kind: str,
+    final: Path,
+    rel_path: str,
+    width: int | None = None,
+    height: int | None = None,
+    tiles: int | None = None,
 ) -> DerivedFile:
     """Build the :class:`DerivedFile` entry for a written file."""
     return DerivedFile.model_validate(
@@ -46,5 +51,6 @@ def describe(
             "height": height,
             "size": final.stat().st_size,
             "mime": MIME_TYPES.get(final.suffix.lower()),
+            "tiles": tiles,
         }
     )

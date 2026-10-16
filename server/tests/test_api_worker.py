@@ -241,3 +241,19 @@ async def test_concurrent_http_claims_never_double_lease(
         ids = [j["job_id"] for r in responses for j in r.json()["jobs"]]
         assert len(ids) == 16  # 8 assets x (probe + hash), 20 claimers
         assert len(set(ids)) == 16
+
+
+async def test_workers_read_the_backlog_with_their_own_key(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        admin = await server.setup_admin()
+        await ingest(server, ["a.jpg", "b.jpg"])
+        worker = await enroll(server, admin)
+        server.client.cookies.clear()
+        response = await server.client.get("/api/v1/worker/status", headers=worker)
+        assert response.status_code == 200, response.text
+        assert response.json()["stages"]["probe"]["pending_jobs"] == 2
+        # a worker key is not a user session: the user endpoint stays closed to it
+        assert (await server.client.get("/api/v1/status", headers=worker)).status_code == 401
+        assert (await server.client.get("/api/v1/worker/status")).status_code == 401

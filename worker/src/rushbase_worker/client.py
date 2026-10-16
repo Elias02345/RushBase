@@ -172,11 +172,18 @@ class WorkerClient:
         """Give ``job_id`` back without an attempt penalty."""
         await self._request("POST", f"{API}/jobs/{job_id}/release")
 
-    async def status(self, token: str) -> dict[str, Any]:
-        """Fetch ``/api/v1/status`` with a personal API token (worker keys cannot read it)."""
-        response = await self._http.get(
-            "/api/v1/status", headers={"Authorization": f"Bearer {token}"}
-        )
+    async def status(self, token: str | None = None) -> dict[str, Any]:
+        """Fetch the server backlog.
+
+        With a personal API ``token`` the user endpoint ``/api/v1/status`` is used; otherwise the
+        client's own worker key reads ``/api/v1/worker/status``.
+        """
+        if token:
+            response = await self._http.get(
+                "/api/v1/status", headers={"Authorization": f"Bearer {token}"}
+            )
+        else:
+            response = await self._http.get(f"{API}/status")
         checked = self._checked(response)
         body: dict[str, Any] = checked.json()
         return body
