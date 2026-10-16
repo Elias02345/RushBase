@@ -55,7 +55,9 @@ STAGE_DEPENDENCIES: Final[dict[Stage, tuple[Stage, ...]]] = {
 _NOT_APPLICABLE: Final[dict[MediaType, frozenset[Stage]]] = {
     MediaType.VIDEO: frozenset(),
     MediaType.PHOTO: frozenset({Stage.SHOTS, Stage.AUDIO}),
-    MediaType.AUDIO: frozenset({Stage.SHOTS, Stage.VISION}),
+    # Pure audio has no images: no shots, keyframe vectors or visual analysis. Its transcript
+    # is still embedded as text by ``classify``.
+    MediaType.AUDIO: frozenset({Stage.SHOTS, Stage.EMBED, Stage.VISION}),
     MediaType.OTHER: frozenset(
         {Stage.PREVIEW, Stage.SHOTS, Stage.AUDIO, Stage.EMBED, Stage.VISION, Stage.CLASSIFY}
     ),
