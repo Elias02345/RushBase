@@ -3,16 +3,16 @@
 ADR-0012: the only model inference on the server. Workers index with the same models; vectors are
 only comparable when model id (and revision, if configured) match, see :class:`EncoderInfo`.
 
-Expected layout below ``RUSHBASE_MODELS_DIR`` (the worker's model store layout, file names taken
-from ``worker/models.lock.json``)::
-
-    <models_dir>/siglip2-base-patch16-256/text_model_int8.onnx
-    <models_dir>/siglip2-base-patch16-256/tokenizer.json
-    <models_dir>/multilingual-e5-base/model_quantized.onnx
-    <models_dir>/multilingual-e5-base/tokenizer.json
+Layout and pins come from the worker's lock file (``worker/models.lock.json``) and its model
+store, ``<models_dir>/<model-id>/<file name>`` (``RUSHBASE_MODELS_DIR`` points at the worker's
+``<data_dir>/models``). SigLIP uses the ``text-fp16`` tower (int8 failed the fidelity bar,
+ADR-0011); e5 uses ``model`` + ``tokenizer``. Revisions mirror the worker's ``ModelRef``: for e5 the
+first 12 hex characters of the model file's SHA-256. Image vectors are matched by model id only,
+because the worker's revision there depends on the vision precision it chose (fp16 or int8).
 """
 
 import hashlib
+import json
 import logging
 import threading
 from dataclasses import dataclass
@@ -25,8 +25,44 @@ logger = logging.getLogger(__name__)
 
 DIM = 768
 SIGLIP_TEXT_LENGTH = 64
-SIGLIP_FILES = ("text_model_int8.onnx", "tokenizer.json")
+LOCK_PATH = Path(__file__).resolve().parents[4] / "worker" / "models.lock.json"
+SIGLIP_FILES = ("text_model_fp16.onnx", "tokenizer.json")
 E5_FILES = ("model_quantized.onnx", "tokenizer.json")
+
+
+def _from_lock(
+    lock: dict[str, Any], model_id: str, roles: tuple[str, str]
+) -> tuple[tuple[str, str], str | None] | None:
+    """File names for ``roles`` and the SHA-256 prefix of the first role's file, if pinned."""
+    entry = lock.get("models", {}).get(model_id)
+    if entry is None:
+        return None
+    by_role = {f["role"]: f for f in entry["files"]}
+    if not all(r in by_role for r in roles):
+        return None
+    names = tuple(by_role[r]["filename"].rsplit("/", 1)[-1] for r in roles)
+    return (names[0], names[1]), str(by_role[roles[0]]["sha256"])[:12]
+
+
+def load_layout(settings: Settings) -> dict[str, tuple[str, str | None, tuple[str, str]]]:
+    """``{space: (model_id, revision, (model file, tokenizer file))}`` from the worker lock."""
+    lock: dict[str, Any] = {}
+    if LOCK_PATH.is_file():
+        lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
+    image = _from_lock(lock, settings.siglip_model_id, ("text-fp16", "tokenizer"))
+    text = _from_lock(lock, settings.e5_model_id, ("model", "tokenizer"))
+    return {
+        "image": (
+            settings.siglip_model_id,
+            settings.siglip_revision,
+            image[0] if image else SIGLIP_FILES,
+        ),
+        "text": (
+            settings.e5_model_id,
+            settings.e5_revision or (text[1] if text else None),
+            text[0] if text else E5_FILES,
+        ),
+    }
 
 
 @dataclass(frozen=True)
@@ -126,10 +162,7 @@ class OnnxEncoder:
         assert settings.models_dir is not None
         self._dir = settings.models_dir
         self._threads = settings.encoder_threads
-        self._ids = {
-            "image": (settings.siglip_model_id, settings.siglip_revision, SIGLIP_FILES),
-            "text": (settings.e5_model_id, settings.e5_revision, E5_FILES),
-        }
+        self._ids = load_layout(settings)
         self._sessions: dict[str, tuple[Any, Any]] = {}
         self._lock = threading.Lock()
 
