@@ -1,12 +1,12 @@
 import { delay, http, HttpResponse } from "msw";
 
 import type {
-  AssetQuery,
   AssetSummary,
   EnrollmentTokenInfo,
-  FilingPreviewItem,
-  FilingRulesDoc,
-  PathMapping,
+  FilingDryRun,
+  FilingRule,
+  LibrarySettings,
+  QuarantineItem,
   StatsResponse,
 } from "../contracts";
 import type { Batch, User } from "../types";
@@ -20,7 +20,8 @@ import {
   buildUsers,
   buildWorkers,
   defaultFilingRules,
-  defaultPathMapping,
+  defaultPathRoots,
+  SPRITE_TILES,
 } from "./data";
 import { keyframeSvg, posterSvg, spriteSvg } from "./svg";
 
@@ -64,8 +65,8 @@ interface MockState {
   users: User[];
   batches: Batch[];
   tokens: EnrollmentTokenInfo[];
-  mapping: PathMapping;
-  rules: FilingRulesDoc;
+  settings: LibrarySettings;
+  rules: FilingRule[];
   paused: boolean;
   setupDone: boolean;
   backups: { name: string; size: number; created_at: string; kind: string }[];
@@ -83,10 +84,9 @@ function freshState(): MockState {
         created_at: "2026-10-01T09:00:00Z",
         expires_at: "2026-10-02T09:00:00Z",
         used_at: "2026-10-01T09:12:00Z",
-        revoked_at: null,
       },
     ],
-    mapping: defaultPathMapping(),
+    settings: { path_roots: defaultPathRoots(), central_meta: false },
     rules: defaultFilingRules(),
     paused: false,
     setupDone: scenario() !== "fresh",
@@ -176,56 +176,48 @@ function matches(asset: AssetSummary, query: Record<string, string>): boolean {
   return true;
 }
 
-function sortAssets(items: AssetSummary[], sort: AssetQuery["sort"]): AssetSummary[] {
+function sortAssets(items: AssetSummary[], sort: string | undefined): AssetSummary[] {
   const copy = [...items];
   const time = (a: AssetSummary) => (a.capture_at ? Date.parse(a.capture_at) : 0);
   switch (sort) {
-    case "capture_asc":
+    case "date":
       return copy.sort((a, b) => time(a) - time(b));
-    case "name_asc":
-      return copy.sort((a, b) => (a.title ?? a.filename).localeCompare(b.title ?? b.filename));
-    case "size_desc":
+    case "filename":
+      return copy.sort((a, b) => a.filename.localeCompare(b.filename));
+    case "-size":
       return copy.sort((a, b) => b.size_total - a.size_total);
-    case "duration_desc":
+    case "-duration":
       return copy.sort((a, b) => (b.duration_ms ?? 0) - (a.duration_ms ?? 0));
     default:
       return copy.sort((a, b) => time(b) - time(a));
   }
 }
 
-function expand(template: string, asset: AssetSummary): string {
-  const date = asset.capture_at ?? "";
-  return template
-    .replaceAll("{year}", date.slice(0, 4) || "0000")
-    .replaceAll("{month}", date.slice(5, 7) || "00")
-    .replaceAll("{day}", date.slice(8, 10) || "00")
-    .replaceAll("{camera}", asset.camera_model?.replaceAll(" ", "_") ?? "Unknown")
-    .replaceAll("{type}", asset.media_type)
-    .replaceAll("{batch}", asset.batch_label?.replaceAll(" ", "_") ?? "Loose");
-}
-
-function previewRules(doc: FilingRulesDoc) {
+function dryRun(template: string): FilingDryRun {
   const candidates = state.assets.filter((a) => a.status === "processing" || a.status === "review");
-  const items: FilingPreviewItem[] = [];
-  let unmatched = 0;
-  for (const asset of candidates.slice(0, 25)) {
-    const rule = doc.rules.find(
-      (r) =>
-        r.enabled &&
-        (!r.when.media_type || r.when.media_type === asset.media_type) &&
-        (!r.when.camera_model || r.when.camera_model === asset.camera_model) &&
-        (!r.when.batch_contains || (asset.batch_label ?? "").includes(r.when.batch_contains)),
-    );
-    if (!rule) unmatched += 1;
-    items.push({
+  const items = candidates.slice(0, 25).map((asset) => {
+    const date = asset.capture_at ?? "";
+    const path = template
+      .replaceAll("{media_type}", asset.media_type)
+      .replaceAll("{capture_date:%Y}", date.slice(0, 4) || "undated")
+      .replaceAll("{capture_date:%Y-%m-%d}", date.slice(0, 10) || "undated")
+      .replace(/\{batch_label\|([^}]*)\}/, (_, fallback: string) => asset.batch_label ?? fallback)
+      .replaceAll("{camera_model}", asset.camera_model ?? "unknown");
+    return {
       asset_id: asset.id,
       filename: asset.filename,
-      from_rel_path: `Input/${asset.batch_label ?? "Loose"}/${asset.filename}`,
-      to_rel_path: `Content/${expand(rule?.target ?? doc.fallback, asset)}/${asset.filename}`,
-      rule_id: rule?.id ?? null,
-    });
-  }
-  return { items, unmatched };
+      current_dir: `Input/${asset.batch_label ?? "Loose"}`,
+      path,
+      warnings: [],
+      conflict: false,
+    };
+  });
+  return {
+    items,
+    conflicts: [],
+    warnings: [],
+    directories: new Set(items.map((i) => i.path)).size,
+  };
 }
 
 function svg(body: string) {
@@ -264,7 +256,9 @@ function storageStats(): StatsResponse {
       count: duplicates.length,
       wasted_bytes: duplicates.reduce((n, a) => n + a.size_total, 0),
     },
-    backlog: { queued: 41, leased: 3 },
+    backlog: Object.fromEntries(
+      Object.entries(buildStatus(1, false).stages).filter(([, stage]) => stage.pending_jobs > 0),
+    ),
   };
 }
 
@@ -352,7 +346,7 @@ export const handlers = [
       const query = Object.fromEntries(new URL(request.url).searchParams) as Record<string, string>;
       const sorted = sortAssets(
         state.assets.filter((asset) => matches(asset, query)),
-        query.sort as AssetQuery["sort"],
+        query.sort,
       );
       const offset = query.cursor ? Number(atob(query.cursor)) : 0;
       const limit = Math.min(Number(query.limit) || 60, 200);
@@ -366,21 +360,43 @@ export const handlers = [
     guarded("viewer", ({ params }) => {
       const asset = state.assets.find((candidate) => candidate.id === params.id);
       if (!asset) return HttpResponse.json({ detail: "asset not found" }, { status: 404 });
-      return HttpResponse.json(buildDetail(asset, state.mapping));
-    }),
-  ),
-  http.post(
-    "/api/v1/assets/:id/retry",
-    guarded("editor", ({ params }) => {
-      const asset = state.assets.find((candidate) => candidate.id === params.id);
-      if (!asset) return HttpResponse.json({ detail: "asset not found" }, { status: 404 });
-      asset.status = "processing";
-      return new HttpResponse(null, { status: 202 });
+      return HttpResponse.json(buildDetail(asset, state.settings.path_roots ?? {}));
     }),
   ),
   http.get(
     "/api/v1/facets",
-    guarded("viewer", () => HttpResponse.json({ facets: buildFacets(state.assets) })),
+    guarded("viewer", ({ request }) => {
+      const query = Object.fromEntries(new URL(request.url).searchParams) as Record<string, string>;
+      const narrowed = state.assets.filter((asset) => matches(asset, query));
+      return HttpResponse.json({ facets: buildFacets(narrowed) });
+    }),
+  ),
+  http.get(
+    "/api/v1/quarantine",
+    guarded("editor", () => {
+      const items: QuarantineItem[] = state.assets
+        .filter((asset) => asset.status === "quarantined")
+        .map((asset) => ({
+          asset_id: asset.id,
+          filename: asset.filename,
+          media_type: asset.media_type,
+          size_total: asset.size_total,
+          stage: "probe",
+          reason: "ffprobe could not read the container",
+          at: asset.capture_at,
+          moved: true,
+        }));
+      return HttpResponse.json(items);
+    }),
+  ),
+  http.post(
+    "/api/v1/quarantine/:id/retry",
+    guarded("editor", ({ params }) => {
+      const asset = state.assets.find((candidate) => candidate.id === params.id);
+      if (!asset) return HttpResponse.json({ detail: "asset not found" }, { status: 404 });
+      asset.status = "processing";
+      return new HttpResponse(null, { status: 204 });
+    }),
   ),
   http.get(
     "/api/v1/stats",
@@ -479,7 +495,6 @@ export const handlers = [
         created_at: new Date(now).toISOString(),
         expires_at: new Date(now + 24 * 3_600_000).toISOString(),
         used_at: null,
-        revoked_at: null,
       };
       state.tokens.unshift(info);
       const token = `rbe_${btoa(id).replaceAll("=", "").slice(0, 40)}mockOnlyToken`;
@@ -494,7 +509,7 @@ export const handlers = [
     "/api/v1/admin/enrollment-tokens/:id/revoke",
     guarded("admin", ({ params }) => {
       const token = state.tokens.find((candidate) => candidate.id === params.id);
-      if (token) token.revoked_at = new Date().toISOString();
+      if (token) token.expires_at = new Date().toISOString();
       return new HttpResponse(null, { status: 204 });
     }),
   ),
@@ -520,32 +535,54 @@ export const handlers = [
   ),
 
   http.get(
-    "/api/v1/admin/settings/path-mapping",
-    guarded("admin", () => HttpResponse.json(state.mapping)),
+    "/api/v1/admin/library-settings",
+    guarded("admin", () => HttpResponse.json(state.settings)),
   ),
   http.put(
-    "/api/v1/admin/settings/path-mapping",
+    "/api/v1/admin/library-settings",
     guarded("admin", async ({ request }) => {
-      state.mapping = (await request.json()) as PathMapping;
-      return HttpResponse.json(state.mapping);
+      state.settings = (await request.json()) as LibrarySettings;
+      return HttpResponse.json(state.settings);
     }),
   ),
   http.get(
-    "/api/v1/admin/filing-rules",
-    guarded("admin", () => HttpResponse.json(state.rules)),
+    "/api/v1/filing-rules",
+    guarded("editor", () => HttpResponse.json(state.rules)),
   ),
-  http.put(
-    "/api/v1/admin/filing-rules",
-    guarded("admin", async ({ request }) => {
-      state.rules = (await request.json()) as FilingRulesDoc;
-      return HttpResponse.json(state.rules);
+  http.post(
+    "/api/v1/filing-rules",
+    guarded("editor", async ({ request }) => {
+      const body = (await request.json()) as { template: string; note?: string };
+      if (!body.template.startsWith("Content/")) {
+        return HttpResponse.json({ detail: "template must start with Content/" }, { status: 422 });
+      }
+      const rule: FilingRule = {
+        id: `f0000000-0000-4000-8000-${String(state.rules.length + 1).padStart(12, "0")}`,
+        version: (state.rules[0]?.version ?? 0) + 1,
+        template: body.template,
+        fallbacks: {},
+        active: false,
+        note: body.note ?? "",
+        created_at: new Date().toISOString(),
+      };
+      state.rules.unshift(rule);
+      return HttpResponse.json(rule, { status: 201 });
     }),
   ),
   http.post(
-    "/api/v1/admin/filing-rules/preview",
-    guarded("admin", async ({ request }) => {
+    "/api/v1/filing-rules/dry-run",
+    guarded("editor", async ({ request }) => {
       await delay(250);
-      return HttpResponse.json(previewRules((await request.json()) as FilingRulesDoc));
+      return HttpResponse.json(dryRun(((await request.json()) as { template: string }).template));
+    }),
+  ),
+  http.post(
+    "/api/v1/filing-rules/:id/activate",
+    guarded("editor", ({ params }) => {
+      const rule = state.rules.find((candidate) => candidate.id === params.id);
+      if (!rule) return HttpResponse.json({ detail: "rule not found" }, { status: 404 });
+      for (const other of state.rules) other.active = other === rule;
+      return HttpResponse.json(rule);
     }),
   ),
 
@@ -553,7 +590,7 @@ export const handlers = [
     svg(posterSvg(String(params.file).replace(".svg", ""))),
   ),
   http.get("/mock/media/sprite/:file", ({ params }) =>
-    svg(spriteSvg(String(params.file).replace(".svg", ""), 5, 4, 20)),
+    svg(spriteSvg(String(params.file).replace(".svg", ""), SPRITE_TILES, 1, SPRITE_TILES)),
   ),
   http.get("/mock/media/keyframe/:file", ({ params }) => {
     const name = String(params.file).replace(".svg", "");

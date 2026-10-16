@@ -3,15 +3,20 @@ import type {
   AssetStatus,
   AssetSummary,
   Facet,
-  FilingRulesDoc,
+  FilingRule,
   MediaType,
   Orientation,
-  PathMapping,
   Shot,
 } from "../contracts";
 import type { Batch, SystemStatus, User, Worker } from "../types";
 
+/** Library roots per operating system as stored by `PUT /admin/library-settings`. */
+export type PathRoots = Record<string, string | null>;
+
 /** Deterministic pseudo-random numbers so screenshots and tests are stable. */
+/** Frames of the mock contact sheet (one row, like the server's). */
+export const SPRITE_TILES = 10;
+
 export function createRandom(seed: number) {
   let state = seed >>> 0;
   const next = () => {
@@ -152,7 +157,7 @@ export function buildAssets(): AssetSummary[] {
             : random.int(2_000_000, 38_000_000),
       poster_url: media === "audio" || !analysed ? null : `/mock/media/poster/${id}.svg`,
       sprite_url: media === "video" && analysed ? `/mock/media/sprite/${id}.svg` : null,
-      sprite_tiles: media === "video" && analysed ? { cols: 5, rows: 4, count: 20 } : null,
+      sprite_tiles: media === "video" && analysed ? SPRITE_TILES : null,
       batch_label: BATCH_LABELS[index % BATCH_LABELS.length] ?? null,
     });
   }
@@ -168,12 +173,12 @@ const WINDOWS_ROOT = "\\\\nas\\media";
 const MACOS_ROOT = "/Volumes/media";
 const LINUX_ROOT = "/mnt/media";
 
-export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetDetail {
+export function buildDetail(summary: AssetSummary, mapping: PathRoots): AssetDetail {
   const date = (summary.capture_at ?? new Date(NOW).toISOString()).slice(0, 10);
   const [year = "2026", month = "01"] = date.split("-");
   const dir = `Content/${year}/${month}/${summary.camera_model?.split(" ")[0] ?? "Misc"}`;
   const toPaths = (rel: string) => {
-    const out: PathMapping = {
+    const out = {
       windows: mapping.windows ?? WINDOWS_ROOT,
       macos: mapping.macos ?? MACOS_ROOT,
       linux: mapping.linux ?? LINUX_ROOT,
@@ -203,8 +208,14 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
       idx,
       start_ms: cursor,
       end_ms: end,
-      keyframes: [0.15, 0.5, 0.85].map((position, k) => ({
-        t_ms: Math.round(cursor + (end - cursor) * position),
+      keyframes: (
+        [
+          [0.15, "start"],
+          [0.5, "middle"],
+          [0.85, "end"],
+        ] as const
+      ).map(([at, position], k) => ({
+        t_ms: Math.round(cursor + (end - cursor) * at),
         url: `/mock/media/keyframe/${summary.id}-${idx * 3 + k}.svg`,
         position,
       })),
@@ -290,6 +301,9 @@ export function buildDetail(summary: AssetSummary, mapping: PathMapping): AssetD
     proxy_url: isVideo && summary.poster_url ? "/mock/proxy.webm" : null,
     waveform_url: null,
     content_rel_dir: filed ? dir : null,
+    tech_summary_de: null,
+    tech_summary_en: null,
+    decode_status: "ok",
     duplicate_of: summary.status === "duplicate" ? uuid(40) : null,
     history: [
       {
@@ -560,35 +574,31 @@ export function buildStatus(workersOnline: number, paused: boolean): SystemStatu
   };
 }
 
-export function defaultPathMapping(): PathMapping {
+export function defaultPathRoots(): PathRoots {
   return { windows: WINDOWS_ROOT, macos: MACOS_ROOT, linux: LINUX_ROOT };
 }
 
-export function defaultFilingRules(): FilingRulesDoc {
-  return {
-    fallback: "{year}/{month}/Unsorted",
-    rules: [
-      {
-        id: "r1",
-        name: "Drone footage",
-        enabled: true,
-        when: { media_type: "video", camera_model: "DJI Mavic 3 Pro", batch_contains: null },
-        target: "{year}/Drone/{batch}",
-      },
-      {
-        id: "r2",
-        name: "Photos by month",
-        enabled: true,
-        when: { media_type: "photo", camera_model: null, batch_contains: null },
-        target: "{year}/{month}/Photos",
-      },
-      {
-        id: "r3",
-        name: "Interviews",
-        enabled: false,
-        when: { media_type: "video", camera_model: null, batch_contains: "Interview" },
-        target: "{year}/Interviews/{batch}",
-      },
-    ],
-  };
+/** Rule versions, newest first; version 2 is active. */
+export function defaultFilingRules(): FilingRule[] {
+  return [
+    {
+      id: "f0000000-0000-4000-8000-000000000002",
+      version: 2,
+      template:
+        "Content/{media_type}/{capture_date:%Y}/{capture_date:%Y-%m-%d}_{batch_label|Unsorted}/",
+      fallbacks: {},
+      active: true,
+      note: "by year and shooting day",
+      created_at: "2026-09-20T10:00:00Z",
+    },
+    {
+      id: "f0000000-0000-4000-8000-000000000001",
+      version: 1,
+      template: "Content/{media_type}/{capture_date:%Y-%m-%d}/",
+      fallbacks: {},
+      active: false,
+      note: "default layout",
+      created_at: "2026-09-01T10:00:00Z",
+    },
+  ];
 }

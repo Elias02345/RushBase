@@ -1147,6 +1147,51 @@
         "title": "EnrollmentOut",
         "type": "object"
       },
+      "EnrollmentTokenOut": {
+        "description": "An enrollment token without its secret (which is only shown at creation).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used At"
+          }
+        },
+        "required": [
+          "id",
+          "note",
+          "created_at",
+          "expires_at",
+          "used_at"
+        ],
+        "title": "EnrollmentTokenOut",
+        "type": "object"
+      },
       "Facet": {
         "description": "A filter dimension. Enum facets list values; range and date facets give min/max.",
         "properties": {
@@ -1841,6 +1886,36 @@
           "asset_ids"
         ],
         "title": "ReprocessOut",
+        "type": "object"
+      },
+      "RestoreIn": {
+        "description": "Which backup of the share to restore.",
+        "properties": {
+          "backup_name": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Backup Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backup_name"
+        ],
+        "title": "RestoreIn",
+        "type": "object"
+      },
+      "RestoreOut": {
+        "description": "Result of a restore.",
+        "properties": {
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "RestoreOut",
         "type": "object"
       },
       "ResultIn": {
@@ -3152,6 +3227,30 @@
       }
     },
     "/api/v1/admin/enrollment-tokens": {
+      "get": {
+        "description": "Newest first; the token secrets are never returned again.",
+        "operationId": "list_enrollment_tokens_api_v1_admin_enrollment_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EnrollmentTokenOut"
+                  },
+                  "title": "Response List Enrollment Tokens Api V1 Admin Enrollment Tokens Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List enrollment tokens",
+        "tags": [
+          "admin"
+        ]
+      },
       "post": {
         "description": "Create a token a new worker exchanges for its own API key.",
         "operationId": "create_enrollment_token_api_v1_admin_enrollment_tokens_post",
@@ -3188,6 +3287,43 @@
           }
         },
         "summary": "Create a one-time worker enrollment token",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/enrollment-tokens/{token_id}/revoke": {
+      "post": {
+        "description": "Expire an unused token immediately (idempotent). Used tokens cannot be revoked.",
+        "operationId": "revoke_enrollment_token_api_v1_admin_enrollment_tokens__token_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Token Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke an unused enrollment token",
         "tags": [
           "admin"
         ]
@@ -3556,7 +3692,7 @@
     },
     "/api/v1/assets": {
       "get": {
-        "description": "Filter, search by file name (`q`, case-insensitive substring) and page through assets.",
+        "description": "Filter, full-text search (`q`) and page through assets.\n\n`q` is accent-insensitive full-text search over title, file name, batch, summaries, camera\ndata and paths, with prefix matching on the last word; queries under three characters match\nfile paths by substring. Without `sort`, searches are ordered by relevance.",
         "operationId": "list_assets_api_v1_assets_get",
         "parameters": [
           {
@@ -3585,6 +3721,22 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
             }
           },
           {
@@ -3749,22 +3901,6 @@
                 }
               ],
               "title": "Q"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sort",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Sort"
             }
           }
         ],
@@ -3995,6 +4131,172 @@
       "get": {
         "description": "Facets for the filter sidebar, computed from the data.",
         "operationId": "get_facets_api_v1_facets_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4005,9 +4307,19 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
-        "summary": "Filter facets with counts",
+        "summary": "Filter facets with counts for the current filters and query",
         "tags": [
           "catalog"
         ]
@@ -4285,6 +4597,48 @@
           }
         },
         "summary": "Create the first admin and initialise (or adopt) the library",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/setup/restore": {
+      "post": {
+        "description": "Only works while the database is empty; restores, migrates and re-binds the library.",
+        "operationId": "restore_setup_api_v1_setup_restore_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore a backup from the share instead of running the setup wizard",
         "tags": [
           "auth"
         ]

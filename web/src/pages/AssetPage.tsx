@@ -177,13 +177,13 @@ function ShotTimeline({
       <ul className="keyframes" aria-label={t("asset.keyframes")}>
         {detail.shots.flatMap((shot) =>
           shot.keyframes.map((frame) => (
-            <li key={frame.url}>
+            <li key={`${shot.idx}-${frame.t_ms}-${frame.position}`}>
               <button
                 type="button"
                 onClick={() => onSeek(frame.t_ms)}
                 aria-label={t("asset.jumpTo", { time: formatDuration(frame.t_ms) })}
               >
-                <img src={frame.url} alt="" loading="lazy" width={160} height={90} />
+                <img src={frame.url ?? undefined} alt="" loading="lazy" width={160} height={90} />
                 <span>{formatDuration(frame.t_ms)}</span>
               </button>
             </li>

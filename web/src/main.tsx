@@ -8,7 +8,8 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { AppProviders, createQueryClient } from "./Providers";
+import { createQueryClient } from "./api/queryClient";
+import { AppProviders } from "./Providers";
 import { createAppRouter } from "./router";
 
 async function bootstrap() {

@@ -34,3 +34,8 @@ export async function copyText(text: string): Promise<boolean> {
     }
   }
 }
+
+/** The worker CLI call that redeems an enrollment token (see `rushbase enroll --help`). */
+export function enrollCommand(token: string): string {
+  return `rushbase enroll --server ${window.location.origin} --token ${token} --name my-worker`;
+}
