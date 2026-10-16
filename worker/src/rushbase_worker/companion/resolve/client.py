@@ -27,7 +27,9 @@ def _resolve_python_default() -> Path:
             r"C:\Program Files\Blackmagic Design\DaVinci Resolve\ResolvePython\ResolvePython.exe"
         )
     if sys.platform == "darwin":
-        return Path("/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Applications/ResolvePython")
+        return Path(
+            "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Applications/ResolvePython"
+        )
     return Path("/opt/resolve/bin/ResolvePython")
 
 
@@ -39,10 +41,16 @@ def _script_defaults() -> tuple[Path, Path]:
         )
         return api, Path(r"C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll")
     if sys.platform == "darwin":
-        api = Path("/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting")
-        lib = Path("/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
+        api = Path(
+            "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting"
+        )
+        lib = Path(
+            "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so"
+        )
         return api, lib
-    return Path("/opt/resolve/Developer/Scripting"), Path("/opt/resolve/libs/Fusion/fusionscript.so")
+    return Path("/opt/resolve/Developer/Scripting"), Path(
+        "/opt/resolve/libs/Fusion/fusionscript.so"
+    )
 
 
 def find_interpreter(settings: WorkerSettings) -> tuple[Path | None, bool]:
@@ -68,7 +76,9 @@ def bridge_env(settings: WorkerSettings, resolve_python: bool) -> dict[str, str]
     lib = settings.resolve_script_lib or lib
     env["RESOLVE_SCRIPT_API"] = str(api)
     env["RESOLVE_SCRIPT_LIB"] = str(lib)
-    env["PYTHONPATH"] = os.pathsep.join([str(api / "Modules"), env.get("PYTHONPATH", "")]).rstrip(os.pathsep)
+    env["PYTHONPATH"] = os.pathsep.join([str(api / "Modules"), env.get("PYTHONPATH", "")]).rstrip(
+        os.pathsep
+    )
     return env
 
 

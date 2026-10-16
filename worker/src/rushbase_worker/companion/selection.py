@@ -34,7 +34,9 @@ def load_basket(settings: WorkerSettings) -> Basket:
 
 def save_basket(settings: WorkerSettings, basket: Basket) -> None:
     """Persist the basket atomically."""
-    write_private(basket_path(settings), json.dumps(basket.model_dump(mode="json"), indent=2) + "\n")
+    write_private(
+        basket_path(settings), json.dumps(basket.model_dump(mode="json"), indent=2) + "\n"
+    )
 
 
 def add_clip(basket: Basket, clip: Clip) -> Basket:

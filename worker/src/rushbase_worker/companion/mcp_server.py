@@ -1,14 +1,18 @@
 """Local MCP server: the companion's CLI functions as tools (never deletes or moves anything)."""
 
+import functools
 import hmac
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import Image, MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from rushbase_worker.companion import service
+from rushbase_worker.companion.api import UserApiError
 from rushbase_worker.companion.clips import local_path
 from rushbase_worker.companion.processing import ProcessController
 from rushbase_worker.companion.resolve import client as resolve_client
@@ -25,93 +29,138 @@ INSTRUCTIONS = (
 )
 
 
+def safe[**P, R](fn: Callable[P, R]) -> Callable[P, R]:
+    """Report expected failures to the client as tool errors (not as server faults)."""
+
+    @functools.wraps(fn)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        try:
+            return fn(*args, **kwargs)
+        except (
+            service.CompanionError,
+            resolve_client.ResolveError,
+            UserApiError,
+            ValueError,
+            RuntimeError,
+        ) as exc:
+            raise ToolError(str(exc)) from exc
+
+    return wrapper
+
+
 def _safe_name(name: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", Path(name).name)
     return cleaned or "export"
 
 
-def build_server(settings: WorkerSettings, controller: ProcessController | None = None) -> MCPServer:
+def build_server(
+    settings: WorkerSettings, controller: ProcessController | None = None
+) -> MCPServer:
     """Create the MCP server with all tools bound to ``settings``."""
     controller = controller or ProcessController()
     mcp = MCPServer("rushbase-companion", instructions=INSTRUCTIONS)
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def search_media(
-        query: str, filters: list[str] | None = None, level: str = "asset", limit: int = 20, offset: int = 0
+        query: str,
+        filters: list[str] | None = None,
+        level: str = "asset",
+        limit: int = 20,
+        offset: int = 0,
     ) -> dict[str, Any]:
         """Hybrid search. `filters` are key=value strings (e.g. `media_type=video`, `tag=location:harbour`); `level` is asset or shot."""
         return service.search(settings, query, filters, level, limit, offset)
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def get_asset(asset_id: str) -> dict[str, Any]:
         """Asset details: metadata, shots, tags, per-OS paths and the path on this machine."""
         return service.get_asset(settings, asset_id)
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def get_keyframes(asset_id: str, shot_idx: int | None = None, limit: int = 6) -> list[Image]:
         """Keyframe images of an asset (or one shot), read from the local mount when available."""
         frames = service.keyframe_files(settings, asset_id, shot_idx, min(limit, 12))
         return [Image(data=service.read_keyframe(settings, f), format="jpeg") for f in frames]
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def list_filters() -> dict[str, Any]:
         """Available filter dimensions with values (facets) for `search_media`."""
-        from rushbase_worker.companion.api import UserApi  # noqa: PLC0415
+        from rushbase_worker.companion.api import UserApi
 
         with UserApi.from_settings(settings) as api:
             return api.facets()
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def processing_status() -> dict[str, Any]:
         """Local processing run (running, counters, recent events) plus backlog and estimate."""
-        return {"local_run": controller.status(), "overview": service.overview(settings, probe_mount=False)}
+        return {
+            "local_run": controller.status(),
+            "overview": service.overview(settings, probe_mount=False),
+        }
 
     @mcp.tool(annotations=WRITES)
-    def processing_start(stages: str | None = None, until: str | None = None, exit_when_empty: bool = True) -> dict[str, Any]:
+    @safe
+    def processing_start(
+        stages: str | None = None, until: str | None = None, exit_when_empty: bool = True
+    ) -> dict[str, Any]:
         """Start `rushbase process` on this PC (stages comma separated, until as HH:MM)."""
         return controller.start(stages, until, exit_when_empty)
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def processing_stop() -> dict[str, Any]:
         """Stop the local run gracefully: in-flight jobs are released back to the queue."""
         return controller.stop()
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def hardware() -> dict[str, Any]:
         """Detected GPU(s), VRAM, backend and hardware profile."""
         return detect_hardware().model_dump(mode="json")
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def selection_list() -> dict[str, Any]:
         """The local selection basket."""
         return load_basket(settings).model_dump(mode="json")
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def selection_add(asset_id: str, shots: list[int] | None = None) -> dict[str, Any]:
         """Add an asset (or only some shot indexes) to the basket."""
         return service.select_add(settings, asset_id, shots).model_dump(mode="json")
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def selection_remove(asset_id: str, shots: list[int] | None = None) -> dict[str, Any]:
         """Remove an asset (or some shots) from the basket."""
         return service.select_remove(settings, asset_id, shots).model_dump(mode="json")
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def selection_clear() -> dict[str, Any]:
         """Empty the basket."""
         return service.select_clear(settings).model_dump(mode="json")
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def resolve_path(asset_id: str) -> dict[str, Any]:
         """Where an asset's files are on this machine (per-OS mapping and existence)."""
         return service.resolve_paths(settings, asset_id)
 
     @mcp.tool(annotations=READ_ONLY)
+    @safe
     def resolve_status() -> dict[str, Any]:
         """DaVinci Resolve Studio: installed, version, reachable, open project."""
         return resolve_client.resolve_status(settings)
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def send_to_resolve(
         confirm: bool, bin_name: str = "Rushbase", markers: bool = False, metadata: bool = False
     ) -> dict[str, Any]:
@@ -130,17 +179,22 @@ def build_server(settings: WorkerSettings, controller: ProcessController | None 
         return {"file": str(target), "bytes": target.stat().st_size, "warnings": warnings}
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def export_fcpxml(filename: str = "rushbase.fcpxml") -> dict[str, Any]:
         """Write the selection as FCPXML 1.10 into the exports folder of the data directory."""
         return export("fcpxml", filename)
 
     @mcp.tool(annotations=WRITES)
+    @safe
     def export_edl(filename: str = "rushbase.edl") -> dict[str, Any]:
         """Write the selection as a CMX 3600 EDL into the exports folder."""
         return export("edl", filename)
 
     @mcp.tool(annotations=WRITES)
-    def export_csv(filename: str = "rushbase.csv", columns: list[str] | None = None) -> dict[str, Any]:
+    @safe
+    def export_csv(
+        filename: str = "rushbase.csv", columns: list[str] | None = None
+    ) -> dict[str, Any]:
         """Write the Resolve metadata CSV of the selection into the exports folder."""
         return export("csv", filename, columns)
 
@@ -167,7 +221,9 @@ class BearerAuth:
         await self._app(scope, receive, send)
 
 
-def serve(settings: WorkerSettings, *, http: str | None = None, token_file: Path | None = None) -> None:
+def serve(
+    settings: WorkerSettings, *, http: str | None = None, token_file: Path | None = None
+) -> None:
     """Run on stdio, or as streamable HTTP on ``HOST:PORT`` behind a bearer token."""
     controller = ProcessController()
     server = build_server(settings, controller)
@@ -175,7 +231,7 @@ def serve(settings: WorkerSettings, *, http: str | None = None, token_file: Path
         if http is None:
             server.run("stdio")
             return
-        import uvicorn  # noqa: PLC0415
+        import uvicorn
 
         assert token_file is not None
         token = token_file.read_text(encoding="utf-8").strip()

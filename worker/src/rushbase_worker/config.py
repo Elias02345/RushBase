@@ -139,8 +139,12 @@ class WorkerSettings(BaseSettings):
     resolve_python: Path | None = Field(
         default=None, description="Interpreter for the bridge (default: Resolve's ResolvePython)."
     )
-    resolve_script_api: Path | None = Field(default=None, description="RESOLVE_SCRIPT_API override.")
-    resolve_script_lib: Path | None = Field(default=None, description="RESOLVE_SCRIPT_LIB override.")
+    resolve_script_api: Path | None = Field(
+        default=None, description="RESOLVE_SCRIPT_API override."
+    )
+    resolve_script_lib: Path | None = Field(
+        default=None, description="RESOLVE_SCRIPT_LIB override."
+    )
 
     @classmethod
     def settings_customise_sources(

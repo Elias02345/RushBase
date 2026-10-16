@@ -1,22 +1,23 @@
 """Companion CLI commands: every command prints one JSON envelope with the documented shape."""
 
-import json
 import re
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pytest
-from companion_data import ASSET_ID, OTHER_ID, last_json, server_handler
 from typer.testing import CliRunner
 
+from companion_data import ASSET_ID, OTHER_ID, last_json, server_handler
 from rushbase_worker import cli
 
 runner = CliRunner()
 
 
 @pytest.fixture(autouse=True)
-def companion_env(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> Path:
+def companion_env(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> Path:
     home = tmp_path_factory.mktemp("companion-home")
     root = home / "lib"
     root.mkdir()
@@ -30,7 +31,9 @@ def companion_env(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.Temp
     monkeypatch.chdir(home)
     real = httpx.Client
     monkeypatch.setattr(
-        httpx, "Client", lambda **kw: real(**{**kw, "transport": httpx.MockTransport(server_handler)})
+        httpx,
+        "Client",
+        lambda **kw: real(**{**kw, "transport": httpx.MockTransport(server_handler)}),
     )
     return root
 
@@ -47,7 +50,9 @@ def run(*args: str, ok: bool = True, stdin: str | None = None) -> dict[str, Any]
 
 def test_login_stores_a_personal_token(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("RUSHBASE_API_TOKEN")
-    document = run("login", "--server", "http://srv", "--username", "elias", "--password-stdin", stdin="pw\n")
+    document = run(
+        "login", "--server", "http://srv", "--username", "elias", "--password-stdin", stdin="pw\n"
+    )
     assert document["command"] == "login"
     token_file = Path(document["data"]["token_file"])
     assert token_file.read_text().strip().startswith("rbp_")
@@ -56,7 +61,16 @@ def test_login_stores_a_personal_token(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_search_json_and_filters() -> None:
-    document = run("search", "harbour", "--filter", "media_type=video", "--filter", "tag=location:harbour", "--level", "shot")
+    document = run(
+        "search",
+        "harbour",
+        "--filter",
+        "media_type=video",
+        "--filter",
+        "tag=location:harbour",
+        "--level",
+        "shot",
+    )
     data = document["data"]
     assert document["command"] == "search"
     assert data["items"][0]["asset"]["id"] == ASSET_ID
@@ -117,7 +131,9 @@ def test_export_commands(kind: str, tmp_path: Path) -> None:
     run("select", "add", ASSET_ID)
     out = tmp_path / f"cut.{kind}"
     data = run("export", kind, "--out", str(out))["data"]
-    assert data["format"] == kind and data["file"] == str(out) and data["bytes"] == out.stat().st_size
+    assert (
+        data["format"] == kind and data["file"] == str(out) and data["bytes"] == out.stat().st_size
+    )
     assert isinstance(data["warnings"], list)
     assert "A001_C002" in out.read_text(encoding="utf-8-sig")
 
@@ -130,7 +146,10 @@ def test_export_csv_columns(tmp_path: Path) -> None:
 
 
 def test_export_empty_selection_fails(tmp_path: Path) -> None:
-    assert "selection is empty" in run("export", "edl", "--out", str(tmp_path / "x.edl"), ok=False)["data"]["error"]
+    assert (
+        "selection is empty"
+        in run("export", "edl", "--out", str(tmp_path / "x.edl"), ok=False)["data"]["error"]
+    )
 
 
 def test_resolve_send_requires_confirmation() -> None:
@@ -145,7 +164,9 @@ def test_resolve_selftest_requires_confirmation() -> None:
 
 
 def test_resolve_status_without_installation(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("rushbase_worker.companion.resolve.client.find_interpreter", lambda _s: (None, False))
+    monkeypatch.setattr(
+        "rushbase_worker.companion.resolve.client.find_interpreter", lambda _s: (None, False)
+    )
     data = run("resolve", "status", ok=False)["data"]
     assert data["installed"] is False and data["reachable"] is False
     assert {"studio", "version", "project", "error", "interpreter"} <= set(data)
@@ -155,10 +176,23 @@ def test_overview_schema(monkeypatch: pytest.MonkeyPatch) -> None:
     data = run("overview", "--no-mount-check")["data"]
     assert data["server"]["reachable"] is True
     assert data["totals"] == {"files": 40, "hours": 3.5, "jobs": 70}
-    assert set(data["hardware"]) == {"gpu", "vram_total_mb", "vram_free_mb", "backend", "profile", "cpu", "cores"}
+    assert set(data["hardware"]) == {
+        "gpu",
+        "vram_total_mb",
+        "vram_free_mb",
+        "backend",
+        "profile",
+        "cpu",
+        "cores",
+    }
     assert set(data["models"]) == {"needed", "installed", "missing"}
     assert data["estimate"]["total_seconds"] > 0
-    assert set(data["estimate"]["stages"]["vision"]) == {"pending_jobs", "mean_job_ms", "seconds", "source"}
+    assert set(data["estimate"]["stages"]["vision"]) == {
+        "pending_jobs",
+        "mean_job_ms",
+        "seconds",
+        "source",
+    }
     assert isinstance(data["issues"], list) and isinstance(data["ready"], bool)
 
 
@@ -193,5 +227,3 @@ def test_process_records_throughput(monkeypatch: pytest.MonkeyPatch) -> None:
     estimate = throughput.estimate({"stages": {"preview": {"pending_jobs": 8}}}, history, 4)
     assert estimate["stages"]["preview"]["seconds"] == 4
     assert re.fullmatch(r"\d+", str(estimate["total_seconds"]))
-
-

@@ -53,7 +53,9 @@ def _pick(de: str | None, en: str | None, lang: str) -> str | None:
     return (en or de) if lang == "en" else (de or en)
 
 
-def clip_from_asset(detail: dict[str, Any], selected: list[int] | None = None, lang: str = "de") -> Clip:
+def clip_from_asset(
+    detail: dict[str, Any], selected: list[int] | None = None, lang: str = "de"
+) -> Clip:
     """Build a :class:`Clip` from an ``/api/v1/assets/{id}`` document."""
     files = detail.get("files") or []
     primary = next((f for f in files if f.get("role") == "primary"), files[0] if files else {})

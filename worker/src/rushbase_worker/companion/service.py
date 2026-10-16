@@ -33,8 +33,8 @@ from rushbase_worker.config import WorkerSettings
 from rushbase_worker.hardware import detect_hardware
 from rushbase_worker.mount import MountError, verify_mount
 from rushbase_worker.runtimes.manager import Runtimes
-from rushbase_worker.state import load_api_key, load_identity, load_last_run
 from rushbase_worker.stages import HANDLERS, runnable_stages
+from rushbase_worker.state import load_api_key, load_identity, load_last_run
 from rushbase_worker.tools.toolbox import Toolbox
 
 HOUR_MS = 3_600_000
@@ -75,7 +75,9 @@ def search(
         raise CompanionError("level must be 'asset' or 'shot'")
     try:
         with _api(settings) as api:
-            return api.search(query, parse_filters(filters or []), level=level, limit=limit, offset=offset)
+            return api.search(
+                query, parse_filters(filters or []), level=level, limit=limit, offset=offset
+            )
     except UserApiError as exc:
         raise CompanionError(str(exc)) from exc
 
@@ -149,7 +151,9 @@ def select_add(settings: WorkerSettings, asset_id: str, shots: list[int] | None 
     return basket
 
 
-def select_remove(settings: WorkerSettings, asset_id: str, shots: list[int] | None = None) -> Basket:
+def select_remove(
+    settings: WorkerSettings, asset_id: str, shots: list[int] | None = None
+) -> Basket:
     """Remove an asset (or only some selected shots) from the basket."""
     basket = load_basket(settings)
     if not remove_clip(basket, asset_id, shots):
@@ -276,8 +280,11 @@ def overview(settings: WorkerSettings, *, probe_mount: bool = True) -> dict[str,
             "cpu": report.cpu.model,
             "cores": report.cpu.cores,
         },
-        "models": {"needed": needed, "installed": sorted(installed & set(needed)),
-                   "missing": [m for m in needed if m not in installed]},  # fmt: skip
+        "models": {
+            "needed": needed,
+            "installed": sorted(installed & set(needed)),
+            "missing": [m for m in needed if m not in installed],
+        },
         "runnable_stages": [s.value for s in runnable],
         "mount": None,
         "last_run": load_last_run(settings),

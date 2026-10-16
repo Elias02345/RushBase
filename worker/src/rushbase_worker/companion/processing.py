@@ -77,7 +77,11 @@ class ProcessController:
         process = self._process
         if process is None or process.poll() is not None:
             return {"stopped": False, "reason": "not running"}
-        process.send_signal(signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT)
+        process.send_signal(
+            signal.SIGTERM
+            if sys.platform != "win32"
+            else getattr(signal, "CTRL_BREAK_EVENT", signal.SIGTERM)
+        )
         try:
             process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:

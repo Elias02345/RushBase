@@ -17,7 +17,7 @@ MODE = os.environ.get("FAKE_RESOLVE_MODE", "")
 
 def _load() -> dict[str, Any]:
     if STATE.exists():
-        return json.loads(STATE.read_text())
+        return dict(json.loads(STATE.read_text()))
     return {"current": "Untitled", "projects": ["Untitled"], "bins": {}, "items": {}}
 
 
@@ -57,9 +57,17 @@ class Item:
         self._mutate("third", {**self._get("third"), **values})
         return True
 
-    def AddMarker(self, frame: int, color: str, name: str, note: str, duration: int, custom: str | None = None) -> bool:
+    def AddMarker(
+        self, frame: int, color: str, name: str, note: str, duration: int, custom: str | None = None
+    ) -> bool:
         markers = self._get("markers")
-        markers[str(frame)] = {"color": color, "name": name, "note": note, "duration": duration, "customData": custom}
+        markers[str(frame)] = {
+            "color": color,
+            "name": name,
+            "note": note,
+            "duration": duration,
+            "customData": custom,
+        }
         self._mutate("markers", markers)
         return True
 
@@ -112,7 +120,9 @@ class Pool:
             path = info["FilePath"]
             if not Path(path).exists():
                 return []
-            state["items"].setdefault(path, {"metadata": {}, "third": {}, "markers": {}, "color": ""})
+            state["items"].setdefault(
+                path, {"metadata": {}, "third": {}, "markers": {}, "color": ""}
+            )
             state["bins"].setdefault(self.current, []).append(path)
             items.append(Item(path))
         _save(state)
@@ -135,7 +145,7 @@ class Manager:
         return Project(_load()["current"])
 
     def GetProjectListInCurrentFolder(self) -> list[str]:
-        return _load()["projects"]
+        return list(_load()["projects"])
 
     def CreateProject(self, name: str) -> Project:
         state = _load()

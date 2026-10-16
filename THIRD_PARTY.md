@@ -15,6 +15,7 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | Alembic | migrations | MIT |
 | psycopg 3 (+ binary) | PostgreSQL driver (bundles libpq) | LGPL-3.0-only |
 | Typer | CLI | MIT |
+| mcp (official Model Context Protocol SDK, 2.3.0) | local MCP server of the companion | MIT |
 | argon2-cffi | argon2id password hashing | MIT |
 | blake3 (BLAKE3 Python bindings) | file fingerprints and hashes | MIT / Apache-2.0 |
 | HTTPX | HTTP client | BSD-3-Clause |

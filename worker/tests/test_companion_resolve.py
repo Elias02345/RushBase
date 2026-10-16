@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from companion_data import ASSET_ID, asset_detail
 
+from companion_data import ASSET_ID, asset_detail
 from rushbase_worker.companion.clips import clip_from_asset
 from rushbase_worker.companion.resolve import client
 from rushbase_worker.companion.resolve.selftest import selftest
@@ -21,7 +21,9 @@ FAKE = Path(__file__).parent / "fake_resolve"
 def settings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> WorkerSettings:
     api = tmp_path / "scripting"
     (api / "Modules").mkdir(parents=True)
-    (api / "Modules" / "DaVinciResolveScript.py").write_text((FAKE / "DaVinciResolveScript.py").read_text())
+    (api / "Modules" / "DaVinciResolveScript.py").write_text(
+        (FAKE / "DaVinciResolveScript.py").read_text()
+    )
     monkeypatch.setenv("FAKE_RESOLVE_STATE", str(tmp_path / "state.json"))
     monkeypatch.delenv("FAKE_RESOLVE_MODE", raising=False)
     return WorkerSettings(
@@ -52,23 +54,34 @@ def test_status_reports_studio(settings: WorkerSettings) -> None:
     assert status["version"] == "21.1.1.0003" and status["project"] == "Untitled"
 
 
-def test_status_free_edition_cannot_be_scripted(settings: WorkerSettings, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_status_free_edition_cannot_be_scripted(
+    settings: WorkerSettings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("FAKE_RESOLVE_MODE", "free")
     status = client.resolve_status(settings)
     assert status["reachable"] and not status["studio"]
     assert "Free" in status["error"]
 
 
-def test_status_when_resolve_is_not_running(settings: WorkerSettings, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_status_when_resolve_is_not_running(
+    settings: WorkerSettings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("FAKE_RESOLVE_MODE", "down")
     status = client.resolve_status(settings)
     assert not status["reachable"] and "not reachable" in status["error"]
 
 
-def test_push_imports_sets_metadata_markers_and_color(settings: WorkerSettings, media: Path, tmp_path: Path) -> None:
+def test_push_imports_sets_metadata_markers_and_color(
+    settings: WorkerSettings, media: Path, tmp_path: Path
+) -> None:
     result = push(settings, media)
     assert result["errors"] == []
-    assert (result["imported"], result["metadata_set"], result["markers_added"], result["colored"]) == (1, 1, 2, 1)
+    assert (
+        result["imported"],
+        result["metadata_set"],
+        result["markers_added"],
+        result["colored"],
+    ) == (1, 1, 2, 1)
     item = state(settings, tmp_path)["items"][str(media)]
     assert item["metadata"]["Description"] == "Nachtaufnahme im Hafen"
     assert item["metadata"]["Keywords"] == "Hafen, Nacht"
@@ -76,7 +89,10 @@ def test_push_imports_sets_metadata_markers_and_color(settings: WorkerSettings, 
     assert item["color"] == "Orange"
     markers = item["markers"]
     assert set(markers) == {"0", "100"}
-    assert markers["100"]["customData"] == f"rushbase:{ASSET_ID}:1" and markers["100"]["note"] == "Boot"
+    assert (
+        markers["100"]["customData"] == f"rushbase:{ASSET_ID}:1"
+        and markers["100"]["note"] == "Boot"
+    )
     assert "Description" in client.load_known_keys(settings.data_dir)
 
 
@@ -87,13 +103,17 @@ def test_push_is_idempotent(settings: WorkerSettings, media: Path, tmp_path: Pat
     assert state(settings, tmp_path)["bins"]["Night"] == [str(media)]
 
 
-def test_push_without_markers_and_metadata(settings: WorkerSettings, media: Path, tmp_path: Path) -> None:
+def test_push_without_markers_and_metadata(
+    settings: WorkerSettings, media: Path, tmp_path: Path
+) -> None:
     result = push(settings, media, markers=False, metadata=False)
     assert result["markers_added"] == 0 and result["metadata_set"] == 0
     assert state(settings, tmp_path)["items"][str(media)]["markers"] == {}
 
 
-def test_failed_api_calls_are_reported(settings: WorkerSettings, media: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_failed_api_calls_are_reported(
+    settings: WorkerSettings, media: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("FAKE_RESOLVE_MODE", "reject-metadata")
     result = push(settings, media)
     assert any("SetMetadata rejected" in e for e in result["errors"])
@@ -138,7 +158,9 @@ def fake_ffmpeg(command: list[str], **kwargs: Any) -> "subprocess.CompletedProce
 
 @pytest.fixture
 def fake_toolbox(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("rushbase_worker.companion.resolve.selftest.Toolbox.ffmpeg_path", "ffmpeg", raising=False)
+    monkeypatch.setattr(
+        "rushbase_worker.companion.resolve.selftest.Toolbox.ffmpeg_path", "ffmpeg", raising=False
+    )
 
 
 @pytest.mark.usefixtures("fake_toolbox")
@@ -156,4 +178,6 @@ def test_selftest_in_throwaway_project(settings: WorkerSettings, tmp_path: Path)
 def test_selftest_refuses_other_project_names(settings: WorkerSettings, tmp_path: Path) -> None:
     with pytest.raises(client.ResolveError, match="rushbase-test"):
         selftest(settings, "my-real-project", tmp_path / "w", runner=fake_ffmpeg)
-    assert not (tmp_path / "state.json").exists() or state(settings, tmp_path)["projects"] == ["Untitled"]
+    assert not (tmp_path / "state.json").exists() or state(settings, tmp_path)["projects"] == [
+        "Untitled"
+    ]

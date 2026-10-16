@@ -2,8 +2,8 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 import pytest
-from companion_data import ASSET_ID, asset_detail
 
+from companion_data import ASSET_ID, asset_detail
 from rushbase_worker.companion.clips import clip_from_asset
 from rushbase_worker.companion.export_csv import DEFAULT_COLUMNS, export_csv
 from rushbase_worker.companion.export_edl import export_edl, reel_name

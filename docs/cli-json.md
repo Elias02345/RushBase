@@ -94,3 +94,31 @@ Runs probe/preview/shots locally. `data`: `file`, `media_type`, `asset_id`, `out
 `stages`: map stage name to `{ok, duration_ms, output | error | skipped}`; `output` is the stage
 contract JSON (`ProbeOutput` etc.), `probe.raw` only with `--raw`. Derived paths in the output
 are relative to `output_dir`. Exit code 1 if a stage failed.
+
+## Companion commands (milestone M6)
+
+All use the envelope above; failures print `{"ok": false, "data": {"error": "..."}}` with exit code 1
+(4 for server errors in `login`, 2 for a missing `--yes`). Commands that read the server need a
+**personal API token**: `rushbase login` stores one in `<data dir>/user_token` (mode 600); the
+environment variable `RUSHBASE_API_TOKEN` overrides it.
+
+| Command | `data` |
+| --- | --- |
+| `login --server URL --username U [--password-stdin]` | `server_url`, `username`, `token_file` (the token is never printed) |
+| `search "<q>" [--filter k=v ...] [--level asset\|shot] [--limit N] [--offset N]` | the server's `/api/v1/search` document: `items[{asset, shot, score, ranks}]`, `level`, `offset`, `next_offset`, `candidates`, `channels_ms`, `skipped`. `--filter` takes the asset list query parameters (`media_type`, `camera_model`, `tag=field:value` ...; repeat a key for alternatives) |
+| `asset get ID` | the `/api/v1/assets/{id}` document plus `local_path` and `local_exists` on this machine |
+| `select add ID [--shots 0,2]` / `remove ID [--shots ..]` / `list` / `clear` | `count`, `items[{asset_id, filename, selected_shots (null = whole asset), shots, duration_ms}]` |
+| `paths resolve ID` | `asset_id`, `library_root`, `files[{role, rel_path, paths (per OS on the server), local_path, exists}]` |
+| `export fcpxml\|edl\|csv --out FILE [--asset ID ...] [--columns "A,B"]` | `format`, `file`, `bytes`, `warnings[]` |
+| `resolve status` | `installed`, `interpreter`, `resolve_python`, `reachable`, `studio`, `product`, `version`, `project`, `error` (exit 1 unless reachable Studio) |
+| `resolve send --yes [--bin NAME] [--markers] [--metadata] [--project NAME]` | `project`, `bin`, `imported`, `existing`, `metadata_set`, `markers_added`, `colored`, `keys[]`, `errors[]`, `skipped[]` |
+| `resolve selftest --yes [--project rushbase-test...]` | `push`, `checks{imported, metadata, third_party, markers, idempotent}`, `ok` |
+| `overview [--no-mount-check]` | `server{url, reachable, error}`, `enrolled`, `worker`, `backlog` (the `/status` document), `totals{files, hours, jobs}`, `estimate{total_seconds, concurrency, stages{pending_jobs, mean_job_ms, seconds, source}}`, `hardware{gpu, vram_total_mb, vram_free_mb, backend, profile, cpu, cores}`, `models{needed, installed, missing}`, `runnable_stages[]`, `mount{root, ok, error}`, `last_run`, `issues[{code, message}]`, `ready` |
+| `mcp serve [--stdio \| --http HOST:PORT --token-file F]` | not JSON: speaks MCP on stdio / HTTP |
+
+`overview.totals.files` and `.hours` are the largest per-stage backlog (a file waits in several
+stages). `estimate` uses the mean job duration per stage from `<data dir>/throughput.json`
+(filled by every `process` run, at least 3 samples) and falls back to defaults derived from
+`docs/eval/2026-10-vlm-benchmark.md`; AI stages are assumed serial, technical stages divide by the
+concurrency. Issue codes: `no_server`, `not_enrolled`, `server_unreachable`, `mount`,
+`models_missing`.

@@ -54,7 +54,10 @@ def export_edl(clips: list[Clip], title: str = "Rushbase selection") -> tuple[st
             )
             lines.append(f"* FROM CLIP NAME: {clip.filename}")
             if clip.selected is not None and clip.shots:
-                lines.append(f"* COMMENT: shot {shot.idx}" + (f" {shot.description}" if shot.description else ""))
+                lines.append(
+                    f"* COMMENT: shot {shot.idx}"
+                    + (f" {shot.description}" if shot.description else "")
+                )
             lines.append("")
             record += rec_length
     return "\n".join(lines) + "\n", warnings

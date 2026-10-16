@@ -23,7 +23,7 @@ class BridgeError(Exception):
 
 def _connect() -> Any:
     try:
-        import DaVinciResolveScript as dvr  # type: ignore[import-not-found]  # noqa: PLC0415
+        import DaVinciResolveScript as dvr  # type: ignore[import-not-found]
     except ImportError as exc:
         raise BridgeError(f"DaVinciResolveScript is not importable: {exc}") from exc
     resolve = dvr.scriptapp("Resolve")
@@ -79,15 +79,18 @@ def _find_existing(folder: Any, path: str, asset_id: str) -> Any | None:
     return None
 
 
-def _apply_metadata(item: Any, clip: dict[str, Any], keys: list[str], result: dict[str, Any]) -> None:
+def _apply_metadata(
+    item: Any, clip: dict[str, Any], keys: list[str], result: dict[str, Any]
+) -> None:
     values = {k: v for k, v in (clip.get("metadata") or {}).items() if v}
     if values and not item.SetMetadata(values):
         result["errors"].append(f"{clip['path']}: SetMetadata rejected {sorted(values)}")
     elif values:
         result["metadata_set"] += 1
-    if hasattr(item, "SetThirdPartyMetadata"):
-        if not item.SetThirdPartyMetadata({THIRD_PARTY_KEY: clip["asset_id"]}):
-            result["errors"].append(f"{clip['path']}: SetThirdPartyMetadata failed")
+    if hasattr(item, "SetThirdPartyMetadata") and not item.SetThirdPartyMetadata(
+        {THIRD_PARTY_KEY: clip["asset_id"]}
+    ):
+        result["errors"].append(f"{clip['path']}: SetThirdPartyMetadata failed")
     stored = item.GetMetadata()
     if isinstance(stored, dict):
         for key in stored:
@@ -183,8 +186,8 @@ def selftest(request: dict[str, Any]) -> dict[str, Any]:
         checks["metadata"] = isinstance(stored, dict) and all(
             str(stored.get(k)) == str(v) for k, v in wanted.items() if v
         )
-        checks["third_party"] = str(item.GetThirdPartyMetadata(THIRD_PARTY_KEY)) == (
-            request["clips"][0]["asset_id"]
+        checks["third_party"] = (
+            str(item.GetThirdPartyMetadata(THIRD_PARTY_KEY)) == (request["clips"][0]["asset_id"])
         )
         if request.get("markers"):
             checks["markers"] = len(item.GetMarkers() or {}) >= len(request["clips"][0]["shots"])
@@ -206,7 +209,7 @@ def main() -> int:
         document: dict[str, Any] = {"ok": True, "data": data}
     except BridgeError as exc:
         document = {"ok": False, "error": str(exc)}
-    except Exception as exc:  # noqa: BLE001 - any API failure must reach the caller as JSON
+    except Exception as exc:
         document = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
     sys.stdout.write(json.dumps(document) + "\n")
     return 0 if document["ok"] else 1

@@ -90,7 +90,8 @@ def login(
 def search(
     query: Annotated[str, typer.Argument(help="Free-text query.")],
     filter_: Annotated[
-        list[str] | None, typer.Option("--filter", help="key=value (repeatable), e.g. tag=location:harbour.")
+        list[str] | None,
+        typer.Option("--filter", help="key=value (repeatable), e.g. tag=location:harbour."),
     ] = None,
     level: Annotated[str, typer.Option(help="`asset` or `shot`.")] = "asset",
     limit: Annotated[int, typer.Option(min=1, max=100)] = 30,
@@ -181,7 +182,9 @@ def select_clear(as_json: JsonOption = False) -> None:
 @paths_app.command("resolve")
 def paths_resolve(asset_id: str, as_json: JsonOption = False) -> None:
     """Per-OS paths of an asset's files and where they are on this machine."""
-    data = _guard("paths resolve", as_json, lambda: service.resolve_paths(WorkerSettings(), asset_id))
+    data = _guard(
+        "paths resolve", as_json, lambda: service.resolve_paths(WorkerSettings(), asset_id)
+    )
     if as_json:
         emit_json(envelope("paths resolve", ok=True, data=data))
     else:
@@ -207,15 +210,21 @@ def resolve_status(as_json: JsonOption = False) -> None:
 @resolve_app.command("send")
 def resolve_send(
     bin_: Annotated[str, typer.Option("--bin", help="Bin (media pool folder) name.")] = "Rushbase",
-    markers: Annotated[bool, typer.Option("--markers", help="Add markers at shot boundaries.")] = False,
+    markers: Annotated[
+        bool, typer.Option("--markers", help="Add markers at shot boundaries.")
+    ] = False,
     metadata: Annotated[bool, typer.Option("--metadata", help="Set clip metadata.")] = False,
     project: Annotated[str | None, typer.Option(help="Abort unless this project is open.")] = None,
-    yes: Annotated[bool, typer.Option("--yes", help="Confirm writing into the open project.")] = False,
+    yes: Annotated[
+        bool, typer.Option("--yes", help="Confirm writing into the open project.")
+    ] = False,
     as_json: JsonOption = False,
 ) -> None:
     """Import the selection into the open Resolve project (idempotent)."""
     if not yes:
-        raise _fail("resolve send", "this writes into the open Resolve project: pass --yes", as_json, 2)
+        raise _fail(
+            "resolve send", "this writes into the open Resolve project: pass --yes", as_json, 2
+        )
     settings = WorkerSettings()
     result = _guard(
         "resolve send", as_json,
@@ -237,13 +246,22 @@ def resolve_send(
 
 @resolve_app.command("selftest")
 def resolve_selftest(
-    project: Annotated[str, typer.Option(help="Throwaway project; must start with rushbase-test.")] = "rushbase-test",
-    yes: Annotated[bool, typer.Option("--yes", help="I allow switching Resolve to the test project.")] = False,
+    project: Annotated[
+        str, typer.Option(help="Throwaway project; must start with rushbase-test.")
+    ] = "rushbase-test",
+    yes: Annotated[
+        bool, typer.Option("--yes", help="I allow switching Resolve to the test project.")
+    ] = False,
     as_json: JsonOption = False,
 ) -> None:
     """Round-trip check in a dedicated throwaway project (never touches other projects)."""
     if not yes:
-        raise _fail("resolve selftest", "this opens the project and switches the Resolve session: pass --yes", as_json, 2)
+        raise _fail(
+            "resolve selftest",
+            "this opens the project and switches the Resolve session: pass --yes",
+            as_json,
+            2,
+        )
     settings = WorkerSettings()
     workdir = settings.data_dir / "resolve-selftest"
     result = _guard("resolve selftest", as_json, lambda: run_selftest(settings, project, workdir))
@@ -255,7 +273,9 @@ def resolve_selftest(
     raise typer.Exit(0 if result["ok"] else EXIT_FAILED)
 
 
-def _export(kind: str, out: Path, columns: str | None, assets: list[str] | None, title: str, as_json: bool) -> None:
+def _export(
+    kind: str, out: Path, columns: str | None, assets: list[str] | None, title: str, as_json: bool
+) -> None:
     settings = WorkerSettings()
     cols = tuple(c.strip() for c in columns.split(",")) if columns else None
     text, warnings = _guard(f"export {kind}", as_json,
@@ -271,18 +291,30 @@ def _export(kind: str, out: Path, columns: str | None, assets: list[str] | None,
 
 
 OutOption = Annotated[Path, typer.Option("--out", help="Output file.")]
-AssetsOption = Annotated[list[str] | None, typer.Option("--asset", help="Only these assets (repeatable).")]
+AssetsOption = Annotated[
+    list[str] | None, typer.Option("--asset", help="Only these assets (repeatable).")
+]
 TitleOption = Annotated[str, typer.Option(help="Timeline / list title.")]
 
 
 @export_app.command("fcpxml")
-def export_fcpxml_command(out: OutOption, asset: AssetsOption = None, title: TitleOption = "Rushbase selection", as_json: JsonOption = False) -> None:
+def export_fcpxml_command(
+    out: OutOption,
+    asset: AssetsOption = None,
+    title: TitleOption = "Rushbase selection",
+    as_json: JsonOption = False,
+) -> None:
     """FCPXML 1.10 with the selected shots as clips on one timeline."""
     _export("fcpxml", out, None, asset, title, as_json)
 
 
 @export_app.command("edl")
-def export_edl_command(out: OutOption, asset: AssetsOption = None, title: TitleOption = "Rushbase selection", as_json: JsonOption = False) -> None:
+def export_edl_command(
+    out: OutOption,
+    asset: AssetsOption = None,
+    title: TitleOption = "Rushbase selection",
+    as_json: JsonOption = False,
+) -> None:
     """CMX 3600 EDL cut list."""
     _export("edl", out, None, asset, title, as_json)
 
@@ -290,7 +322,10 @@ def export_edl_command(out: OutOption, asset: AssetsOption = None, title: TitleO
 @export_app.command("csv")
 def export_csv_command(
     out: OutOption,
-    columns: Annotated[str | None, typer.Option(help=f"Comma separated header names (default: {','.join(DEFAULT_COLUMNS)}).")] = None,
+    columns: Annotated[
+        str | None,
+        typer.Option(help=f"Comma separated header names (default: {','.join(DEFAULT_COLUMNS)})."),
+    ] = None,
     asset: AssetsOption = None,
     as_json: JsonOption = False,
 ) -> None:
@@ -300,12 +335,19 @@ def export_csv_command(
 
 @mcp_app.command("serve")
 def mcp_serve(
-    stdio: Annotated[bool, typer.Option("--stdio", help="Serve on stdin/stdout (default).")] = False,
-    http: Annotated[str | None, typer.Option(help="Serve on HOST:PORT (streamable HTTP, bearer token required).")] = None,
-    token_file: Annotated[Path | None, typer.Option(help="File with the bearer token for --http.")] = None,
+    stdio: Annotated[
+        bool, typer.Option("--stdio", help="Serve on stdin/stdout (default).")
+    ] = False,
+    http: Annotated[
+        str | None,
+        typer.Option(help="Serve on HOST:PORT (streamable HTTP, bearer token required)."),
+    ] = None,
+    token_file: Annotated[
+        Path | None, typer.Option(help="File with the bearer token for --http.")
+    ] = None,
 ) -> None:
     """Run the local MCP server (tools mirror the CLI; nothing deletes or moves files)."""
-    from rushbase_worker.companion.mcp_server import serve  # noqa: PLC0415 - heavy import
+    from rushbase_worker.companion.mcp_server import serve
 
     if http and stdio:
         raise typer.BadParameter("choose --stdio or --http, not both")
@@ -315,7 +357,9 @@ def mcp_serve(
 
 
 def overview(
-    no_mount_check: Annotated[bool, typer.Option("--no-mount-check", help="Skip the server round trip for the mount.")] = False,
+    no_mount_check: Annotated[
+        bool, typer.Option("--no-mount-check", help="Skip the server round trip for the mount.")
+    ] = False,
     as_json: JsonOption = False,
 ) -> None:
     """Backlog, estimate, hardware, models and guided issues in one document (Processor home)."""

@@ -78,5 +78,10 @@ def estimate(
         parallel = 1 if name in SERIAL_STAGES else max(1, concurrency)
         seconds = jobs * mean / parallel / 1000
         total += seconds
-        stages[name] = {"pending_jobs": jobs, "mean_job_ms": mean, "seconds": round(seconds), "source": source}
+        stages[name] = {
+            "pending_jobs": jobs,
+            "mean_job_ms": mean,
+            "seconds": round(seconds),
+            "source": source,
+        }
     return {"total_seconds": round(total), "stages": stages, "concurrency": concurrency}
