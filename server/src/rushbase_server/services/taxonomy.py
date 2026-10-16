@@ -414,7 +414,7 @@ async def tag_counts(session: AsyncSession) -> dict[UUID, int]:
             AssetTag.value_id
         )
     )
-    return dict(rows.tuples().all())
+    return {value_id: count for value_id, count in rows}  # noqa: C416
 
 
 async def worker_snapshot(session: AsyncSession) -> dict[str, Any]:

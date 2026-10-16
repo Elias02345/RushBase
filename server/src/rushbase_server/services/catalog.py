@@ -73,7 +73,7 @@ def search_terms(q: str) -> list[str]:
     return [t for t in _TERM_SPLIT.split(q) if t][:MAX_QUERY_TERMS]
 
 
-def _tsquery(terms: list[str]) -> ColumnElement[Any]:
+def tsquery(terms: list[str]) -> ColumnElement[Any]:
     """AND of all terms; the last one matches as a prefix (search-as-you-type)."""
     text = " & ".join(terms) + ":*"
     return func.to_tsquery(cast(literal(SEARCH_CONFIG), REGCONFIG), text)
@@ -122,7 +122,7 @@ SORTS: dict[str, SortKey] = {
 def _relevance_key(terms: list[str]) -> SortKey:
     """Rank by ``ts_rank_cd`` (weights A > B > C > D), rounded so the cursor compares exactly."""
     return SortKey(
-        lambda: func.round(cast(func.ts_rank_cd(Asset.search_tsv, _tsquery(terms)), Numeric), 4),
+        lambda: func.round(cast(func.ts_rank_cd(Asset.search_tsv, tsquery(terms)), Numeric), 4),
         str,
         _decode_rank,
     )
@@ -188,7 +188,7 @@ def _has_tag(field_key: str, values: list[str]) -> ColumnElement[bool]:
     )
 
 
-def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
+def apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
     if f.status:
         stmt = stmt.where(Asset.status == f.status)
     else:
@@ -219,7 +219,7 @@ def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
         stmt = stmt.where(_has_tag(field_key, values))
     if f.q:
         if (terms := _fts_terms(f)) is not None:
-            return stmt.where(Asset.search_tsv.op("@@")(_tsquery(terms)))
+            return stmt.where(Asset.search_tsv.op("@@")(tsquery(terms)))
         match = (
             select(literal(1))
             .select_from(AssetFile)
@@ -266,7 +266,7 @@ async def list_assets(
         .outerjoin(AssetFile, AssetFile.id == Asset.primary_file_id)
         .outerjoin(Batch, Batch.id == Asset.batch_id)
     )
-    stmt = _apply_filters(base, filters)
+    stmt = apply_filters(base, filters)
     if cursor:
         value, asset_id = decode_cursor(cursor)
         try:
@@ -284,7 +284,7 @@ async def list_assets(
         next_cursor = encode_cursor(key.encode(last[3]), last[0].id)
     total = None
     if not cursor:
-        counted = _apply_filters(select(func.count()).select_from(Asset), filters)
+        counted = apply_filters(select(func.count()).select_from(Asset), filters)
         total = int(await session.scalar(counted) or 0)
     return AssetPage([(r[0], r[1], r[2]) for r in page], next_cursor, total)
 
@@ -376,7 +376,7 @@ async def facets(
         column = getattr(Asset, key)
         blank: dict[str, Any] = {key: None}
         own = replace(active, **blank) if hasattr(active, key) else active
-        stmt = _apply_filters(select(column, func.count()).select_from(Asset), own)
+        stmt = apply_filters(select(column, func.count()).select_from(Asset), own)
         rows = await session.execute(
             stmt.where(column.is_not(None))
             .group_by(column)
@@ -391,7 +391,7 @@ async def facets(
     result += await _tag_facets(session, active)
     low, high = (
         await session.execute(
-            _apply_filters(select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)), active)
+            apply_filters(select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)), active)
         )
     ).one()
     if high is not None:
@@ -406,7 +406,7 @@ async def facets(
             }
         )
     captures = select(func.min(Asset.capture_at), func.max(Asset.capture_at))
-    first, last = (await session.execute(_apply_filters(captures, active))).one()
+    first, last = (await session.execute(apply_filters(captures, active))).one()
     if first is not None:
         result.append(
             {
@@ -441,7 +441,7 @@ async def _tag_facets(session: AsyncSession, active: AssetFilters) -> list[dict[
             .where(AssetTag.field_id == field.id, TaxValue.status == "approved")
         )
         rows = await session.execute(
-            _apply_filters(stmt, own)
+            apply_filters(stmt, own)
             .group_by(TaxValue.value)
             .order_by(func.count(func.distinct(Asset.id)).desc(), TaxValue.value)
             .limit(100)

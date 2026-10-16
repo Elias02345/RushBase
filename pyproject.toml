@@ -58,6 +58,10 @@ mypy_path = ["core/src", "server/src", "worker/src", "server/tests"]
 explicit_package_bases = true
 files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests", "dev/testmedia"]
 
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

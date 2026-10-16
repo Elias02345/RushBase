@@ -9,11 +9,12 @@ from sqlalchemy import select
 
 from rushbase_core import LibraryMismatchError
 from rushbase_server import get_version
-from rushbase_server.api import admin, auth, catalog, filing, system, taxonomy, worker
+from rushbase_server.api import admin, auth, catalog, filing, search, system, taxonomy, worker
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.models import Library
 from rushbase_server.runtime import Runtime
+from rushbase_server.search.encoder import build_encoder
 from rushbase_server.services.backup import PgTools
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter
@@ -60,6 +61,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
                 clock, settings.login_max_failures, settings.login_window_seconds
             ),
             pg_tools=PgTools.from_settings(settings),
+            encoder=build_encoder(settings),
         )
         app.state.runtime = runtime
         try:
@@ -79,4 +81,5 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(catalog.router)
     app.include_router(filing.router)
     app.include_router(taxonomy.router)
+    app.include_router(search.router)
     return app
