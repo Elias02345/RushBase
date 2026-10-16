@@ -6,6 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -40,6 +41,7 @@ ASSET_STATUSES = (
 ORIENTATIONS = ("landscape", "portrait", "square")
 DECODE_STATUSES = ("ok", "proxy_only", "metadata_only", "decoder_missing", "decoder_error")
 TRISTATE = ("yes", "no", "unknown")
+REVIEW_STATES = ("none", "pending", "done")
 MEDIA_TYPES = tuple(m.value for m in MediaType)
 FILE_ROLES = tuple(r.value for r in FileRole)
 
@@ -121,6 +123,24 @@ class Asset(Base):
     consent: Mapped[str] = mapped_column(String(8), server_default="unknown", default="unknown")
     consent_ref: Mapped[str | None] = mapped_column(Text)
     analysis_profile: Mapped[str | None] = mapped_column(Text)
+    summary_short_en: Mapped[str | None] = mapped_column(Text)
+    shot_size: Mapped[str | None] = mapped_column(Text)
+    camera_angle: Mapped[str | None] = mapped_column(Text)
+    interior_exterior: Mapped[str | None] = mapped_column(Text)
+    time_of_day: Mapped[str | None] = mapped_column(Text)
+    people_count: Mapped[int | None] = mapped_column(Integer)
+    ai_details: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb"), default=dict
+    )
+    audio_info: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    review_state: Mapped[str] = mapped_column(Text, server_default="none", default="none")
+    review_reasons: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default=text("'{}'"), default=list
+    )
+    # Columns edited by a person; AI results never overwrite them.
+    human_fields: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default=text("'{}'"), default=list
+    )
     # Server-maintained by DB triggers (migration 0004); never written by the ORM.
     search_tsv: Mapped[str | None] = mapped_column(TSVECTOR)
     filed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -140,6 +160,10 @@ class Asset(Base):
         enum_check("decode_status", DECODE_STATUSES),
         enum_check("person_identifiable", TRISTATE),
         enum_check("consent", TRISTATE),
+        enum_check("review_state", REVIEW_STATES),
+        Index(
+            "ix_asset_review_state", "review_state", postgresql_where=text("review_state <> 'none'")
+        ),
         CheckConstraint("rating IS NULL OR rating BETWEEN 0 AND 5", name="rating"),
         Index("ix_asset_status", "status"),
         Index("ix_asset_media_type_capture_at", "media_type", "capture_at"),
@@ -232,10 +256,25 @@ class Shot(Base):
     description_long_en: Mapped[str | None] = mapped_column(Text)
     shot_size: Mapped[str | None] = mapped_column(Text)
     angle: Mapped[str | None] = mapped_column(Text)
+    description_short_de: Mapped[str | None] = mapped_column(Text)
+    description_short_en: Mapped[str | None] = mapped_column(Text)
+    interior_exterior: Mapped[str | None] = mapped_column(Text)
+    time_of_day: Mapped[str | None] = mapped_column(Text)
+    people_count: Mapped[int | None] = mapped_column(Integer)
+    person_identifiable: Mapped[str] = mapped_column(
+        Text, server_default="unknown", default="unknown"
+    )
+    ai_details: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb"), default=dict
+    )
+    human_fields: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default=text("'{}'"), default=list
+    )
     # Server-maintained by a DB trigger (migration 0004); never written by the ORM.
     search_tsv: Mapped[str | None] = mapped_column(TSVECTOR)
 
     __table_args__ = (
+        enum_check("person_identifiable", TRISTATE),
         UniqueConstraint("asset_id", "idx", name="uq_shot_asset_id_idx"),
         Index("ix_shot_search_tsv", "search_tsv", postgresql_using="gin"),
     )

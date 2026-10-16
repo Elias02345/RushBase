@@ -15,9 +15,11 @@ from sqlalchemy import select
 from rushbase_core import Stage
 from rushbase_server.api.deps import ActiveDep, DbDep, RuntimeDep, WorkerDep, client_ip
 from rushbase_server.capabilities import WorkerCapabilities
-from rushbase_server.models import ApiToken, EnrollmentToken, Library, Worker
-from rushbase_server.services import audit, queue
+from rushbase_server.models import ApiToken, EnrollmentToken, Job, Library, Worker
+from rushbase_server.services import ai_sidecar, audit, queue
 from rushbase_server.services.security import WORKER_TOKEN_PREFIX, hash_token, new_token
+
+AI_STAGES = frozenset({"audio", "embed", "vision", "classify"})
 
 router = APIRouter(prefix="/api/v1/worker", tags=["worker"])
 
@@ -260,6 +262,10 @@ async def submit_result(
     except queue.LeaseLostError as exc:
         raise _lease_lost(exc) from exc
     await db.commit()
+    if outcome.accepted and outcome.job_state == "done":
+        job = await db.get(Job, job_id)
+        if job is not None and job.stage in AI_STAGES:
+            await ai_sidecar.refresh_for_runtime(runtime, db, job.asset_id)
     return ResultOut(
         accepted=outcome.accepted, duplicate=outcome.duplicate, job_state=outcome.job_state
     )

@@ -36,7 +36,15 @@ from rushbase_server.models import (
     MoveJournal,
     Shot,
 )
-from rushbase_server.services import audit, duplicates, filing_rules, placement, queue, sidecars
+from rushbase_server.services import (
+    ai_sidecar,
+    audit,
+    duplicates,
+    filing_rules,
+    placement,
+    queue,
+    sidecars,
+)
 from rushbase_server.services.normalize import probe_from_documents
 
 logger = logging.getLogger(__name__)
@@ -139,7 +147,7 @@ def _fs_error(exc: OSError) -> FilingError:
     return FilingError(f"file system error while filing: {exc}", retryable=True)
 
 
-def _sidecar_tasks(
+def sidecar_tasks(
     unit: Sequence[Asset],
     files: dict[UUID, list[AssetFile]],
     documents: dict[UUID, SidecarV1],
@@ -270,21 +278,25 @@ async def file_unit(
         await _record_filing(session, unit, files, spec, result, owner, rule, now)
         documents = {}
         for asset in unit:
+            shot_rows = list(
+                (await session.execute(select(Shot).where(Shot.asset_id == asset.id)))
+                .scalars()
+                .all()
+            )
+            tags, ai = await ai_sidecar.load_sections(session, asset, shot_rows)
             documents[asset.id] = sidecars.build_sidecar(
                 asset,
                 batch,
                 files[asset.id],
                 await session.get(AssetMetadata, asset.id),
-                list(
-                    (await session.execute(select(Shot).where(Shot.asset_id == asset.id)))
-                    .scalars()
-                    .all()
-                ),
+                shot_rows,
                 rule,
                 env.library_id,
                 now,
+                tags,
+                ai,
             )
-        tasks = _sidecar_tasks(unit, files, documents, result.directory)
+        tasks = sidecar_tasks(unit, files, documents, result.directory)
         written = await asyncio.to_thread(
             sidecars.write_sidecars, env.root, tasks, env.central_meta
         )

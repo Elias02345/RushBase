@@ -8,6 +8,18 @@ from rushbase_server.models.accounts import (
     Session,
     User,
 )
+from rushbase_server.models.ai import (
+    AssetTag,
+    AudioEvent,
+    EmbeddingImage,
+    EmbeddingText,
+    EvalRun,
+    GoldenLabel,
+    TaxField,
+    TaxonomyVersion,
+    TaxValue,
+    TranscriptSegment,
+)
 from rushbase_server.models.base import Base
 from rushbase_server.models.catalog import (
     Asset,
@@ -26,11 +38,17 @@ __all__ = [
     "Asset",
     "AssetFile",
     "AssetMetadata",
+    "AssetTag",
+    "AudioEvent",
     "AuditLog",
     "Base",
     "Batch",
+    "EmbeddingImage",
+    "EmbeddingText",
     "EnrollmentToken",
+    "EvalRun",
     "FilingRule",
+    "GoldenLabel",
     "InputFile",
     "Job",
     "Library",
@@ -38,6 +56,10 @@ __all__ = [
     "Session",
     "Shot",
     "StageResult",
+    "TaxField",
+    "TaxValue",
+    "TaxonomyVersion",
+    "TranscriptSegment",
     "User",
     "Worker",
 ]

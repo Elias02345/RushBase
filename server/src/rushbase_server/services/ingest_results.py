@@ -21,7 +21,7 @@ from rushbase_core.results import (
     parse_stage_output,
 )
 from rushbase_server.models import Asset, AssetFile, AssetMetadata, Job, Shot
-from rushbase_server.services import normalize
+from rushbase_server.services import ai_results, normalize
 from rushbase_server.services.derived import DerivedPathError, check_derived_rel_path
 
 
@@ -55,6 +55,11 @@ async def apply_output(session: AsyncSession, job: Job, parsed: BaseModel | None
         await _apply_preview(session, job, parsed)
     elif isinstance(parsed, ShotsOutput):
         await _apply_shots(session, job, parsed)
+    else:
+        try:
+            await ai_results.apply_output(session, job, parsed)
+        except ai_results.AiResultError as exc:
+            raise InvalidResultError(str(exc)) from exc
 
 
 async def _apply_probe(session: AsyncSession, job: Job, probe: ProbeOutput) -> None:

@@ -43,7 +43,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PT", "RUF", "S", "ASYNC",
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["S105", "S106", "S108", "S603", "S607"]
+"**/tests/**" = ["SIM117", "S105", "S106", "S108", "S603", "S607"]
 "dev/testmedia/*.py" = ["S603", "S607", "T201"]
 "scripts/*.py" = ["S603", "S607", "T201", "S101"]
 "worker/src/rushbase_worker/**" = ["ASYNC109", "ASYNC240"]
