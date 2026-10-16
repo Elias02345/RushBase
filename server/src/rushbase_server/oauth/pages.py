@@ -124,7 +124,7 @@ def consent_page(
     else:
         login = (
             f'<p class="muted">{escape(t["login_hint"])}</p>'
-            f'<label>{escape(t["username"])}'
+            f"<label>{escape(t['username'])}"
             '<input name="username" autocomplete="username" required></label>'
             f'<label>{escape(t["password"])}<input name="password" type="password" '
             'autocomplete="current-password" required></label>'

@@ -266,6 +266,8 @@ async def submit_result(
         job = await db.get(Job, job_id)
         if job is not None and job.stage in AI_STAGES:
             await ai_sidecar.refresh_for_runtime(runtime, db, job.asset_id)
+            if job.stage == Stage.CLASSIFY.value:
+                await runtime.match_needs(job.asset_id)
     return ResultOut(
         accepted=outcome.accepted, duplicate=outcome.duplicate, job_state=outcome.job_state
     )

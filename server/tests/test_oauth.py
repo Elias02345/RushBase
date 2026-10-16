@@ -74,10 +74,10 @@ async def _token(server: Server, **data: str) -> httpx.Response:
     return await server.client.post("/oauth/token", data=data)
 
 
-async def _grant(server: Server) -> tuple[str, dict[str, object]]:
+async def grant(server: Server, scope: str = "read needs") -> tuple[str, dict[str, object]]:
     client_id = await _register(server)
     verifier, challenge = _pkce()
-    code = _code(await authorize(server, client_id, challenge))
+    code = _code(await authorize(server, client_id, challenge, scope=scope))
     response = await _token(
         server,
         grant_type="authorization_code",
@@ -120,7 +120,7 @@ async def test_pkce_flow_refresh_rotation_and_reuse(
 ) -> None:
     async with server_factory(database_url, public_url=PUBLIC, library_root=library_root) as server:
         await server.setup_admin()
-        client_id, tokens = await _grant(server)
+        client_id, tokens = await grant(server)
         assert tokens["token_type"] == "Bearer"
         assert tokens["expires_in"] == 3600
         assert tokens["scope"] == "read needs"

@@ -10,7 +10,7 @@ import asyncio
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -446,9 +446,16 @@ async def _refresh_batches(session: AsyncSession, unit: Sequence[Asset], now: da
 
 
 async def run_finalize(
-    factory: SessionFactory, env: FilingEnv, now_fn: Callable[[], datetime], limit: int = 100
+    factory: SessionFactory,
+    env: FilingEnv,
+    now_fn: Callable[[], datetime],
+    limit: int = 100,
+    on_filed: Callable[[UUID], Awaitable[None]] | None = None,
 ) -> int:
-    """Complete the available ``finalize`` jobs; returns how many were processed."""
+    """Complete the available ``finalize`` jobs; returns how many were processed.
+
+    ``on_filed`` is awaited for every asset that was filed successfully (after its commit).
+    """
     if await _paused(factory):
         return 0
     await settle_cards(factory, env, now_fn)
@@ -476,6 +483,8 @@ async def run_finalize(
             if batch_id is not None:
                 await queue.refresh_batch_status(session, batch_id, now_fn())
             await session.commit()
+        if on_filed is not None and data.ok:
+            await on_filed(asset_id)
         done += 1
     return done
 
