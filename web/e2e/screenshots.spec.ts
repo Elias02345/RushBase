@@ -16,8 +16,12 @@ for (const scheme of ["light", "dark"] as const) {
     test.use({ colorScheme: scheme, viewport: { width: 1360, height: 860 } });
 
     test(`app pages (${scheme})`, async ({ page }) => {
+      // Dashboard, library, asset and processing come from the real stack (`make e2e-real`
+      // with RUSHBASE_E2E_SCREENSHOTS=1); mock data must not overwrite them.
+      const REAL_STACK = new Set(["dashboard", "library", "asset", "processing"]);
       const shot = async (name: string) => {
         await settle(page);
+        if (REAL_STACK.has(name)) return;
         await page.screenshot({ path: `${OUT}/${name}-${scheme}.png`, animations: "disabled" });
       };
 
