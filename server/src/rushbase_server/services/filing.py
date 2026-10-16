@@ -17,7 +17,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_core import SYSTEM_DIR, Stage
@@ -223,7 +223,17 @@ async def file_unit(
     card_root = _card_root([f for a in unit for f in files[a.id]])
     whole = False
     if card_root is not None:
-        whole = {a.id for a in await card_siblings(session, card_root)} <= set(ids)
+        inside = (
+            await session.execute(
+                select(AssetFile.asset_id).where(
+                    or_(
+                        AssetFile.card_structure_root == card_root,
+                        AssetFile.rel_path.startswith(card_root + "/", autoescape=True),
+                    )
+                )
+            )
+        ).scalars()
+        whole = set(inside) <= set(ids)
     spec = placement.UnitSpec(
         moves=[placement.MoveSpec(str(f.id), f.rel_path) for a in unit for f in files[a.id]],
         card_root=card_root,
