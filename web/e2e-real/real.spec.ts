@@ -96,9 +96,7 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   const src = (await video.getAttribute("src")) ?? "";
   const ranged = await page.request.get(src, { headers: { Range: "bytes=0-1023" } });
   expect(ranged.status()).toBe(206);
-  await expect(
-    page.getByRole("button", { name: /^Szene 1,/ }).first(),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Szene 1,/ }).first()).toBeVisible();
 
   // --- processing page lists the worker -----------------------------------------------------
   await page.getByRole("link", { name: /Verarbeitung/ }).click();
