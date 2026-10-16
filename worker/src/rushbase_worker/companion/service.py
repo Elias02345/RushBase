@@ -82,6 +82,35 @@ def search(
         raise CompanionError(str(exc)) from exc
 
 
+def browse(
+    settings: WorkerSettings,
+    filters: list[str] | None = None,
+    sort: str | None = None,
+    cursor: str | None = None,
+    limit: int = 60,
+) -> dict[str, Any]:
+    """List assets (no query) with filters, sorting and keyset pagination."""
+    params = [*parse_filters(filters or []), ("limit", str(limit))]
+    if sort:
+        params.append(("sort", sort))
+    if cursor:
+        params.append(("cursor", cursor))
+    try:
+        with _api(settings) as api:
+            return dict(api.get("/api/v1/assets", params))
+    except UserApiError as exc:
+        raise CompanionError(str(exc)) from exc
+
+
+def list_filters(settings: WorkerSettings) -> dict[str, Any]:
+    """Filter dimensions (facets) with their values and counts."""
+    try:
+        with _api(settings) as api:
+            return api.facets()
+    except UserApiError as exc:
+        raise CompanionError(str(exc)) from exc
+
+
 def get_asset(settings: WorkerSettings, asset_id: str) -> dict[str, Any]:
     """Asset detail plus the path of its primary file on this machine."""
     try:

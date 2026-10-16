@@ -89,10 +89,7 @@ def build_server(
     @safe
     def list_filters() -> dict[str, Any]:
         """Available filter dimensions with values (facets) for `search_media`."""
-        from rushbase_worker.companion.api import UserApi
-
-        with UserApi.from_settings(settings) as api:
-            return api.facets()
+        return service.list_filters(settings)
 
     @mcp.tool(annotations=READ_ONLY)
     @safe

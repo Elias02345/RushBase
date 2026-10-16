@@ -106,6 +106,8 @@ environment variable `RUSHBASE_API_TOKEN` overrides it.
 | --- | --- |
 | `login --server URL --username U [--password-stdin]` | `server_url`, `username`, `token_file` (the token is never printed) |
 | `search "<q>" [--filter k=v ...] [--level asset\|shot] [--limit N] [--offset N]` | the server's `/api/v1/search` document: `items[{asset, shot, score, ranks}]`, `level`, `offset`, `next_offset`, `candidates`, `channels_ms`, `skipped`. `--filter` takes the asset list query parameters (`media_type`, `camera_model`, `tag=field:value` ...; repeat a key for alternatives) |
+| `browse [--filter k=v ...] [--sort S] [--cursor C] [--limit N]` | the `/api/v1/assets` page: `items[]`, `next_cursor`, `total` |
+| `filters` | the `/api/v1/facets` document: `facets[{key, kind, values \| min/max}]` |
 | `asset get ID` | the `/api/v1/assets/{id}` document plus `local_path` and `local_exists` on this machine |
 | `select add ID [--shots 0,2]` / `remove ID [--shots ..]` / `list` / `clear` | `count`, `items[{asset_id, filename, selected_shots (null = whole asset), shots, duration_ms}]` |
 | `paths resolve ID` | `asset_id`, `library_root`, `files[{role, rel_path, paths (per OS on the server), local_path, exists}]` |

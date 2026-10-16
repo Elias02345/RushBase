@@ -114,6 +114,36 @@ def search(
     typer.echo(f"{result['candidates']} candidates")
 
 
+def browse(
+    filter_: Annotated[
+        list[str] | None, typer.Option("--filter", help="key=value (repeatable).")
+    ] = None,
+    sort: Annotated[str | None, typer.Option(help="e.g. -date, filename, -size.")] = None,
+    cursor: Annotated[str | None, typer.Option(help="`next_cursor` of the previous page.")] = None,
+    limit: Annotated[int, typer.Option(min=1, max=200)] = 60,
+    as_json: JsonOption = False,
+) -> None:
+    """List assets without a query (the library grid)."""
+    page = _guard(
+        "browse", as_json, lambda: service.browse(WorkerSettings(), filter_, sort, cursor, limit)
+    )
+    if as_json:
+        emit_json(envelope("browse", ok=True, data=page))
+        return
+    for item in page["items"]:
+        typer.echo(f"{item['id']}  {item['filename']}  {item.get('summary') or ''}")
+
+
+def filters_command(as_json: JsonOption = False) -> None:
+    """The available filter dimensions (facets) with values and counts."""
+    data = _guard("filters", as_json, lambda: service.list_filters(WorkerSettings()))
+    if as_json:
+        emit_json(envelope("filters", ok=True, data=data))
+        return
+    for facet in data["facets"]:
+        typer.echo(f"{facet['key']} ({facet['kind']})")
+
+
 @asset_app.command("get")
 def asset_get(asset_id: str, as_json: JsonOption = False) -> None:
     """Asset detail with the path on this machine."""

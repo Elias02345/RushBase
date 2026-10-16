@@ -88,6 +88,12 @@ def test_search_without_token_explains_login(monkeypatch: pytest.MonkeyPatch) ->
     assert "rushbase login" in document["data"]["error"]
 
 
+def test_browse_and_filters() -> None:
+    page = run("browse", "--filter", "media_type=video", "--sort", "-date")["data"]
+    assert page["items"][0]["id"] == ASSET_ID and page["next_cursor"] is None
+    assert run("filters")["data"]["facets"][0]["key"] == "media_type"
+
+
 def test_asset_get_includes_local_path(companion_env: Path) -> None:
     data = run("asset", "get", ASSET_ID)["data"]
     assert data["filename"] == "A001_C002.mov"

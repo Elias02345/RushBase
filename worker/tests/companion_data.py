@@ -112,6 +112,9 @@ def server_handler(request: httpx.Request) -> httpx.Response:
         )
     if path == f"/api/v1/assets/{ASSET_ID}":
         return httpx.Response(200, json=asset_detail())
+    if path == "/api/v1/assets":
+        summary = {"id": ASSET_ID, "filename": "A001_C002.mov", "media_type": "video"}
+        return httpx.Response(200, json={"items": [summary], "next_cursor": None, "total": 1})
     if path == "/api/v1/facets":
         return httpx.Response(200, json={"facets": [{"key": "media_type", "kind": "enum"}]})
     if path in {"/api/v1/status", "/api/v1/worker/status"}:

@@ -19,7 +19,9 @@ from rushbase_worker import get_version
 from rushbase_worker.cli_ai import bench_app, hardware_command, models_app
 from rushbase_worker.cli_companion import (
     asset_app,
+    browse,
     export_app,
+    filters_command,
     login,
     mcp_app,
     overview,
@@ -62,6 +64,8 @@ app.add_typer(bench_app, name="bench")
 app.command("hardware")(hardware_command)
 app.command("login")(login)
 app.command("search")(search)
+app.command("browse")(browse)
+app.command("filters")(filters_command)
 app.command("overview")(overview)
 app.add_typer(asset_app, name="asset")
 app.add_typer(select_app, name="select")
