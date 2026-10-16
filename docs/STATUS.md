@@ -199,3 +199,25 @@ descending, searches rank by relevance until a sort is picked); keyframe `positi
 `GET /admin/enrollment-tokens` (no secrets), `POST /admin/enrollment-tokens/{id}/revoke` (expires an
 unused token now), `POST /setup/restore` (only while the database is empty). The enroll command is
 `rushbase enroll --server <url> --token <token> --name <name>`.
+
+## M4 server and web (AI)
+
+Server side of milestone M4 (the worker stages are described above).
+
+- **Ingestion:** `services/ai_results.py` validates and stores the four AI outputs (replace per
+  stage; human/claude rows, edited columns, locked assets and removed tags are protected). Review
+  state comes from `review_reasons` and the per-field confidence thresholds (app setting
+  `ai.thresholds`). Details: `docs/architecture/data-model.md`.
+- **Taxonomy:** `docs/taxonomy.md`. **Search:** `docs/search.md`. **Evaluation:** `docs/eval/README.md`.
+- **Try it:** point `RUSHBASE_MODELS_DIR` at a worker model store (dev:
+  `.toolchain/worker-data/models`), run a worker with the AI stages, open the library, search for a
+  sentence from a video and switch to "Szenen". `/review`, `/golden` and `/admin/taxonomy` need the
+  editor role.
+- **Decisions:** embeddings live in `embedding_image` and `embedding_text` (not one table per
+  dimension as in ADR-0007) because the dimension is fixed at 768 and the model id/revision columns
+  already separate spaces; SigLIP vectors are matched by model id only (the worker's revision
+  depends on the vision precision), e5 by the lock-derived revision; search by example image
+  answers 501 (ADR-0012); a classification proposal without a field lands in the field `unsorted`.
+- **Open:** `rebuild-from-sidecars` does not yet restore tags, descriptions or transcripts from the
+  sidecar `ai` section; XMP keywords are written at filing but not refreshed afterwards; the
+  re-embed action requires a worker for the `embed` stage.
