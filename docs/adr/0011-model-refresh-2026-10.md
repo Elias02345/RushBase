@@ -57,3 +57,14 @@ deferred to measured results on our own data. Model choice stays configuration, 
 - https://huggingface.co/google/gemma-4-E4B-it, https://huggingface.co/openbmb/MiniCPM-V-4.6-gguf
 - https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3, https://huggingface.co/ibm-granite/granite-speech-4.1-2b-plus
 - https://huggingface.co/microsoft/harrier-oss-v1-270m, https://huggingface.co/mispeech/ced-mini
+
+## Update 2026-10-16 (measured on the reference RTX 3070)
+- **gpu8 default = Qwen3.5-9B Q4_K_M** (peak 7256 MiB with 3 images, 47/48 valid JSON first try, 48/48
+  after retry, median 11.2 s per shot) with automatic fallback to Qwen3.5-4B Q8_0 (6404 MiB, 10.5 s) on low
+  free VRAM or OOM. Quality on real footage is still to be confirmed with the golden set; the profile is data
+  and can be switched without code changes. Details: `docs/eval/2026-10-vlm-benchmark.md`.
+- **SigLIP 2 runs in fp16, not int8.** The int8 ONNX exports deviate too much from the reference
+  (cosine 0.95 vision, 0.88–0.97 text, below ADR-0007's 0.97 bar); fp16 matches at 0.99999. This also applies
+  to the server's text tower for query encoding (≈ 0.56 GB file, CPU latency still well below 100 ms).
+- VLM self-reported confidences are near 1.0 and are treated as weak signals; review decisions rely on the
+  ensemble check and per-field thresholds instead.
