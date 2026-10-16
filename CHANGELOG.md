@@ -6,6 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M2, server filing)
+
+- Result ingestion: probe, hash, preview and shots outputs are validated against
+  `rushbase_core.results` (invalid output fails the job permanently with a clear message) and
+  normalised into asset columns, `asset_metadata`, `asset_file.blake3`, derived file references and
+  `shot` rows. Migration `0003` (additive): `decode_status`, `derived`, `perceptual_hash`,
+  technical summaries, `quarantine` record and facet indexes.
+- Duplicates: an asset whose files all match one filed asset by BLAKE3 becomes `duplicate`, stays
+  in `Input/` and is counted as wasted bytes.
+- Filing rules (`rushbase_core.filing`): template language with fallbacks and date formats,
+  sanitiser, path budget, case-insensitive folder reconciliation; versioned rules with dry-run and
+  activation (`/api/v1/filing-rules`). See `docs/filing.md`.
+- `finalize` now files assets: rename into `Content/` (card structures as one directory), never
+  overwrite (`_2`, `_3`), sidecars (`_meta/<file>.json`), photo XMP, optional central copy, move
+  journal (DB and `.rushbase/journal/*.jsonl`).
+- Quarantine of permanently failed assets with `error.json`, list and retry API.
+- `rushbase-server rebuild-from-sidecars [--dry-run]`.
+- Read APIs: `/api/v1/assets`, `/assets/{id}`, `/facets`, `/stats`, `/batches`,
+  `/derived/{asset_id}/{path}` (Range, cache headers) and library settings (per-OS path roots).
+
 ### Added (milestone M1, server core)
 
 - `rushbase-core`: UUIDv7 ids, media type tables, pure asset grouping (RAW+JPEG, sidecars, camera
