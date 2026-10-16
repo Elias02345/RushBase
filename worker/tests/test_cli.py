@@ -13,15 +13,21 @@ runner = CliRunner()
 
 
 @pytest.fixture(autouse=True)
-def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for key in ("LIBRARY_ROOT", "LIBRARY_ID", "SERVER_URL"):
+def clean_env(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
+    for key in ("LIBRARY_ROOT", "LIBRARY_ID", "SERVER_URL", "API_TOKEN", "API_KEY_FILE"):
         monkeypatch.delenv(f"RUSHBASE_{key}", raising=False)
+    home = tmp_path_factory.mktemp("worker-home")
+    monkeypatch.setenv("RUSHBASE_DATA_DIR", str(home / "data"))
+    monkeypatch.setenv("RUSHBASE_WORKER_CONFIG", str(home / "none.toml"))
+    monkeypatch.chdir(home)
 
 
 @pytest.fixture
 def fake_binaries(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        doctor, "check_binary", lambda name, _args: doctor.Check(name, "ok", f"{name} 1.0")
+        doctor,
+        "check_binary",
+        lambda name, _args, _settings=None: doctor.Check(name, "ok", f"{name} 1.0"),
     )
 
 
@@ -71,14 +77,10 @@ def test_doctor_all_ok_with_library_and_server(
     assert result.exit_code == 0
     document = json.loads(result.output)
     assert document["ok"] is True
-    assert [c["name"] for c in document["data"]["checks"]] == [
-        "ffmpeg",
-        "ffprobe",
-        "exiftool",
-        "library",
-        "server",
-    ]
-    assert {c["status"] for c in document["data"]["checks"]} == {"ok"}
+    names = [c["name"] for c in document["data"]["checks"]]
+    assert names[:5] == ["ffmpeg", "ffprobe", "exiftool", "library", "server"]
+    assert {"perl", "data_dir", "enrollment", "mount"} <= set(names)
+    assert not [c for c in document["data"]["checks"] if c["status"] == "error"]
 
 
 @pytest.mark.usefixtures("fake_binaries")
@@ -120,7 +122,7 @@ def test_doctor_reads_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
 
 def test_check_binary_missing(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(shutil, "which", lambda _name: None)
+    monkeypatch.setattr(shutil, "which", lambda _name, path=None: None)
     check = doctor.check_binary("ffmpeg", ("-version",))
     assert check.status == "error"
     assert "not found" in check.detail

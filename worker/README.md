@@ -1,4 +1,4 @@
 # rushbase-worker
 
-Worker engine and the `rushbase` CLI (`rushbase version`, `rushbase doctor`, all with `--json`).
-See `docs/cli-json.md` for the JSON output contract.
+Worker engine and the `rushbase` CLI (`enroll`, `process`, `worker run`, `status`, `analyze`,
+`doctor`, `version`, all with `--json`). See `docs/worker.md` and `docs/cli-json.md`.
