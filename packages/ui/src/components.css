@@ -1062,11 +1062,51 @@
   min-width: 0;
 }
 
+/* ---------- Progress bar ---------- */
+.rb-bar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--rb-surface-muted);
+}
+.rb-bar__value {
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: var(--rb-accent);
+  transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rb-bar--copying .rb-bar__value {
+  background: var(--rb-copying-solid, var(--rb-accent));
+}
+.rb-bar--processing .rb-bar__value {
+  background: var(--rb-processing-solid, var(--rb-accent));
+}
+.rb-bar--filed .rb-bar__value {
+  background: var(--rb-filed-solid, var(--rb-accent));
+}
+.rb-bar--review .rb-bar__value {
+  background: var(--rb-review-solid, var(--rb-accent));
+}
+.rb-bar--busy .rb-bar__value {
+  width: 35%;
+  animation: rb-bar-busy 1.4s ease-in-out infinite;
+}
+@keyframes rb-bar-busy {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .rb-button,
   .rb-iconbutton,
   .rb-ring__value,
+  .rb-bar__value,
   .rb-tile__media,
   .rb-switch__thumb,
   .rb-checkbox {
@@ -1077,6 +1117,7 @@
   }
   .rb-chip--processing .rb-chip__dot,
   .rb-skeleton,
+  .rb-bar--busy .rb-bar__value,
   .rb-spin,
   .rb-tooltip,
   .rb-overlay,

@@ -39,6 +39,7 @@ export {
   TabsTrigger,
   type DialogProps,
 } from "./overlays";
+export { ProgressBar, type ProgressBarProps } from "./ProgressBar";
 export { ProgressRing, type ProgressRingProps } from "./ProgressRing";
 export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { StatusChip, type StatusChipProps, type StatusTone } from "./StatusChip";

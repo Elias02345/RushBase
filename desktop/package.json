@@ -1,0 +1,49 @@
+{
+  "name": "@rushbase/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:mock": "tsc --noEmit && VITE_MOCK=1 vite build --outDir dist-mock",
+    "preview:mock": "VITE_MOCK=1 vite preview --outDir dist-mock",
+    "tauri": "tauri",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "screenshots": "playwright test"
+  },
+  "dependencies": {
+    "@crabnebula/tauri-plugin-drag": "2.1.0",
+    "@fontsource-variable/figtree": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@rushbase/ui": "workspace:*",
+    "@tanstack/react-query": "5.104.2",
+    "@tauri-apps/api": "2.12.4",
+    "@tauri-apps/plugin-autostart": "2.7.0",
+    "@tauri-apps/plugin-dialog": "2.8.3",
+    "@tauri-apps/plugin-opener": "2.7.2",
+    "@tauri-apps/plugin-updater": "2.14.0",
+    "i18next": "26.4.4",
+    "lucide-react": "^1.56.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "17.0.16"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@tauri-apps/cli": "2.12.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/node": "24",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "jsdom": "30.1.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  }
+}

@@ -15,6 +15,7 @@ import {
   EmptyState,
   Field,
   Input,
+  ProgressBar,
   ProgressRing,
   SearchField,
   StatusChip,
@@ -347,5 +348,19 @@ describe("ThemeProvider", () => {
     expect(() => render(<Toggle />)).toThrow(/ThemeProvider/);
     window.removeEventListener("error", swallow);
     spy.mockRestore();
+  });
+});
+
+describe("ProgressBar", () => {
+  it("exposes the clamped value and a busy state", () => {
+    const { rerender } = render(<ProgressBar value={140} label="Upload" />);
+    expect(screen.getByRole("progressbar", { name: "Upload" })).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+    );
+    rerender(<ProgressBar value={null} label="Upload" />);
+    expect(screen.getByRole("progressbar", { name: "Upload" })).not.toHaveAttribute(
+      "aria-valuenow",
+    );
   });
 });

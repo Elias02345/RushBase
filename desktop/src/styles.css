@@ -1,0 +1,441 @@
+/* Companion layout on the shared Rushbase tokens (packages/ui). */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--rb-bg);
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  font-size: var(--rb-text-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dk-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: 100%;
+}
+.dk-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-1);
+  padding: var(--rb-space-5) var(--rb-space-3);
+  background: var(--rb-bg-sunken);
+  border-right: 1px solid var(--rb-border);
+}
+.dk-brand {
+  padding: 0 var(--rb-space-3) var(--rb-space-4);
+  font-size: var(--rb-text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.dk-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-3);
+  padding: var(--rb-space-3);
+  border: 0;
+  border-radius: var(--rb-radius-sm);
+  background: transparent;
+  color: var(--rb-text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.dk-nav__item:hover {
+  background: var(--rb-surface-hover);
+  color: var(--rb-text);
+}
+.dk-nav__item.is-active {
+  background: var(--rb-accent-soft);
+  color: var(--rb-accent);
+}
+.dk-nav__item:focus-visible {
+  outline: 3px solid var(--rb-focus);
+}
+.dk-pulse {
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--rb-processing-solid);
+  animation: dk-breathe 1.8s ease-in-out infinite;
+}
+@keyframes dk-breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.dk-main {
+  min-width: 0;
+  overflow-y: auto;
+}
+.dk-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-5);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--rb-space-6);
+}
+
+.dk-muted {
+  color: var(--rb-text-muted);
+}
+.dk-mono {
+  font-family: var(--rb-font-mono);
+  font-size: var(--rb-text-sm);
+}
+.dk-error {
+  color: var(--rb-quarantine-fg);
+  margin: 0;
+}
+.dk-ok {
+  color: var(--rb-filed-fg);
+}
+.dk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rb-space-3);
+}
+.dk-actions--center {
+  justify-content: center;
+}
+.dk-inline {
+  display: flex;
+  gap: var(--rb-space-2);
+}
+.dk-inline > :first-child {
+  flex: 1;
+}
+.dk-badges,
+.dk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rb-space-2);
+}
+.dk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--rb-space-5);
+}
+.dk-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-4);
+}
+
+/* Hero */
+.dk-hero {
+  padding: var(--rb-space-6);
+  border: 1px solid var(--rb-border);
+  border-radius: var(--rb-radius-xl);
+  background: linear-gradient(135deg, var(--rb-accent-soft), var(--rb-surface) 62%);
+}
+.dk-hero__body {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-6);
+}
+.dk-hero__numbers {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--rb-space-3);
+  min-width: 0;
+}
+.dk-hero__eyebrow {
+  margin: 0;
+  color: var(--rb-text-muted);
+  font-size: var(--rb-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dk-hero__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--rb-space-4);
+  margin: 0;
+  font-size: var(--rb-text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.dk-hero__sub {
+  color: var(--rb-text-muted);
+  font-size: var(--rb-text-lg);
+  font-weight: 500;
+}
+.dk-hero__estimate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rb-space-2);
+  margin: 0;
+}
+.dk-callout {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-4);
+}
+.dk-callout > div {
+  flex: 1;
+}
+.dk-callout p {
+  margin: 0;
+}
+
+/* Hardware */
+.dk-hardware__head {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-3);
+  margin-bottom: var(--rb-space-4);
+}
+.dk-hardware__head strong,
+.dk-hardware__head span {
+  display: block;
+}
+.dk-vram {
+  margin-bottom: var(--rb-space-4);
+}
+.dk-vram__label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--rb-space-2);
+  color: var(--rb-text-muted);
+  font-size: var(--rb-text-sm);
+}
+.dk-live {
+  display: flex;
+  gap: var(--rb-space-4);
+  margin-top: var(--rb-space-4);
+  color: var(--rb-text-muted);
+  font-size: var(--rb-text-sm);
+}
+.dk-live span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rb-space-1);
+}
+
+/* Options */
+.dk-stages {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--rb-space-2) var(--rb-space-4);
+  margin: 0 0 var(--rb-space-4);
+  padding: 0;
+  border: 0;
+}
+.dk-stages legend {
+  margin-bottom: var(--rb-space-2);
+  font-weight: 600;
+}
+.dk-option-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rb-space-4);
+  margin-bottom: var(--rb-space-4);
+}
+
+/* Log */
+.dk-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--rb-text-sm);
+}
+.dk-log li {
+  display: flex;
+  gap: var(--rb-space-3);
+}
+.dk-log time {
+  color: var(--rb-text-faint);
+  font-family: var(--rb-font-mono);
+}
+.dk-log li[data-failed] span {
+  color: var(--rb-quarantine-fg);
+}
+
+/* Wizard */
+.dk-wizard {
+  max-width: 720px;
+}
+.dk-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rb-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dk-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-2);
+  color: var(--rb-text-faint);
+  font-weight: 600;
+}
+.dk-steps li span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--rb-surface-muted);
+}
+.dk-steps li[aria-current="step"] {
+  color: var(--rb-text);
+}
+.dk-steps li[aria-current="step"] span,
+.dk-steps li[data-done] span {
+  background: var(--rb-accent);
+  color: var(--rb-on-accent);
+}
+.dk-checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-2);
+  margin: 0 0 var(--rb-space-4);
+  padding: 0;
+  list-style: none;
+}
+.dk-checks li {
+  display: flex;
+  gap: var(--rb-space-3);
+  align-items: center;
+}
+
+/* Models dialog */
+.dk-models {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-3);
+}
+.dk-models p {
+  margin: 0;
+}
+
+/* Library */
+.dk-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--rb-space-3);
+  align-items: center;
+}
+.dk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rb-space-3);
+}
+.dk-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--rb-space-4);
+}
+.dk-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-4);
+}
+.dk-player {
+  width: 100%;
+  max-height: 420px;
+  border-radius: var(--rb-radius);
+  background: #000;
+  object-fit: contain;
+}
+.dk-path {
+  overflow-wrap: anywhere;
+}
+.dk-shots,
+.dk-basket {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dk-shots li {
+  display: flex;
+  align-items: center;
+  gap: var(--rb-space-3);
+}
+.dk-shot {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--rb-space-3);
+  padding: var(--rb-space-2);
+  border: 1px solid var(--rb-border);
+  border-radius: var(--rb-radius-sm);
+  background: var(--rb-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dk-shot:hover {
+  background: var(--rb-surface-hover);
+}
+.dk-shot img,
+.dk-shot__blank {
+  width: 96px;
+  height: 54px;
+  border-radius: var(--rb-radius-xs);
+  background: var(--rb-surface-muted);
+  object-fit: cover;
+}
+.dk-shot span span {
+  display: block;
+}
+.dk-basket li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rb-space-3);
+}
+.dk-basket li span span {
+  display: block;
+  font-size: var(--rb-text-sm);
+}
+
+@media (max-width: 760px) {
+  .dk-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .dk-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rb-border);
+  }
+  .dk-brand {
+    display: none;
+  }
+  .dk-hero__body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dk-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .dk-option-grid {
+    grid-template-columns: 1fr;
+  }
+}

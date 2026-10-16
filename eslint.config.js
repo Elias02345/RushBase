@@ -5,7 +5,18 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/node_modules/**", "**/*.d.ts", "dev/**", "coverage/**"] },
+  {
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/*.d.ts",
+      "dev/**",
+      "coverage/**",
+      "**/target/**",
+      "**/src-tauri/gen/**",
+      "**/dist-mock/**",
+    ],
+  },
   js.configs.recommended,
   tseslint.configs.recommended,
   {

@@ -1,0 +1,282 @@
+{
+  "common": {
+    "browse": "Browse",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "notifications": "Notifications",
+    "ok": "OK",
+    "refresh": "Refresh",
+    "remove": "Remove",
+    "retry": "Try again",
+    "save": "Save"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "processor": "This PC",
+    "library": "Library",
+    "settings": "Settings"
+  },
+  "stage": {
+    "probe": "Analysis",
+    "hash": "Checksum",
+    "preview": "Preview",
+    "shots": "Scenes",
+    "audio": "Audio",
+    "embed": "Search index",
+    "vision": "Image description",
+    "classify": "Classification"
+  },
+  "hero": {
+    "eyebrow": "Waiting for this PC",
+    "files_one": "{{count}} file",
+    "files_other": "{{count}} files",
+    "hours": "{{hours}} h of footage",
+    "perStage": "Queued jobs per step",
+    "estimate": "About {{duration}} · done around {{at}}",
+    "estimateMeasured": "based on your recent runs",
+    "estimateDefault": "rough guide, gets better with every run",
+    "allDone": "Everything is processed",
+    "allDoneHint": "New footage shows up here as soon as the server has ingested it.",
+    "lastRun": "Last run: {{when}} · {{count}} jobs done"
+  },
+  "processor": {
+    "start": "Process",
+    "cliMissing": "The worker program cannot be started",
+    "modelsMissing_one": "{{count}} AI model is missing",
+    "modelsMissing_other": "{{count}} AI models are missing",
+    "modelsMissingHint": "Without the models only the technical steps run. Downloads are verified by checksum.",
+    "loadModels": "Download models"
+  },
+  "issue": {
+    "startSetup": "Start setup",
+    "no_server": {
+      "title": "No server connected yet",
+      "fix": "Connect this PC to your Rushbase server and you will see what there is to do right here."
+    },
+    "not_enrolled": {
+      "title": "This PC is not enrolled yet",
+      "fix": "Get an enrollment token in the web UI under Processing and enter it in the setup."
+    },
+    "server_unreachable": {
+      "title": "Server not reachable",
+      "fix": "Check the network and the server address in Settings."
+    },
+    "mount": {
+      "title": "Library not mounted",
+      "fix": "The folder must contain the server's library (.rushbase/library.json)."
+    }
+  },
+  "hardware": {
+    "title": "This PC",
+    "noGpu": "No graphics card detected",
+    "cores_one": "{{count}} core",
+    "cores_other": "{{count}} cores",
+    "vram": "Video memory",
+    "backend": "Backend {{name}}",
+    "profile": "Profile {{name}}",
+    "models": "Models {{installed}}/{{total}}",
+    "live": "Live GPU values"
+  },
+  "options": {
+    "title": "Options",
+    "stages": "Steps",
+    "until": "Stop at",
+    "untilHint": "Running jobs are handed back cleanly.",
+    "maxTemp": "Max GPU temperature (°C)",
+    "maxTempHint": "Pauses above this value and resumes after cooling down. 0 = off.",
+    "maxTempUnavailable": "Only available with nvidia-smi.",
+    "idleOnly": "Only while the PC is idle ({{minutes}} min)"
+  },
+  "run": {
+    "running": "Running",
+    "stopping": "Finishing cleanly …",
+    "waitingIdle": "Waiting for the PC to be idle",
+    "waitingTemp": "Paused: the GPU is cooling down",
+    "finished": "Finished {{reason}}",
+    "reason": {
+      "empty": "(queue empty)",
+      "stop_time": "(stop time reached)",
+      "sigint": "(stopped)",
+      "sigterm": "(stopped)",
+      "stopped": "(stopped)"
+    },
+    "items": "{{done}} of {{total}} jobs",
+    "currentStage": "Now: {{stage}}",
+    "progress": "Progress",
+    "rate": "{{rate}} jobs/min",
+    "rateUnknown": "Measuring speed …",
+    "eta": "{{duration}} left (around {{at}})",
+    "failed_one": "{{count}} failed",
+    "failed_other": "{{count}} failed",
+    "released_one": "{{count}} handed back",
+    "released_other": "{{count}} handed back",
+    "stop": "Pause / stop",
+    "cancel": "Cancel",
+    "backlogLeft": "{{count}} jobs still in the queue."
+  },
+  "log": {
+    "title": "Events",
+    "empty": "Nothing has happened yet.",
+    "done": "{{stage}} done in {{seconds}} s",
+    "failed": "{{stage}} failed: {{error}}",
+    "released": "{{stage}} handed back",
+    "stopped": "Stopped ({{reason}})",
+    "started": "Run started",
+    "other": "{{event}}"
+  },
+  "models": {
+    "title": "Download AI models",
+    "description": "Downloads the models and programs that fit your hardware, verifies every file by SHA-256 and resumes interrupted downloads.",
+    "start": "Start download",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "idle": "Ready.",
+    "progress": "Download progress",
+    "verifying": "Verifying checksum …",
+    "installed": "Installed: {{list}}",
+    "finished": "All models are installed and verified."
+  },
+  "library": {
+    "search": "Search, e.g. “boat in the harbour at night”",
+    "sort": "Sort",
+    "all": "all",
+    "count_one": "{{count}} result",
+    "count_other": "{{count}} results",
+    "sorts": {
+      "-date": "Newest first",
+      "date": "Oldest first",
+      "filename": "File name",
+      "-size": "Largest first",
+      "-duration": "Longest first"
+    },
+    "more": "Load more",
+    "empty": "Nothing found",
+    "emptyText": "Change the search or reset the filters.",
+    "offlineTitle": "The library needs the server",
+    "offlineText": "Search and filters come from the server. Processing works without it.",
+    "loginNeeded": "Sign-in required",
+    "loginNeededText": "Sign in once with your Rushbase account so the app may search.",
+    "select": "Select {{name}}",
+    "review": "Review",
+    "detail": "Details",
+    "noPlayback": "Playback is not possible. Is the library mounted?",
+    "original": "Original (local)",
+    "proxy": "Proxy",
+    "notMounted": "Original not mounted",
+    "shots": "Scenes",
+    "pickShot": "Pick scene {{index}}",
+    "addToBasket": "Add to selection",
+    "updateBasket": "Update selection",
+    "addShots_one": "Add {{count}} scene",
+    "addShots_other": "Add {{count}} scenes",
+    "copyPath": "Copy path",
+    "reveal": "Show in file manager",
+    "dragOut": "Drag file out",
+    "dragOff": {
+      "wayland": "Dragging out does not work on Wayland: use “Copy path” or “Show in file manager”.",
+      "network_mount": "Files on network drives are not dragged directly. Use “Send to Resolve” or the path.",
+      "path_too_long": "The path is too long to drag. Use the copied path.",
+      "unknown": "Dragging out is not available here."
+    }
+  },
+  "basket": {
+    "button": "Selection ({{count}})",
+    "title": "Selection ({{count}})",
+    "empty": "Nothing selected yet. Pick clips or single scenes in the library.",
+    "shots_one": "{{count}} scene",
+    "shots_other": "{{count}} scenes",
+    "whole": "whole file",
+    "csv": "Metadata CSV",
+    "clear": "Clear",
+    "exported": "Saved: {{file}}",
+    "exportFailed": "Export failed",
+    "sendToResolve": "Send to Resolve",
+    "resolveHint": "“Send to Resolve” appears once DaVinci Resolve Studio is running with scripting set to “Local”. The exports always work.",
+    "confirmTitle": "Import into Resolve?",
+    "confirmText": "The clips are imported into the open project “{{project}}”. Existing clips stay untouched.",
+    "confirmSend": "Import",
+    "bin": "Media pool bin",
+    "markers": "Add markers at scene boundaries",
+    "metadata": "Set description and keywords",
+    "sent": "{{imported}} imported, {{existing}} already present in “{{project}}”",
+    "sendFailed": "Sending to Resolve failed"
+  },
+  "wizard": {
+    "steps": "Setup steps",
+    "step": {
+      "server": "Server",
+      "account": "Account",
+      "library": "Library",
+      "hardware": "Hardware",
+      "check": "Check"
+    },
+    "defaultName": "My PC",
+    "skip": "Skip",
+    "next": "Next",
+    "finish": "Done",
+    "alreadyEnrolled": "Already enrolled, continue",
+    "server": {
+      "title": "Connect to the server",
+      "help": "In the web UI open Processing, choose “Add a PC” and copy the command or the token here.",
+      "url": "Server address",
+      "token": "Enrollment token or the whole command",
+      "tokenHint": "You can paste the “rushbase enroll --server … --token …” command as is.",
+      "name": "Name of this PC",
+      "connect": "Connect"
+    },
+    "serverMissing": "Please enter the server address and the token.",
+    "account": {
+      "title": "Sign in to Rushbase",
+      "help": "For search and the library the app creates a personal access token once. The password is not stored.",
+      "username": "User name",
+      "password": "Password",
+      "signIn": "Sign in"
+    },
+    "library": {
+      "title": "Mount the library",
+      "help": "Choose the folder under which the library is available on this PC (network drive or local).",
+      "root": "Library folder",
+      "hint": "It must contain .rushbase/library.json. The app checks that it is the server's library.",
+      "verify": "Verify and save"
+    },
+    "mountFailed": "The library does not match the server.",
+    "hardware": {
+      "title": "Models",
+      "missing_one": "{{count}} model is still missing. Download it now or later on the Process page.",
+      "missing_other": "{{count}} models are still missing. Download them now or later on the Process page.",
+      "complete": "All models for this hardware are installed."
+    },
+    "check": {
+      "title": "System check",
+      "help": "Checks ffmpeg, ExifTool, library, server and data folder.",
+      "run": "Check",
+      "failed": "The check could not be run."
+    }
+  },
+  "settings": {
+    "connection": "Connection",
+    "server": "Server address",
+    "libraryRoot": "Library folder",
+    "libraryRootHint": "Used read-only.",
+    "cli": "Worker command",
+    "cliHint": "Empty = the bundled program. For development, e.g. “uv run rushbase”.",
+    "saved": "Saved",
+    "wizard": "Run setup again",
+    "appearance": "Appearance",
+    "language": "Language",
+    "theme": "Colour scheme",
+    "themeSystem": "Like the system",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "system": "System",
+    "autostart": "Start at login (minimised to tray)",
+    "trayOn": "Tray active",
+    "trayOff": "No tray available",
+    "updaterOn": "Updates on",
+    "updaterOff": "Updates off",
+    "updaterHintOn": "The app looks for signed updates on GitHub.",
+    "updaterHintOff": "This build has no update key. Download new versions manually.",
+    "quit": "Quit (jobs are handed back)"
+  }
+}
