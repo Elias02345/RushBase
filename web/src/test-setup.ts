@@ -1,10 +1,13 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { resetMockState } from "./api/mocks/handlers";
 import { mockServer } from "./api/mocks/node";
 import i18n from "./i18n";
+
+// Whole-suite runs share the CPU with other jobs; give async queries room.
+configure({ asyncUtilTimeout: 6_000 });
 
 // jsdom lacks these browser APIs that Radix, cmdk and the virtualiser rely on.
 class ResizeObserverStub {

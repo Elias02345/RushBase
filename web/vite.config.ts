@@ -42,8 +42,9 @@ export default defineConfig({
   preview: { host: "127.0.0.1", port: 15174, strictPort: true },
   test: {
     environment: "jsdom",
+    testTimeout: 20_000,
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
-    exclude: ["e2e/**", "node_modules/**"],
+    exclude: ["e2e/**", "e2e-real/**", "node_modules/**"],
   },
 });

@@ -28,10 +28,7 @@ async function assetTotal(request: APIRequestContext): Promise<number> {
 
 test.describe.configure({ mode: "serial" });
 
-test("real stack: setup, worker, library, playback, processing, admin", async ({
-  page,
-  request,
-}) => {
+test("real stack: setup, worker, library, playback, processing, admin", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("rushbase.lang", "de"));
 
   // --- setup wizard against the empty server -----------------------------------------------
@@ -99,8 +96,9 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   const src = (await video.getAttribute("src")) ?? "";
   const ranged = await page.request.get(src, { headers: { Range: "bytes=0-1023" } });
   expect(ranged.status()).toBe(206);
-  await expect(page.getByRole("list", { name: "Schlüsselbilder" }).getByRole("button").first())
-    .toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Schlüsselbilder" }).getByRole("button").first(),
+  ).toBeVisible();
 
   // --- processing page lists the worker -----------------------------------------------------
   await page.getByRole("link", { name: /Verarbeitung/ }).click();

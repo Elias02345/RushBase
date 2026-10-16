@@ -5,7 +5,7 @@
 | M0 Foundation | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media | **done** |
 | M1 Server core | Schema and migrations, library init, input scanner, queue with leasing, worker API, auth, backups, server lease | **done** |
 | M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | **done** — worker engine + server filing merged; verified end to end on test media |
-| M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | web shell done; wiring to the real read APIs and full-text search in progress |
+| M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | **done** — real UI against the real server, full-text search, real-stack E2E (`make e2e-real`) |
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
 | M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | planned |
@@ -120,41 +120,66 @@ Everything below runs on the server; the stage outputs arrive through the worker
   member of its card directory. `review` means "analysed, waiting for the rest of its card".
 ## M3 web UI
 
-The web app (`web/`, shared components in `packages/ui`) is complete against mocked read endpoints.
-Stack, styling and the colour/motion language are in `docs/adr/0013-web-ui-stack.md`.
+The web app (`web/`, shared components in `packages/ui`) runs against the real server. Stack,
+styling and the colour/motion language are in `docs/adr/0013-web-ui-stack.md`. API types come from
+the generated client (`packages/api-client`, `make gen-api`); the MSW mocks are typed from the same
+schema, so UI and server cannot drift apart.
+
+### Demo with the real stack
 
 ```sh
 make setup
-VITE_MOCK=1 pnpm --filter @rushbase/web dev        # demo on http://127.0.0.1:15173, no server needed
-# sign in as elias (admin), mara (editor) or jonas (viewer) with the password rushbase-demo-pass
-pnpm --filter @rushbase/web build:mock && pnpm --filter @rushbase/web preview:mock
+make dev                  # postgres, samba, migrations, server :18080 (library: dev/library), Vite :15173
 ```
 
-Against a real server run `make dev` (the Vite proxy forwards `/api/v1/*` and `/api/health`).
-Mock scenarios (set `sessionStorage["rushbase.mock.scenario"]`): `fresh` shows the setup wizard,
-`no-workers` shows the empty worker state.
+1. Open http://127.0.0.1:15173 and walk through the setup wizard (language, admin, library name,
+   optional per-OS paths). The last step shows the worker command with a fresh one-time token.
+2. Enroll the worker with that command. The worker keeps its key in a data directory; keep it inside
+   the checkout while developing:
+   `RUSHBASE_DATA_DIR=dev/data/worker uv run rushbase enroll --server http://127.0.0.1:18080 --token <token> --name dev-worker`
+3. `make testmedia` puts synthetic clips, photos, audio, a camera card and junk into `dev/library/Input`.
+   The scanner groups them after the stability window (2 scans, 120 s by default; set
+   `RUSHBASE_STABLE_SECONDS=0 RUSHBASE_STABLE_SCANS=1 RUSHBASE_SCAN_INTERVAL_SECONDS=2` before
+   `make dev` to see it in seconds).
+4. `RUSHBASE_DATA_DIR=dev/data/worker RUSHBASE_LIBRARY_ROOT=$PWD/dev/library uv run rushbase process --exit-when-empty`
+   runs probe, hash, preview and shots; the server then files the assets.
+5. Browse: the dashboard counts filed clips, the library searches (`uhd`, `strasse`, prefixes) and
+   filters with facet counts that follow the query, the asset page plays the proxy (HTTP Range) and
+   lists shots and keyframes, Processing shows workers, batches and quarantine, Administration
+   manages users, worker tokens, filing rule versions (dry run, activate), per-OS paths and backups.
 
-Tests: `pnpm -r test` (Vitest + Testing Library + MSW) and the browser suite
+Mock demo without a server: `VITE_MOCK=1 pnpm --filter @rushbase/web dev` (sign in as `elias`, `mara`
+or `jonas` with `rushbase-demo-pass`; scenarios `fresh` and `no-workers` via
+`sessionStorage["rushbase.mock.scenario"]`).
+
+### Tests
 
 ```sh
+pnpm -r test                                                    # Vitest + Testing Library + MSW
 export PLAYWRIGHT_BROWSERS_PATH="$PWD/.toolchain/playwright"
-pnpm --filter @rushbase/web exec playwright install chromium   # once
-pnpm --filter @rushbase/web e2e                                 # login to processing, axe checks, light and dark
-pnpm --filter @rushbase/web screenshots                         # refreshes docs/screenshots/
+pnpm --filter @rushbase/web exec playwright install chromium    # once
+pnpm --filter @rushbase/web e2e                                 # mock E2E (CI): axe checks, light and dark
+make e2e-real                                                   # real server + database + worker
+RUSHBASE_E2E_SCREENSHOTS=1 make e2e-real                        # also retakes docs/screenshots from the real stack
 ```
 
-### Contracts the UI expects (`web/src/api/contracts.ts`)
+`make e2e-real` (`scripts/e2e-real.sh`) needs `make dev-up` and takes about 30 seconds. It creates
+the database `rushbase_e2e_web`, a temporary library below `dev/data/e2e-real/` seeded by the test
+media generator, starts the server on :18083 and Vite on :15175, then drives setup wizard, worker
+enrollment with the command shown by the UI, `rushbase process --exit-when-empty`, dashboard,
+search, proxy playback (206 for a Range request), processing and token creation. Everything is
+removed afterwards (`KEEP_E2E_DATA=1` keeps the files). It is a manual or nightly check, not part of
+the per-push CI job.
 
-Specified for the server agent and mocked until they are in OpenAPI: `GET /api/v1/assets`,
-`GET /api/v1/assets/{id}`, `GET /api/v1/facets`, `GET /api/v1/stats`. Assumptions on details the
-specification left open: `sprite_tiles` is `{cols, rows, count}` (frames row by row);
-`metadata.normalized` is grouped by top-level key (`camera`, `lens`, `exposure`, `video`, `audio`,
-`location`; unknown groups and flat scalars are shown too); date filters are `YYYY-MM-DD`; `sort` is
-one of `capture_desc|capture_asc|name_asc|size_desc|duration_desc`; `cursor` is opaque.
+### Contract decisions
 
-Proposed endpoints without a server implementation yet (the UI degrades to an error state):
-`POST /api/v1/assets/{id}/retry`, `GET /api/v1/admin/enrollment-tokens`,
-`POST /api/v1/admin/enrollment-tokens/{id}/revoke`, `GET|PUT /api/v1/admin/settings/path-mapping`,
-`GET|PUT /api/v1/admin/filing-rules`, `POST /api/v1/admin/filing-rules/preview`,
-`POST /api/v1/setup/restore`. The worker command shown in the wizard is
-`rushbase enroll --server <origin> --token <token>`.
+The server is the source of truth for shapes it already had; the UI adapted:
+`sprite_tiles` is the number of frames of a one-row contact sheet; `sort` is
+`-date|date|-created_at|created_at|-size|size|-duration|duration|filename` (a leading `-` means
+descending, searches rank by relevance until a sort is picked); keyframe `position` is
+`start|middle|end`; `/stats` backlog is the per-stage backlog of `/status`. Admin pages use
+`/api/v1/filing-rules` (immutable versions with dry run and activation), `/admin/library-settings`
+(per-OS roots), `/quarantine` and `/quarantine/{id}/retry`. Added on the server for the UI:
+`GET /admin/enrollment-tokens` (no secrets), `POST /admin/enrollment-tokens/{id}/revoke` (expires an
+unused token now), `POST /setup/restore` (only while the database is empty). The enroll command is
+`rushbase enroll --server <url> --token <token> --name <name>`.

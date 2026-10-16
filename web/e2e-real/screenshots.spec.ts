@@ -33,7 +33,10 @@ for (const scheme of ["light", "dark"] as const) {
 
       await page.getByRole("link", { name: "Bibliothek" }).click();
       await expect(page.getByText(/\d+ Treffer/)).toBeVisible();
-      await page.locator(".rb-tile__media").nth(1).hover({ position: { x: 150, y: 60 } });
+      await page
+        .locator(".rb-tile__media")
+        .nth(1)
+        .hover({ position: { x: 150, y: 60 } });
       await shot("library");
 
       await page.getByRole("button", { name: /^Video \d/ }).click();
