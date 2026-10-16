@@ -12,7 +12,7 @@ import {
 } from "@rushbase/ui";
 import { Link, useParams, useRouter, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Copy, FileSearch, ScanSearch } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTranscript } from "../api/aiQueries";
@@ -362,19 +362,19 @@ function AssetBody({
   );
 }
 
+/** The page state (tab, similar target) resets with the asset. */
 export function AssetPage() {
-  const { t } = useTranslation();
   const { id } = useParams({ from: "/_app/assets/$id" });
+  return <AssetPageInner key={id} id={id} />;
+}
+
+function AssetPageInner({ id }: { id: string }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const query = useAsset(id);
   const detail = query.data;
   const [tab, setTab] = useState("data");
   const [similar, setSimilar] = useState<SimilarTarget>({ kind: "asset", id });
-  useEffect(() => {
-    setTab("data");
-    setSimilar({ kind: "asset", id });
-  }, [id]);
-
   if (query.isError) {
     const missing = query.error instanceof ApiError && query.error.status === 404;
     return (

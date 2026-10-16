@@ -54,6 +54,10 @@ const NAV: NavItem[] = [
   { to: "/admin", icon: Settings2, label: "nav.admin", admin: true },
 ];
 
+function isVisible(item: NavItem, isAdmin: boolean, isEditor: boolean): boolean {
+  return (!item.admin || isAdmin) && (!item.editor || isEditor);
+}
+
 const THEME_CYCLE = { system: "light", light: "dark", dark: "system" } as const;
 
 function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
@@ -85,7 +89,6 @@ export function AppShell() {
 
   const isAdmin = hasRole(me?.role, "admin");
   const isEditor = hasRole(me?.role, "editor");
-  const visible = (item: NavItem) => (!item.admin || isAdmin) && (!item.editor || isEditor);
   const mod = isApple() ? "⌘" : "Ctrl";
   const language: Language = i18n.language === "en" ? "en" : "de";
   const nextLanguage: Language = language === "de" ? "en" : "de";
@@ -131,7 +134,7 @@ export function AppShell() {
   const onLibrary = location.pathname.startsWith("/library");
 
   const groups = useMemo<CommandGroup[]>(() => {
-    const navItems = NAV.filter(visible).map((item) => ({
+    const navItems = NAV.filter((item) => isVisible(item, isAdmin, isEditor)).map((item) => ({
       id: item.to,
       label: t(item.label),
       icon: <item.icon size={18} />,
@@ -180,7 +183,18 @@ export function AppShell() {
       { heading: t("palette.goTo"), items: navItems },
       { heading: t("palette.actions"), items: actions },
     ];
-  }, [t, isAdmin, navigate, setPreference, preference, nextLanguage, status, queue, logout]);
+  }, [
+    t,
+    isAdmin,
+    isEditor,
+    navigate,
+    setPreference,
+    preference,
+    nextLanguage,
+    status,
+    queue,
+    logout,
+  ]);
 
   const ThemeIcon = preference === "system" ? Monitor : preference === "dark" ? Moon : Sun;
 
@@ -195,7 +209,7 @@ export function AppShell() {
           <span className="sidebar__brand-name">Rushbase</span>
         </Link>
         <nav aria-label={t("nav.main")} className="sidebar__nav">
-          {NAV.filter(visible).map((item) => (
+          {NAV.filter((item) => isVisible(item, isAdmin, isEditor)).map((item) => (
             <Link
               key={item.to}
               to={item.to}

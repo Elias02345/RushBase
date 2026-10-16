@@ -34,9 +34,7 @@ test("login, dashboard, library search and filter, asset detail, processing", as
   const search = page.getByRole("searchbox", { name: "Material durchsuchen" });
   await search.fill("Harbour");
   await expect(page).toHaveURL(/q=Harbour/);
-  await expect(
-    page.getByRole("group", { name: "Treffer" }).getByRole("button").first(),
-  ).toBeVisible();
+  await expect(page.getByRole("list", { name: "Treffer" }).getByRole("link").first()).toBeVisible();
   await search.fill("");
 
   // Facet filter, then keyboard focus on the first tile.
