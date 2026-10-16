@@ -19,6 +19,7 @@ from pydantic_settings import (
 )
 
 from rushbase_core import PlatformRoots, Stage
+from rushbase_worker.hardware.model import Backend, Profile
 
 APP_NAME = "rushbase-worker"
 DEFAULT_STAGES = (Stage.PROBE, Stage.HASH, Stage.PREVIEW, Stage.SHOTS)
@@ -95,6 +96,44 @@ class WorkerSettings(BaseSettings):
     analysis_width: int = Field(default=320, ge=64)
     analysis_max_fps: float = Field(default=25.0, gt=0)
     keyframe_width: int = Field(default=960, ge=64)
+
+    # --- AI stages (docs/worker-ai.md) ---
+    auto_download: bool = Field(
+        default=False,
+        description="Download missing backends/models on demand (default off: run "
+        "`rushbase models pull` first).",
+    )
+    profile: Profile | None = Field(default=None, description="Override the detected profile.")
+    backend: Backend | None = Field(default=None, description="Override the detected backend.")
+    vision_variant: str | None = Field(
+        default=None, description="VLM variant from profiles.toml (default: the profile's)."
+    )
+    llama_server: str | None = Field(default=None, description="Path of llama-server.")
+    whisper_cli: str | None = Field(default=None, description="Path of whisper-cli.")
+    onnx_gpu: bool = Field(default=True, description="Use CUDA for ONNX models if available.")
+    whisper_vad: bool = Field(default=True, description="Use the Silero VAD model if installed.")
+    whisper_threads: int = Field(default=8, ge=1)
+    event_thresholds: dict[str, float] = Field(
+        default_factory=dict, description="Per-tag overrides of the audio event thresholds."
+    )
+    event_window_seconds: float = Field(default=2.0, gt=0, le=10)
+    event_hop_seconds: float = Field(default=0.5, gt=0, le=10)
+    event_min_hits: int = Field(default=2, ge=1, description="Consecutive windows to confirm.")
+    event_merge_gap_seconds: float = Field(default=1.0, ge=0)
+    silence_dbfs: float = Field(default=-55.0, description="RMS below this counts as silence.")
+    speech_min_seconds: float = Field(default=1.0, ge=0, description="Below: skip Whisper.")
+    vision_max_tokens: int = Field(default=2048, ge=256)
+    vision_frame_width: int = Field(default=896, ge=256, description="Keyframe size sent to VLM.")
+    taxonomy_match_threshold: float = Field(default=0.80, ge=0, le=1)
+    proposal_min_confidence: float = Field(default=0.5, ge=0, le=1)
+    review_default_confidence: float = Field(default=0.5, ge=0, le=1)
+    review_field_confidence: dict[str, float] = Field(
+        default_factory=dict, description="Per-field confidence thresholds for the review list."
+    )
+    zero_shot_disagreement: float = Field(
+        default=0.35, ge=0, le=1, description="SigLIP probability that contradicts the VLM."
+    )
+    transcript_chunk_seconds: float = Field(default=30.0, gt=0)
 
     @classmethod
     def settings_customise_sources(

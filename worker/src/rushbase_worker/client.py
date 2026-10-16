@@ -1,6 +1,7 @@
 """Async client for the worker API with retries and exponential backoff."""
 
 import asyncio
+import logging
 import random
 from collections.abc import Awaitable, Callable
 from types import TracebackType
@@ -10,6 +11,9 @@ from uuid import UUID
 import httpx
 
 from rushbase_worker.models import Claim, Enrolled, LibraryInfo, ResultAck
+from rushbase_worker.taxonomy import EMPTY_SNAPSHOT, TaxonomySnapshot
+
+log = logging.getLogger(__name__)
 
 RETRY_STATUS = frozenset({429, 502, 503, 504})
 API = "/api/v1/worker"
@@ -92,6 +96,7 @@ class WorkerClient:
         )
         self._retries = retries
         self._sleep = sleep
+        self._taxonomy_warned = False
 
     async def __aenter__(self) -> "WorkerClient":
         return self
@@ -153,6 +158,19 @@ class WorkerClient:
     async def library(self) -> LibraryInfo:
         """Return the library id."""
         return LibraryInfo.model_validate((await self._request("GET", f"{API}/library")).json())
+
+    async def taxonomy(self) -> TaxonomySnapshot:
+        """The approved taxonomy; an empty ``version 0`` snapshot when the server has none (404)."""
+        try:
+            response = await self._request("GET", f"{API}/taxonomy")
+        except ApiError as exc:
+            if exc.status != httpx.codes.NOT_FOUND:
+                raise
+            if not self._taxonomy_warned:
+                log.warning("server has no taxonomy endpoint yet; using an empty snapshot")
+                self._taxonomy_warned = True
+            return EMPTY_SNAPSHOT
+        return TaxonomySnapshot.model_validate(response.json())
 
     async def claim(self, max_jobs: int, capabilities: dict[str, Any]) -> Claim:
         """Lease up to ``max_jobs`` jobs matching ``capabilities``."""

@@ -16,6 +16,7 @@ import typer
 
 from rushbase_core import Stage, parse_stages
 from rushbase_worker import get_version
+from rushbase_worker.cli_ai import hardware_command, models_app
 from rushbase_worker.client import ApiError, AuthError, UnavailableError, WorkerClient
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.doctor import run_checks
@@ -41,6 +42,8 @@ app = typer.Typer(
 )
 worker_app = typer.Typer(help="Run the headless worker (`worker run` = `process`).")
 app.add_typer(worker_app, name="worker")
+app.add_typer(models_app, name="models")
+app.command("hardware")(hardware_command)
 
 JsonOption = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
 

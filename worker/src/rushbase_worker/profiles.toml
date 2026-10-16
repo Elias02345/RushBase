@@ -1,0 +1,116 @@
+# Hardware profiles and VLM variants (ADR-0006, amended by ADR-0011). Model choice is data.
+#
+# A profile picks one VLM variant, the Whisper model and the audio-event model. A variant is a
+# llama-server launch recipe; `fallback` names the next smaller variant that is tried when the
+# model does not fit into the free memory at startup (the variant used is stored in every
+# result as "analysis quality"). `min_free_mb` is a conservative load check measured in
+# docs/eval/2026-10-vlm-benchmark.md; it prevents starting a load that cannot succeed.
+
+[common]
+# Flags every variant gets (ADR-0006 decision 3, plus the quantised KV cache of the gpu8 row).
+args = [
+  "--jinja",
+  "-np", "1",
+  "--image-min-tokens", "128",
+  "-fa", "on",
+]
+host = "127.0.0.1"
+port_min = 18090
+port_max = 18099
+health_timeout_seconds = 300
+
+[profiles.xl]
+vlm = "xl-9b"
+asr = "whisper-large-v3-turbo-q5_0"
+audio_events = "ced-small"
+embed_vision = "fp16"
+
+[profiles.gpu8]
+vlm = "gpu8-4b"
+asr = "whisper-large-v3-turbo-q5_0"
+audio_events = "ced-small"
+embed_vision = "fp16"
+
+[profiles.gpu4]
+vlm = "gpu4-4b"
+asr = "whisper-large-v3-turbo-q5_0"
+audio_events = "ced-mini"
+embed_vision = "fp16"
+
+[profiles.cpu]
+vlm = "cpu-2b"
+asr = "whisper-small-q8_0"
+audio_events = "ced-mini"
+embed_vision = "int8"
+
+[variants.xl-9b]
+model = "qwen3.5-9b-q8_0"
+family = "qwen3.5"
+ctx = 16384
+image_max_tokens = 512
+kv_quant = "q8_0"
+min_free_mb = 12500
+fallback = "gpu8-9b"
+
+[variants.gpu8-9b]
+model = "qwen3.5-9b-q4_k_m"
+family = "qwen3.5"
+ctx = 8192
+image_max_tokens = 512
+kv_quant = "q8_0"
+min_free_mb = 7000
+fallback = "gpu8-4b"
+
+[variants.gpu8-4b]
+model = "qwen3.5-4b-q8_0"
+family = "qwen3.5"
+ctx = 8192
+image_max_tokens = 512
+kv_quant = "q8_0"
+min_free_mb = 6000
+fallback = "gpu4-4b"
+
+[variants.baseline-qwen3vl8b]
+model = "qwen3-vl-8b-q4_k_m"
+family = "qwen3-vl"
+ctx = 8192
+image_max_tokens = 512
+kv_quant = "q8_0"
+min_free_mb = 7000
+fallback = "gpu4-4b"
+
+[variants.gpu4-4b]
+model = "qwen3.5-4b-q4_k_m"
+family = "qwen3.5"
+ctx = 8192
+image_max_tokens = 384
+kv_quant = "q8_0"
+min_free_mb = 3300
+fallback = "gpu4-2b"
+
+[variants.gpu4-2b]
+model = "qwen3.5-2b-q4_k_m"
+family = "qwen3.5"
+ctx = 8192
+image_max_tokens = 384
+kv_quant = "q8_0"
+min_free_mb = 2200
+fallback = "cpu-2b"
+
+[variants.cpu-2b]
+model = "qwen3.5-2b-q4_k_m"
+family = "qwen3.5"
+ctx = 4096
+image_max_tokens = 256
+kv_quant = "q8_0"
+ngl = 0
+min_free_mb = 0
+
+[variants.cpu-minicpm]
+model = "minicpm-v-4.6-q4_k_m"
+family = "minicpm-v"
+ctx = 4096
+image_max_tokens = 256
+kv_quant = "q8_0"
+ngl = 0
+min_free_mb = 0
