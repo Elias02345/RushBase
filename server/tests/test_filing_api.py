@@ -72,7 +72,8 @@ async def test_asset_list_detail_facets_stats_and_batches(
         assert detail["shots"][0]["keyframes"][0]["url"].endswith("kf0.jpg")
         assert {h["action"] for h in detail["history"]} == {"asset.filed"}
         assert (library_root / ".rushbase/meta" / f"{item['id']}.json").is_file()
-        assert (await client.get(f"/api/v1/assets/{item['id'][:-1]}0")).status_code == 404
+        other = item["id"][:-1] + ("1" if item["id"][-1] == "0" else "0")
+        assert (await client.get(f"/api/v1/assets/{other}")).status_code == 404
 
         facets = {f["key"]: f for f in (await client.get("/api/v1/facets")).json()["facets"]}
         assert facets["camera_model"]["values"] == [{"value": "ILME-FX3", "count": 2}]
