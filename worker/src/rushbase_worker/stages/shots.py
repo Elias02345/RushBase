@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from rushbase_core import Stage
-from rushbase_core.results import Estimated, Keyframe, ShotOut, ShotsOutput, Source
+from rushbase_core.results import CameraMotion, Estimated, Keyframe, ShotOut, ShotsOutput, Source
 from rushbase_worker.models import Job
 from rushbase_worker.preview.derived import temp_name
 from rushbase_worker.preview.video import extract_frame
@@ -46,7 +46,7 @@ def shot_bounds_ms(metrics: list[ShotMetrics], fps: float, total_ms: int) -> lis
 
 def build_shot(index: int, metrics: ShotMetrics, start_ms: int, end_ms: int) -> ShotOut:
     """Contract model for one shot (keyframes are added by the caller)."""
-    motion = (
+    motion: Estimated[CameraMotion] | None = (
         Estimated(
             value=metrics.camera_motion, source=Source.AI, confidence=metrics.motion_confidence
         )
@@ -118,7 +118,7 @@ class ShotsStage:
         """The 720p proxy from the preview stage when available (much cheaper to decode)."""
         for entry in job.upstream.get("preview", {}).get("files", []):
             if entry.get("kind") == "proxy":
-                path = ctx.source(entry["rel_path"])
+                path = ctx.derived_path(entry["rel_path"])
                 if path.is_file():
                     return path
         return None

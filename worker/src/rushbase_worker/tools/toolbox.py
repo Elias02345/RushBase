@@ -82,7 +82,7 @@ class Toolbox:
                 "-show_streams",
                 "-show_chapters",
                 str(path),
-            ],  # fmt: skip
+            ],
             timeout=self.settings.tool_timeout_seconds,
         )
         return _json_object("ffprobe", result.stdout)

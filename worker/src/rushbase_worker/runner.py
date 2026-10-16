@@ -14,7 +14,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ValidationError
 
-from rushbase_core import Stage
+from rushbase_core import DEFAULT_HEARTBEAT_SECONDS, Stage
 from rushbase_worker import get_version
 from rushbase_worker.client import ApiError, AuthError, LeaseLostError, UnavailableError, WorkerApi
 from rushbase_worker.models import Job
@@ -32,7 +32,7 @@ class RunOptions:
     """How a run behaves."""
 
     concurrency: int
-    heartbeat_seconds: float
+    heartbeat_seconds: float | None = None
     poll_interval_seconds: float = 5.0
     claim_batch: int | None = None
     exit_when_empty: bool = False
@@ -117,6 +117,7 @@ class Runner:
         self._stop = asyncio.Event()
         self._stop_reason = "stopped"
         self._lease_lost: set[UUID] = set()
+        self._heartbeat = options.heartbeat_seconds or DEFAULT_HEARTBEAT_SECONDS
         self.summary = RunSummary()
 
     def request_stop(self, reason: str = "signal") -> None:
@@ -175,6 +176,8 @@ class Runner:
             log.warning("claim failed: %s", exc)
             self._emit({"event": "claim_failed", "error": str(exc)})
             return []
+        if self._options.heartbeat_seconds is None:
+            self._heartbeat = claim.heartbeat_seconds
         jobs = [job for job in claim.jobs if job.stage in self._handlers]
         for job in claim.jobs:
             if job.stage not in self._handlers:  # not in our capabilities: give it back at once
@@ -246,7 +249,7 @@ class Runner:
 
     async def _heartbeats(self, job: Job, work: "asyncio.Future[dict[str, Any]]") -> None:
         while True:
-            await self._sleep(self._options.heartbeat_seconds)
+            await self._sleep(self._heartbeat)
             try:
                 await self._api.heartbeat(job.job_id)
             except LeaseLostError:
@@ -273,12 +276,26 @@ class Runner:
         if body["ok"]:
             self.summary.completed += 1
             self.summary.by_stage[stage] = self.summary.by_stage.get(stage, 0) + 1
-            self._emit({"event": "job_done", "job_id": str(job.job_id), "stage": stage,
-                        "duration_ms": body["duration_ms"], "job_state": ack.job_state})  # fmt: skip
+            self._emit(
+                {
+                    "event": "job_done",
+                    "job_id": str(job.job_id),
+                    "stage": stage,
+                    "duration_ms": body["duration_ms"],
+                    "job_state": ack.job_state,
+                }
+            )
         else:
             self.summary.failed += 1
-            self._emit({"event": "job_failed", "job_id": str(job.job_id), "stage": stage,
-                        "error": body["error"], "retryable": body["retryable"]})  # fmt: skip
+            self._emit(
+                {
+                    "event": "job_failed",
+                    "job_id": str(job.job_id),
+                    "stage": stage,
+                    "error": body["error"],
+                    "retryable": body["retryable"],
+                }
+            )
 
     async def _release(self, job: Job, *, count: bool = True) -> None:
         try:

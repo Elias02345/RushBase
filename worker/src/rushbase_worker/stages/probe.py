@@ -29,6 +29,8 @@ class ProbeStage:
         path = ctx.source(primary.rel_path)
         if not path.is_file():
             raise StageError(f"file not found: {primary.rel_path}")
+        ffprobe_result: dict[str, Any] | BaseException
+        exif_result: dict[str, Any] | BaseException
         ffprobe_result, exif_result = await asyncio.gather(
             ctx.toolbox.ffprobe(path), ctx.toolbox.exiftool(path), return_exceptions=True
         )

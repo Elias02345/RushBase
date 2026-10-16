@@ -115,7 +115,7 @@ async def _stream_peaks(toolbox: Toolbox, source: Path, timeout: float) -> tuple
         str(SAMPLE_RATE),
         "-f",
         "f32le",
-        "-",  # fmt: skip
+        "-",
         stdin=asyncio.subprocess.DEVNULL,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,

@@ -37,6 +37,8 @@ class StageContext:
     settings: WorkerSettings
     toolbox: Toolbox
     library_root: Path
+    output_root: Path | None = None
+    """Where ``.rushbase/derived`` lives; ``None`` = the library root (set by `analyze`)."""
 
     def source(self, rel_path: str) -> Path:
         """Local path of a library-relative file."""
@@ -44,13 +46,19 @@ class StageContext:
 
     def derived_dir(self, asset_id: UUID) -> Path:
         """``.rushbase/derived/<asset-id>/`` (created on demand); the only place workers write."""
-        directory = self.library_root / SYSTEM_DIR / DERIVED_DIR / str(asset_id)
+        directory = (
+            (self.output_root or self.library_root) / SYSTEM_DIR / DERIVED_DIR / str(asset_id)
+        )
         directory.mkdir(parents=True, exist_ok=True)
         return directory
 
+    def derived_path(self, rel_path: str) -> Path:
+        """Local path of a derived file given its output-relative path."""
+        return resolve_in_root(self.output_root or self.library_root, rel_path)
+
     def rel(self, path: Path) -> str:
         """Library-relative ``/`` path of ``path``."""
-        return relative_to_root(self.library_root, path)
+        return relative_to_root(self.output_root or self.library_root, path)
 
 
 class StageHandler(Protocol):

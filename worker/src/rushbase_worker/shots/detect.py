@@ -1,6 +1,7 @@
 """Shot boundaries with PySceneDetect's ``AdaptiveDetector`` on already-decoded frames."""
 
 import math
+from itertools import pairwise
 
 import numpy as np
 from numpy.typing import NDArray
@@ -47,4 +48,4 @@ def merge_short(cuts: list[int], total_frames: int, min_len: int) -> list[tuple[
     if accepted and total_frames - accepted[-1] < min_len:
         accepted.pop()
     bounds = [0, *accepted, total_frames]
-    return list(zip(bounds[:-1], bounds[1:], strict=True))
+    return list(pairwise(bounds))

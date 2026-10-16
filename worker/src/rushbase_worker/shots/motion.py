@@ -62,7 +62,9 @@ def flow_frame(gray: Gray) -> Gray:
 
 def global_motion(previous: Gray, current: Gray) -> MotionSample:
     """Estimate camera translation and zoom between two same-sized flow frames."""
-    flow = cv2.calcOpticalFlowFarneback(previous, current, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    flow = cv2.calcOpticalFlowFarneback(  # type: ignore[call-overload]
+        previous, current, None, 0.5, 3, 15, 3, 5, 1.2, 0
+    )
     fx, fy = flow[..., 0], flow[..., 1]
     dx, dy = float(np.median(fx)), float(np.median(fy))
     height, width = fx.shape

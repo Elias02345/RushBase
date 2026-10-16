@@ -46,7 +46,8 @@ ignore = ["S101"]
 "**/tests/**" = ["S105", "S106", "S108", "S603", "S607"]
 "dev/testmedia/*.py" = ["S603", "S607", "T201"]
 "scripts/*.py" = ["S603", "S607", "T201", "S101"]
-"worker/src/rushbase_worker/doctor.py" = ["S603"]
+"worker/src/rushbase_worker/**" = ["ASYNC109", "ASYNC240"]
+"worker/scripts/*.py" = ["S603", "S607", "T201"]
 "server/src/rushbase_server/migrations/**" = ["E501"]
 
 [tool.mypy]
@@ -64,3 +65,8 @@ testpaths = ["core/tests", "server/tests", "worker/tests"]
 pythonpath = ["server/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = ["postgres: needs a reachable PostgreSQL (RUSHBASE_TEST_DATABASE_URL)"]
+
+[[tool.mypy.overrides]]
+module = ["rawpy.*", "pillow_heif.*", "cv2.*", "scenedetect.*", "blake3.*", "defusedxml.*"]
+ignore_missing_imports = true
+implicit_reexport = true

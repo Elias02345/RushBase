@@ -57,7 +57,7 @@ async def stream_frames(
         "bgr24",
         "-f",
         "rawvideo",
-        "-",  # fmt: skip
+        "-",
         stdin=asyncio.subprocess.DEVNULL,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,

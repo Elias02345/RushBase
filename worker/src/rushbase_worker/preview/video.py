@@ -60,8 +60,10 @@ async def extract_frame(
     """Decode one frame at ``t_seconds``, scaled to at most ``width`` px, into ``target``."""
     chain = video_filter(lut_filter(lut), f"scale='min({width},iw)':-2")
     await toolbox.ffmpeg(
-        ["-ss", f"{t_seconds:.3f}", "-i", str(source), "-an", "-sn", "-frames:v", "1"]
-        + ["-vf", chain, *(["-q:v", str(quality)] if quality else []), str(target)],
+        [
+            *["-ss", f"{t_seconds:.3f}", "-i", str(source), "-an", "-sn", "-frames:v", "1"],
+            *["-vf", chain, *(["-q:v", str(quality)] if quality else []), str(target)],
+        ],
         hwaccel=True,
     )
 
@@ -129,10 +131,12 @@ async def make_proxy(
     )
     with atomic_output(final) as out:
         await toolbox.ffmpeg(
-            ["-i", str(source), "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn"]
-            + ["-vf", chain, "-c:v", "libx264", "-preset", settings.proxy_preset]
-            + ["-crf", str(settings.proxy_crf), "-c:a", "aac", "-b:a", "128k", "-ac", "2"]
-            + ["-movflags", "+faststart", str(out)],
+            [
+                *["-i", str(source), "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn"],
+                *["-vf", chain, "-c:v", "libx264", "-preset", settings.proxy_preset],
+                *["-crf", str(settings.proxy_crf), "-c:a", "aac", "-b:a", "128k", "-ac", "2"],
+                *["-movflags", "+faststart", str(out)],
+            ],
             timeout=settings.long_tool_timeout_seconds,
             hwaccel=True,
         )
