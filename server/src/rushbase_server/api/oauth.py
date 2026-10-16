@@ -62,7 +62,9 @@ async def oauth_config(runtime: Runtime, db: Any) -> OAuthConfig | None:
     )
 
 
-def _json(body: dict[str, Any], status: int = 200, headers: dict[str, str] | None = None) -> JSONResponse:
+def _json(
+    body: dict[str, Any], status: int = 200, headers: dict[str, str] | None = None
+) -> JSONResponse:
     return JSONResponse(body, status_code=status, headers={**NO_STORE, **(headers or {})})
 
 
@@ -148,7 +150,9 @@ async def register(request: Request, runtime: RuntimeDep, db: DbDep) -> JSONResp
         if not isinstance(body, dict):
             raise ValueError
     except ValueError:
-        return _json({"error": "invalid_client_metadata", "error_description": "JSON object expected"}, 400)
+        return _json(
+            {"error": "invalid_client_metadata", "error_description": "JSON object expected"}, 400
+        )
     try:
         client = await service.register_client(db, body, config.extra_redirects, now)
     except OAuthError as exc:
@@ -197,7 +201,7 @@ def _redirect_back(
 ) -> RedirectResponse:
     parts = urlsplit(redirect_uri)
     query = parse_qsl(parts.query, keep_blank_values=True)
-    query += [(k, v) for k, v in params.items()]
+    query += list(params.items())
     if state:
         query.append(("state", state))
     query.append(("iss", issuer))
@@ -221,7 +225,7 @@ async def _session_user(request: Request, runtime: Runtime, db: Any) -> User | N
 async def _validate(
     db: Any, runtime: Runtime, config: OAuthConfig, params: dict[str, str]
 ) -> tuple[OAuthClient, str, list[str]]:
-    """Validate the request; raises :class:`OAuthError` with ``redirectable`` unset for fatal ones."""
+    """Validate client, redirect URI and scopes; failures here are shown, never redirected."""
     client_id, redirect_uri = params.get("client_id", ""), params.get("redirect_uri", "")
     if not client_id or not redirect_uri:
         raise OAuthError("invalid_request", "client_id and redirect_uri are required")
@@ -297,7 +301,11 @@ async def authorize_page(request: Request, runtime: RuntimeDep, db: DbDep) -> Re
         scopes = _check_request(params, config)
     except OAuthError as exc:
         return _redirect_back(
-            redirect_uri, issuer, params.get("state"), error=exc.code, error_description=exc.description
+            redirect_uri,
+            issuer,
+            params.get("state"),
+            error=exc.code,
+            error_description=exc.description,
         )
     await db.commit()  # persist a freshly fetched CIMD client
     user = await _session_user(request, runtime, db)
@@ -325,7 +333,9 @@ async def authorize_submit(request: Request, runtime: RuntimeDep, db: DbDep) -> 
     try:
         scopes = _check_request(values, config)
     except OAuthError as exc:
-        return _redirect_back(redirect_uri, issuer, state, error=exc.code, error_description=exc.description)
+        return _redirect_back(
+            redirect_uri, issuer, state, error=exc.code, error_description=exc.description
+        )
     if values.get("decision") != "allow":
         return _redirect_back(redirect_uri, issuer, state, error="access_denied")
 
@@ -342,7 +352,9 @@ async def authorize_submit(request: Request, runtime: RuntimeDep, db: DbDep) -> 
             return await _consent_response(
                 request, runtime, client, redirect_uri, scopes, values, None, t["too_many"], 429
             )
-        candidate = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+        candidate = (
+            await db.execute(select(User).where(User.username == username))
+        ).scalar_one_or_none()
         valid = await verify_password(
             values.get("password", ""), candidate.password_hash if candidate else None
         )
@@ -424,7 +436,9 @@ async def token(
             return _json({"error": "temporarily_unavailable"}, 429, {"Retry-After": "5"})
         if grant_type == "authorization_code":
             if not (code and redirect_uri and code_verifier):
-                raise OAuthError("invalid_request", "code, redirect_uri and code_verifier are required")
+                raise OAuthError(
+                    "invalid_request", "code, redirect_uri and code_verifier are required"
+                )
             tokens = await service.exchange_code(
                 db,
                 config,
@@ -439,10 +453,18 @@ async def token(
             if not refresh_token:
                 raise OAuthError("invalid_request", "refresh_token is required")
             tokens = await service.refresh(
-                db, config, client, refresh_token=refresh_token, resource=resource, scope=scope, now=now
+                db,
+                config,
+                client,
+                refresh_token=refresh_token,
+                resource=resource,
+                scope=scope,
+                now=now,
             )
         else:
-            raise OAuthError("unsupported_grant_type", "grant_type must be authorization_code or refresh_token")
+            raise OAuthError(
+                "unsupported_grant_type", "grant_type must be authorization_code or refresh_token"
+            )
     except OAuthError as exc:
         await db.rollback()
         return _error(exc)

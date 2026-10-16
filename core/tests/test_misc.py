@@ -261,5 +261,7 @@ def test_batch_label_drops_the_date_prefix_but_keeps_the_hint() -> None:
 
 def test_pure_audio_plan_has_no_image_stages() -> None:
     plan = {job.stage: job.depends_on for job in build_job_plan(list(Stage), MediaType.AUDIO)}
-    assert Stage.EMBED not in plan and Stage.VISION not in plan and Stage.SHOTS not in plan
+    assert Stage.EMBED not in plan
+    assert Stage.VISION not in plan
+    assert Stage.SHOTS not in plan
     assert Stage.AUDIO in plan[Stage.CLASSIFY]

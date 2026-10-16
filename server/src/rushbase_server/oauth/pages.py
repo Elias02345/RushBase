@@ -94,7 +94,9 @@ def _page(lang: str, title: str, body: str) -> str:
 def error_page(lang: str, message: str) -> str:
     """A terminal error (invalid client or redirect URI): shown, never redirected."""
     t = STRINGS[lang]
-    return _page(lang, t["error_title"], f"<h1>{escape(t['error_title'])}</h1><p>{escape(message)}</p>")
+    return _page(
+        lang, t["error_title"], f"<h1>{escape(t['error_title'])}</h1><p>{escape(message)}</p>"
+    )
 
 
 def consent_page(
@@ -116,11 +118,14 @@ def consent_page(
     )
     items = "".join(f"<li>{escape(labels.get(s, s))} <code>{escape(s)}</code></li>" for s in scopes)
     if signed_in_as:
-        login = f'<p class="muted">{escape(t["signed_in"])} <strong>{escape(signed_in_as)}</strong></p>'
+        login = (
+            f'<p class="muted">{escape(t["signed_in"])} <strong>{escape(signed_in_as)}</strong></p>'
+        )
     else:
         login = (
             f'<p class="muted">{escape(t["login_hint"])}</p>'
-            f'<label>{escape(t["username"])}<input name="username" autocomplete="username" required></label>'
+            f'<label>{escape(t["username"])}'
+            '<input name="username" autocomplete="username" required></label>'
             f'<label>{escape(t["password"])}<input name="password" type="password" '
             'autocomplete="current-password" required></label>'
         )

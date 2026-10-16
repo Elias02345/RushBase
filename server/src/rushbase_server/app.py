@@ -15,6 +15,7 @@ from rushbase_server.api import (
     catalog,
     filing,
     golden,
+    oauth,
     review,
     search,
     system,
@@ -95,4 +96,5 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(search.router)
     app.include_router(review.router)
     app.include_router(golden.router)
+    app.include_router(oauth.router)
     return app

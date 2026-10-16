@@ -40,9 +40,12 @@ def matches(requested: str, registered: Iterable[str]) -> bool:
     for candidate in registered:
         if requested == candidate:
             return True
-        if is_loopback(requested) and is_loopback(candidate):
-            if _loopback_key(requested) == _loopback_key(candidate):
-                return True
+        if (
+            is_loopback(requested)
+            and is_loopback(candidate)
+            and _loopback_key(requested) == _loopback_key(candidate)
+        ):
+            return True
     return False
 
 

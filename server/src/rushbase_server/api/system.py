@@ -30,6 +30,8 @@ class HealthResponse(BaseModel):
     library_mounted: bool | None = None
     lease_held: bool | None = None
     setup_required: bool | None = None
+    warnings: list[str] = []
+    """Non-fatal configuration problems, e.g. ``mcp_public_url_missing``."""
 
 
 @router.get(
@@ -60,6 +62,7 @@ async def health(runtime: RuntimeDep, response: Response) -> HealthResponse:
         library_mounted=mounted,
         lease_held=held,
         setup_required=setup_required,
+        warnings=[] if runtime.settings.public_url else ["mcp_public_url_missing"],
     )
 
 

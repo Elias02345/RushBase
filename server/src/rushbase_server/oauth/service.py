@@ -98,9 +98,7 @@ def pkce_challenge(verifier: str) -> str:
 
 
 def _verifier_valid(verifier: str) -> bool:
-    return 43 <= len(verifier) <= 128 and all(
-        c.isalnum() or c in "-._~" for c in verifier
-    )
+    return 43 <= len(verifier) <= 128 and all(c.isalnum() or c in "-._~" for c in verifier)
 
 
 # --- clients ---------------------------------------------------------------------------------

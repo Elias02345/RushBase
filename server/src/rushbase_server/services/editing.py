@@ -206,11 +206,16 @@ async def _edit_tags(
             removed.append(f"{ref.field}:{value.value}")
     for ref in edit.add_tags:
         tag_field, value = await _resolve(session, ref)
-        if edit.source != "human" and await session.scalar(
-            select(AssetTag.id).where(
-                scope, AssetTag.source == "human", AssetTag.field_id == tag_field.id
-            ).limit(1)
-        ) is not None and tag_field.kind == "single":
+        if (
+            edit.source != "human"
+            and await session.scalar(
+                select(AssetTag.id)
+                .where(scope, AssetTag.source == "human", AssetTag.field_id == tag_field.id)
+                .limit(1)
+            )
+            is not None
+            and tag_field.kind == "single"
+        ):
             continue  # a person already decided this single-valued field
         if tag_field.kind == "single":
             clear = delete(AssetTag).where(scope, AssetTag.field_id == tag_field.id)
