@@ -5,7 +5,6 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
-    ARRAY,
     BigInteger,
     CheckConstraint,
     Computed,
@@ -22,7 +21,7 @@ from sqlalchemy import (
 from sqlalchemy import (
     text as sql_text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import UserDefinedType
 
@@ -291,3 +290,34 @@ class EvalRun(Base):
     metrics: Mapped[dict[str, Any]] = mapped_column(
         JSONB, server_default=sql_text("'{}'::jsonb"), default=dict
     )
+
+
+class Collection(Base):
+    """A named, manually curated set of assets (virtual organisation, no files move)."""
+
+    __tablename__ = "collection"
+
+    id: Mapped[UUID] = pk()
+    name: Mapped[str] = mapped_column(Text)
+    created_by: Mapped[UUID | None] = mapped_column(
+        Uuid, ForeignKey("user.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = now_column()
+
+    __table_args__ = (Index("ux_collection_name", func.lower(sql_text("name")), unique=True),)
+
+
+class CollectionAsset(Base):
+    """Membership of an asset in a collection."""
+
+    __tablename__ = "collection_asset"
+
+    collection_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("collection.id", ondelete="CASCADE"), primary_key=True
+    )
+    asset_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("asset.id", ondelete="CASCADE"), primary_key=True
+    )
+    added_at: Mapped[datetime] = now_column()
+
+    __table_args__ = (Index("ix_collection_asset_asset_id", "asset_id"),)

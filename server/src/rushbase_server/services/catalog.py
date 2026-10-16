@@ -24,6 +24,7 @@ from rushbase_server.models import (
     AssetTag,
     AuditLog,
     Batch,
+    CollectionAsset,
     TaxField,
     TaxValue,
 )
@@ -64,6 +65,8 @@ class AssetFilters:
     person_identifiable: str | None = None
     review_state: str | None = None
     consent: str | None = None
+    review_reason: str | None = None
+    collection_id: UUID | None = None
     tags: tuple[str, ...] = ()
     """Taxonomy filters ``field:value``; values of one field are alternatives, fields combine."""
 
@@ -215,6 +218,19 @@ def apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
         stmt = stmt.where(when >= datetime.combine(f.date_from, time.min, UTC))
     if f.date_to:
         stmt = stmt.where(when <= datetime.combine(f.date_to, time.max, UTC))
+    if f.review_reason:
+        stmt = stmt.where(Asset.review_reasons.contains([f.review_reason]))
+    if f.collection_id:
+        stmt = stmt.where(
+            select(literal(1))
+            .select_from(CollectionAsset)
+            .where(
+                CollectionAsset.asset_id == Asset.id,
+                CollectionAsset.collection_id == f.collection_id,
+            )
+            .correlate(Asset)
+            .exists()
+        )
     for field_key, values in _tag_groups(f.tags).items():
         stmt = stmt.where(_has_tag(field_key, values))
     if f.q:

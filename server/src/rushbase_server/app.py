@@ -9,7 +9,17 @@ from sqlalchemy import select
 
 from rushbase_core import LibraryMismatchError
 from rushbase_server import get_version
-from rushbase_server.api import admin, auth, catalog, filing, search, system, taxonomy, worker
+from rushbase_server.api import (
+    admin,
+    auth,
+    catalog,
+    filing,
+    review,
+    search,
+    system,
+    taxonomy,
+    worker,
+)
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.models import Library
@@ -82,4 +92,5 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(filing.router)
     app.include_router(taxonomy.router)
     app.include_router(search.router)
+    app.include_router(review.router)
     return app

@@ -389,6 +389,7 @@ async def _apply_classify(session: AsyncSession, asset: Asset, out: ClassifyOutp
     await session.execute(
         delete(AssetTag).where(AssetTag.asset_id == asset.id, AssetTag.source == "ai")
     )
+    rejected = set(asset.ai_details.get("rejected_tags", []))
     field_cache: dict[str, TaxField | None] = {}
     seen: set[tuple[UUID | None, UUID]] = set()
     for tag in out.tags:
@@ -402,6 +403,11 @@ async def _apply_classify(session: AsyncSession, asset: Asset, out: ClassifyOutp
             await _record_proposal(session, asset, tag.field if field else None, tag.value)
             continue
         shot_id = shots.get(tag.shot_idx) if tag.shot_idx is not None else None
+        if (
+            f"{tag.field}:{row.value.lower()}:{'' if tag.shot_idx is None else tag.shot_idx}"
+            in rejected
+        ):
+            continue
         key = (shot_id, row.id)
         if key in seen or any(
             p.shot_id == shot_id

@@ -11,6 +11,8 @@ from rushbase_server.models.accounts import (
 from rushbase_server.models.ai import (
     AssetTag,
     AudioEvent,
+    Collection,
+    CollectionAsset,
     EmbeddingImage,
     EmbeddingText,
     EvalRun,
@@ -43,6 +45,8 @@ __all__ = [
     "AuditLog",
     "Base",
     "Batch",
+    "Collection",
+    "CollectionAsset",
     "EmbeddingImage",
     "EmbeddingText",
     "EnrollmentToken",

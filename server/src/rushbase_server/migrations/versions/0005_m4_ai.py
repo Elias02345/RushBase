@@ -328,6 +328,38 @@ def _tables() -> None:
         "(asset_id, shot_id, field) NULLS NOT DISTINCT"
     )
     op.create_table(
+        "collection",
+        _uuid_pk("id"),
+        sa.Column("name", sa.Text(), nullable=False),
+        sa.Column("created_by", sa.Uuid(), sa.ForeignKey("user.id", ondelete="SET NULL")),
+        _now(),
+        if_not_exists=True,
+    )
+    op.create_index(
+        "ux_collection_name",
+        "collection",
+        [sa.text("lower(name)")],
+        unique=True,
+        if_not_exists=True,
+    )
+    op.create_table(
+        "collection_asset",
+        sa.Column(
+            "collection_id",
+            sa.Uuid(),
+            sa.ForeignKey("collection.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
+        sa.Column(
+            "asset_id", sa.Uuid(), sa.ForeignKey("asset.id", ondelete="CASCADE"), primary_key=True
+        ),
+        _now("added_at"),
+        if_not_exists=True,
+    )
+    op.create_index(
+        "ix_collection_asset_asset_id", "collection_asset", ["asset_id"], if_not_exists=True
+    )
+    op.create_table(
         "eval_run",
         _uuid_pk("id"),
         _now(),
@@ -390,6 +422,8 @@ def downgrade() -> None:
         op.execute(f"DROP TRIGGER IF EXISTS {name} ON {table}")
     op.execute("DROP FUNCTION IF EXISTS asset_refresh_from_children()")
     for table in (
+        "collection_asset",
+        "collection",
         "eval_run",
         "golden_label",
         "embedding_text",
