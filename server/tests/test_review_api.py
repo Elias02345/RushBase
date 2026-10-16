@@ -66,7 +66,8 @@ async def test_review_queue_edit_and_reprocessing_respects_human_edits(
         # correct the shot size, swap the tag and approve
         fixed = await server.client.patch(
             f"/api/v1/shots/{shot_id}",
-            json={"shot_size": "close_up", "remove_tags": [{"field": "location", "value": "harbour"}],
+            json={"shot_size": "close_up",
+                  "remove_tags": [{"field": "location", "value": "harbour"}],
                   "add_tags": [{"field": "location", "value": "street"}]},
             headers=admin,
         )  # fmt: skip
