@@ -148,11 +148,24 @@ def _filters(
     date_from: date | None = None,
     date_to: date | None = None,
     q: Annotated[str | None, Query(max_length=200)] = None,
+    shot_size: str | None = None,
+    camera_angle: str | None = None,
+    interior_exterior: str | None = None,
+    time_of_day: str | None = None,
+    person_identifiable: str | None = None,
+    review_state: str | None = None,
+    consent: str | None = None,
+    tag: Annotated[list[str] | None, Query(max_length=50)] = None,
 ) -> catalog.AssetFilters:
-    """Filter and search parameters shared by the asset list and the facets."""
+    """Filter and search parameters shared by the asset list and the facets.
+
+    `tag` is repeatable (`tag=location:harbour`): values of one field are alternatives, different
+    fields combine with AND.
+    """
     return catalog.AssetFilters(
         media_type, status_, batch_id, camera_model, lens_model, log_profile, orientation,
-        date_from, date_to, q,
+        date_from, date_to, q, shot_size, camera_angle, interior_exterior, time_of_day,
+        person_identifiable, review_state, consent, tuple(tag or ()),
     )  # fmt: skip
 
 

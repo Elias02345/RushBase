@@ -7,7 +7,7 @@ import base64
 import binascii
 import json
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, time
 from decimal import Decimal, InvalidOperation
@@ -18,7 +18,15 @@ from sqlalchemy import ColumnElement, Numeric, Select, String, cast, func, liter
 from sqlalchemy.dialects.postgresql import REGCONFIG
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from rushbase_server.models import Asset, AssetFile, AuditLog, Batch
+from rushbase_server.models import (
+    Asset,
+    AssetFile,
+    AssetTag,
+    AuditLog,
+    Batch,
+    TaxField,
+    TaxValue,
+)
 from rushbase_server.services.derived import derived_url
 
 DEFAULT_LIMIT = 50
@@ -49,6 +57,15 @@ class AssetFilters:
     date_from: date | None = None
     date_to: date | None = None
     q: str | None = None
+    shot_size: str | None = None
+    camera_angle: str | None = None
+    interior_exterior: str | None = None
+    time_of_day: str | None = None
+    person_identifiable: str | None = None
+    review_state: str | None = None
+    consent: str | None = None
+    tags: tuple[str, ...] = ()
+    """Taxonomy filters ``field:value``; values of one field are alternatives, fields combine."""
 
 
 def search_terms(q: str) -> list[str]:
@@ -144,6 +161,33 @@ def decode_cursor(cursor: str) -> tuple[Any, UUID]:
         raise InvalidQueryError("invalid cursor") from exc
 
 
+def _tag_groups(tags: Sequence[str]) -> dict[str, list[str]]:
+    groups: dict[str, list[str]] = {}
+    for item in tags:
+        field_key, _, value = item.partition(":")
+        if field_key and value:
+            groups.setdefault(field_key, []).append(value.lower())
+    return groups
+
+
+def _has_tag(field_key: str, values: list[str]) -> ColumnElement[bool]:
+    """EXISTS an approved tag of ``field_key`` with one of ``values`` on the asset."""
+    return (
+        select(literal(1))
+        .select_from(AssetTag)
+        .join(TaxField, TaxField.id == AssetTag.field_id)
+        .join(TaxValue, TaxValue.id == AssetTag.value_id)
+        .where(
+            AssetTag.asset_id == Asset.id,
+            TaxField.key == field_key,
+            TaxValue.status == "approved",
+            func.lower(TaxValue.value).in_(values),
+        )
+        .correlate(Asset)
+        .exists()
+    )
+
+
 def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
     if f.status:
         stmt = stmt.where(Asset.status == f.status)
@@ -156,6 +200,13 @@ def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
         (Asset.lens_model, f.lens_model),
         (Asset.log_profile, f.log_profile),
         (Asset.orientation, f.orientation),
+        (Asset.shot_size, f.shot_size),
+        (Asset.camera_angle, f.camera_angle),
+        (Asset.interior_exterior, f.interior_exterior),
+        (Asset.time_of_day, f.time_of_day),
+        (Asset.person_identifiable, f.person_identifiable),
+        (Asset.review_state, f.review_state),
+        (Asset.consent, f.consent),
     ):
         if value is not None:
             stmt = stmt.where(column == value)
@@ -164,6 +215,8 @@ def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
         stmt = stmt.where(when >= datetime.combine(f.date_from, time.min, UTC))
     if f.date_to:
         stmt = stmt.where(when <= datetime.combine(f.date_to, time.max, UTC))
+    for field_key, values in _tag_groups(f.tags).items():
+        stmt = stmt.where(_has_tag(field_key, values))
     if f.q:
         if (terms := _fts_terms(f)) is not None:
             return stmt.where(Asset.search_tsv.op("@@")(_tsquery(terms)))
@@ -299,6 +352,13 @@ FACET_LABELS = {
     "log_profile": ("Log-Profil", "Log profile"),
     "orientation": ("Ausrichtung", "Orientation"),
     "codec": ("Codec", "Codec"),
+    "shot_size": ("Einstellungsgröße", "Shot size"),
+    "camera_angle": ("Kamerawinkel", "Camera angle"),
+    "interior_exterior": ("Innen/Außen", "Interior/exterior"),
+    "time_of_day": ("Tageszeit", "Time of day"),
+    "person_identifiable": ("Person erkennbar", "Person identifiable"),
+    "review_state": ("Prüfstatus", "Review state"),
+    "consent": ("Einwilligung", "Consent"),
 }
 
 
@@ -314,7 +374,8 @@ async def facets(
     result: list[dict[str, Any]] = []
     for key, (de, en) in FACET_LABELS.items():
         column = getattr(Asset, key)
-        own = replace(active, **{key: None}) if hasattr(active, key) else active
+        blank: dict[str, Any] = {key: None}
+        own = replace(active, **blank) if hasattr(active, key) else active
         stmt = _apply_filters(select(column, func.count()).select_from(Asset), own)
         rows = await session.execute(
             stmt.where(column.is_not(None))
@@ -327,6 +388,7 @@ async def facets(
             result.append(
                 {"key": key, "label_de": de, "label_en": en, "kind": "enum", "values": values}
             )
+    result += await _tag_facets(session, active)
     low, high = (
         await session.execute(
             _apply_filters(select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)), active)
@@ -356,6 +418,45 @@ async def facets(
                 "max": last.isoformat() if last else None,
             }
         )
+    return result
+
+
+async def _tag_facets(session: AsyncSession, active: AssetFilters) -> list[dict[str, Any]]:
+    """One enum facet per taxonomy field that has approved, used values (value = ``value``)."""
+    result: list[dict[str, Any]] = []
+    fields = (
+        (await session.execute(select(TaxField).order_by(TaxField.sort, TaxField.key)))
+        .scalars()
+        .all()
+    )
+    for field in fields:
+        own = replace(
+            active, tags=tuple(t for t in active.tags if not t.startswith(field.key + ":"))
+        )
+        stmt = (
+            select(TaxValue.value, func.count(func.distinct(Asset.id)))
+            .select_from(Asset)
+            .join(AssetTag, AssetTag.asset_id == Asset.id)
+            .join(TaxValue, TaxValue.id == AssetTag.value_id)
+            .where(AssetTag.field_id == field.id, TaxValue.status == "approved")
+        )
+        rows = await session.execute(
+            _apply_filters(stmt, own)
+            .group_by(TaxValue.value)
+            .order_by(func.count(func.distinct(Asset.id)).desc(), TaxValue.value)
+            .limit(100)
+        )
+        values = [{"value": f"{field.key}:{v}", "count": c} for v, c in rows]
+        if values:
+            result.append(
+                {
+                    "key": f"tag.{field.key}",
+                    "label_de": field.label_de,
+                    "label_en": field.label_en,
+                    "kind": "enum",
+                    "values": values,
+                }
+            )
     return result
 
 
