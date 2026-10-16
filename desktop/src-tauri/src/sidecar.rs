@@ -23,13 +23,19 @@ impl Logger {
         if let Some(parent) = path.as_ref().and_then(|p| p.parent()) {
             let _ = std::fs::create_dir_all(parent);
         }
-        Self { path: Mutex::new(path) }
+        Self {
+            path: Mutex::new(path),
+        }
     }
 
     pub fn line(&self, text: &str) {
         let guard = self.path.lock().expect("log lock");
         if let Some(path) = guard.as_ref() {
-            if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+            if let Ok(mut file) = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)
+            {
                 let now = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .map(|d| d.as_secs())
@@ -54,7 +60,12 @@ pub fn base_command(settings: &Settings) -> Vec<String> {
     let configured = std::env::var("RUSHBASE_CLI")
         .ok()
         .filter(|v| !v.trim().is_empty())
-        .or_else(|| settings.cli_command.clone().filter(|v| !v.trim().is_empty()));
+        .or_else(|| {
+            settings
+                .cli_command
+                .clone()
+                .filter(|v| !v.trim().is_empty())
+        });
     if let Some(text) = configured {
         if let Some(parts) = shlex::split(&text) {
             if !parts.is_empty() {
@@ -63,7 +74,11 @@ pub fn base_command(settings: &Settings) -> Vec<String> {
         }
     }
     if let Ok(exe) = std::env::current_exe() {
-        let name = if cfg!(windows) { "rushbase.exe" } else { "rushbase" };
+        let name = if cfg!(windows) {
+            "rushbase.exe"
+        } else {
+            "rushbase"
+        };
         let sibling = exe.with_file_name(name);
         if sibling.is_file() {
             return vec![sibling.to_string_lossy().into_owned()];
@@ -74,7 +89,8 @@ pub fn base_command(settings: &Settings) -> Vec<String> {
 
 /// Whether `args` start with an allowed sub-command.
 pub fn is_allowed(args: &[String]) -> bool {
-    args.first().is_some_and(|first| ALLOWED.contains(&first.as_str()))
+    args.first()
+        .is_some_and(|first| ALLOWED.contains(&first.as_str()))
 }
 
 /// Build the process for `args` with the configured environment.
@@ -88,7 +104,9 @@ pub fn build(settings: &Settings, args: &[String]) -> Command {
     if let Some(root) = settings.library_root.as_ref().filter(|v| !v.is_empty()) {
         command.env("RUSHBASE_LIBRARY_ROOT", root);
     }
-    command.env("PYTHONUNBUFFERED", "1").env("PYTHONIOENCODING", "utf-8");
+    command
+        .env("PYTHONUNBUFFERED", "1")
+        .env("PYTHONIOENCODING", "utf-8");
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -105,14 +123,26 @@ pub fn run_cli(
     stdin: Option<String>,
 ) -> Result<CliOutput, String> {
     if !is_allowed(args) {
-        return Err(format!("command not allowed: {}", args.first().cloned().unwrap_or_default()));
+        return Err(format!(
+            "command not allowed: {}",
+            args.first().cloned().unwrap_or_default()
+        ));
     }
     // Arguments may contain secrets only on stdin; the log shows the sub-command path only.
-    log.line(&format!("cli {}", args.iter().take(2).cloned().collect::<Vec<_>>().join(" ")));
+    log.line(&format!(
+        "cli {}",
+        args.iter().take(2).cloned().collect::<Vec<_>>().join(" ")
+    ));
     let mut command = build(settings, args);
-    command.stdin(if stdin.is_some() { Stdio::piped() } else { Stdio::null() });
+    command.stdin(if stdin.is_some() {
+        Stdio::piped()
+    } else {
+        Stdio::null()
+    });
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
-    let mut child = command.spawn().map_err(|e| format!("cannot start the worker CLI: {e}"))?;
+    let mut child = command
+        .spawn()
+        .map_err(|e| format!("cannot start the worker CLI: {e}"))?;
     if let (Some(text), Some(mut pipe)) = (stdin, child.stdin.take()) {
         pipe.write_all(text.as_bytes()).map_err(|e| e.to_string())?;
     }
@@ -144,9 +174,15 @@ mod tests {
 
     #[test]
     fn configured_command_is_split_like_a_shell() {
-        let settings = Settings { cli_command: Some("uv run --project '/a b' rushbase".into()), ..Settings::default() };
+        let settings = Settings {
+            cli_command: Some("uv run --project '/a b' rushbase".into()),
+            ..Settings::default()
+        };
         if std::env::var("RUSHBASE_CLI").is_err() {
-            assert_eq!(base_command(&settings), vec!["uv", "run", "--project", "/a b", "rushbase"]);
+            assert_eq!(
+                base_command(&settings),
+                vec!["uv", "run", "--project", "/a b", "rushbase"]
+            );
         }
     }
 
@@ -158,7 +194,10 @@ mod tests {
             ..Settings::default()
         };
         let command = build(&settings, &args(&["hardware"]));
-        let envs: Vec<_> = command.get_envs().filter_map(|(k, v)| Some((k.to_str()?, v?.to_str()?))).collect();
+        let envs: Vec<_> = command
+            .get_envs()
+            .filter_map(|(k, v)| Some((k.to_str()?, v?.to_str()?)))
+            .collect();
         assert!(envs.contains(&("RUSHBASE_SERVER_URL", "http://srv:8080")));
         assert!(envs.contains(&("RUSHBASE_LIBRARY_ROOT", "/mnt/lib")));
     }

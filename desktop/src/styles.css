@@ -240,7 +240,13 @@ body {
   margin-bottom: var(--rb-space-2);
   font-weight: 600;
 }
+.dk-option-grid input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
 .dk-option-grid {
+  align-items: start;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--rb-space-4);

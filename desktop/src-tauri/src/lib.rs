@@ -42,7 +42,11 @@ fn set_settings(handle: AppHandle, app: Shared, settings: Settings) -> Result<()
 
 /// Run an allowed CLI sub-command to completion (stdin only for secrets such as passwords).
 #[tauri::command]
-async fn cli(app: Shared<'_>, args: Vec<String>, stdin: Option<String>) -> Result<CliOutput, String> {
+async fn cli(
+    app: Shared<'_>,
+    args: Vec<String>,
+    stdin: Option<String>,
+) -> Result<CliOutput, String> {
     let settings = app.settings.get();
     let log = Arc::clone(&app.log);
     tauri::async_runtime::spawn_blocking(move || sidecar::run_cli(&settings, &log, &args, stdin))
@@ -51,8 +55,14 @@ async fn cli(app: Shared<'_>, args: Vec<String>, stdin: Option<String>) -> Resul
 }
 
 #[tauri::command]
-fn stream_start(handle: AppHandle, app: Shared, name: String, options: Vec<String>) -> Result<u32, String> {
-    app.streams.start(&handle, &app.settings.get(), &app.log, &name, &options)
+fn stream_start(
+    handle: AppHandle,
+    app: Shared,
+    name: String,
+    options: Vec<String>,
+) -> Result<u32, String> {
+    app.streams
+        .start(&handle, &app.settings.get(), &app.log, &name, &options)
 }
 
 #[tauri::command]
@@ -120,13 +130,18 @@ fn startup_check(handle: AppHandle) {
     std::thread::spawn(move || {
         let state = handle.state::<App>();
         let settings = state.settings.get();
-        for args in [vec!["version".to_string(), "--json".into()], vec!["hardware".into(), "--json".into()]] {
+        for args in [
+            vec!["version".to_string(), "--json".into()],
+            vec!["hardware".into(), "--json".into()],
+        ] {
             let outcome = sidecar::run_cli(&settings, &state.log, &args, None);
             let note = match outcome {
                 Ok(out) => format!("exit {}", out.code),
                 Err(e) => format!("failed: {e}"),
             };
-            state.log.line(&format!("startup check {} -> {note}", args[0]));
+            state
+                .log
+                .line(&format!("startup check {} -> {note}", args[0]));
         }
     });
 }
@@ -134,7 +149,9 @@ fn startup_check(handle: AppHandle) {
 /// Build and run the application.
 pub fn run() {
     let mut builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            tray::show_main(app)
+        }))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--minimized"]),
@@ -150,8 +167,17 @@ pub fn run() {
 
     builder
         .invoke_handler(tauri::generate_handler![
-            get_settings, set_settings, cli, stream_start, stream_stop, stream_running, gpu_stats,
-            idle_seconds, drag_check, platform_info, quit_app
+            get_settings,
+            set_settings,
+            cli,
+            stream_start,
+            stream_stop,
+            stream_running,
+            gpu_stats,
+            idle_seconds,
+            drag_check,
+            platform_info,
+            quit_app
         ])
         .setup(|app| {
             let config_dir = app.path().app_config_dir()?;
@@ -172,8 +198,12 @@ pub fn run() {
             app.manage(state);
             allow_library(app.handle(), &settings);
             let has_tray = tray::build(app.handle(), &language, request_quit);
-            app.state::<App>().has_tray.store(has_tray, Ordering::Relaxed);
-            app.state::<App>().log.line(&format!("tray available: {has_tray}"));
+            app.state::<App>()
+                .has_tray
+                .store(has_tray, Ordering::Relaxed);
+            app.state::<App>()
+                .log
+                .line(&format!("tray available: {has_tray}"));
             if std::env::args().any(|a| a == "--minimized") && has_tray {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.hide();
@@ -186,7 +216,8 @@ pub fn run() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let state = window.app_handle().state::<App>();
                 // With a tray the window hides and processing continues; without one, closing quits.
-                if state.has_tray.load(Ordering::Relaxed) && !state.quitting.load(Ordering::Relaxed) {
+                if state.has_tray.load(Ordering::Relaxed) && !state.quitting.load(Ordering::Relaxed)
+                {
                     api.prevent_close();
                     let _ = window.hide();
                 }

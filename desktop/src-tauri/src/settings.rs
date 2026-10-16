@@ -31,7 +31,10 @@ impl SettingsStore {
             .ok()
             .and_then(|text| serde_json::from_str(&text).ok())
             .unwrap_or_default();
-        Self { path, inner: Mutex::new(settings) }
+        Self {
+            path,
+            inner: Mutex::new(settings),
+        }
     }
 
     pub fn get(&self) -> Settings {
@@ -60,7 +63,10 @@ mod tests {
         let path = dir.join("settings.json");
         let store = SettingsStore::load(path.clone());
         assert_eq!(store.get(), Settings::default());
-        let wanted = Settings { server_url: Some("http://srv".into()), ..Settings::default() };
+        let wanted = Settings {
+            server_url: Some("http://srv".into()),
+            ..Settings::default()
+        };
         store.set(wanted.clone()).unwrap();
         assert_eq!(SettingsStore::load(path).get(), wanted);
         std::fs::remove_dir_all(dir).ok();

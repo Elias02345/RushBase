@@ -43,7 +43,11 @@ pub fn gpu_stats() -> Option<GpuStats> {
         ])
         .output()
         .ok()?;
-    output.status.success().then(|| parse_nvidia_smi(&String::from_utf8_lossy(&output.stdout))).flatten()
+    output
+        .status
+        .success()
+        .then(|| parse_nvidia_smi(&String::from_utf8_lossy(&output.stdout)))
+        .flatten()
 }
 
 /// Seconds since the last keyboard/mouse input, where the platform can tell.
@@ -52,14 +56,21 @@ pub fn idle_seconds() -> Option<u64> {
     {
         if let Ok(out) = Command::new("xprintidle").output() {
             if out.status.success() {
-                return String::from_utf8_lossy(&out.stdout).trim().parse::<u64>().ok().map(|ms| ms / 1000);
+                return String::from_utf8_lossy(&out.stdout)
+                    .trim()
+                    .parse::<u64>()
+                    .ok()
+                    .map(|ms| ms / 1000);
             }
         }
         return linux_logind_idle();
     }
     #[cfg(target_os = "macos")]
     {
-        let out = Command::new("ioreg").args(["-c", "IOHIDSystem"]).output().ok()?;
+        let out = Command::new("ioreg")
+            .args(["-c", "IOHIDSystem"])
+            .output()
+            .ok()?;
         let text = String::from_utf8_lossy(&out.stdout);
         let line = text.lines().find(|l| l.contains("HIDIdleTime"))?;
         let nanos: u64 = line.split('=').nth(1)?.trim().parse().ok()?;
@@ -69,7 +80,10 @@ pub fn idle_seconds() -> Option<u64> {
     {
         use windows_sys::Win32::System::SystemInformation::GetTickCount;
         use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
-        let mut info = LASTINPUTINFO { cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32, dwTime: 0 };
+        let mut info = LASTINPUTINFO {
+            cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+            dwTime: 0,
+        };
         // SAFETY: `info` is a valid, correctly sized LASTINPUTINFO.
         if unsafe { GetLastInputInfo(&mut info) } == 0 {
             return None;
@@ -84,7 +98,15 @@ pub fn idle_seconds() -> Option<u64> {
 fn linux_logind_idle() -> Option<u64> {
     let session = std::env::var("XDG_SESSION_ID").ok()?;
     let out = Command::new("loginctl")
-        .args(["show-session", &session, "-p", "IdleHint", "-p", "IdleSinceHint", "--value"])
+        .args([
+            "show-session",
+            &session,
+            "-p",
+            "IdleHint",
+            "-p",
+            "IdleSinceHint",
+            "--value",
+        ])
         .output()
         .ok()?;
     let text = String::from_utf8_lossy(&out.stdout);
@@ -94,7 +116,10 @@ fn linux_logind_idle() -> Option<u64> {
     if hint != "yes" || since == 0 {
         return Some(0);
     }
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).ok()?.as_micros() as u64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()?
+        .as_micros() as u64;
     Some(now.saturating_sub(since) / 1_000_000)
 }
 
@@ -106,15 +131,29 @@ pub struct DragCheck {
 }
 
 /// File-system types that must not be dragged directly (ADR-0004).
-const NETWORK_FS: &[&str] = &["cifs", "smb3", "smbfs", "nfs", "nfs4", "9p", "fuse.sshfs", "davfs", "afpfs"];
+const NETWORK_FS: &[&str] = &[
+    "cifs",
+    "smb3",
+    "smbfs",
+    "nfs",
+    "nfs4",
+    "9p",
+    "fuse.sshfs",
+    "davfs",
+    "afpfs",
+];
 
 pub fn is_wayland() -> bool {
-    std::env::var("XDG_SESSION_TYPE").is_ok_and(|v| v == "wayland") || std::env::var("WAYLAND_DISPLAY").is_ok()
+    std::env::var("XDG_SESSION_TYPE").is_ok_and(|v| v == "wayland")
+        || std::env::var("WAYLAND_DISPLAY").is_ok()
 }
 
 /// Decide from the path and the environment whether drag-out may be attempted.
 pub fn drag_check(path: &str, mounts: Option<&str>) -> DragCheck {
-    let deny = |reason: &str| DragCheck { ok: false, reason: Some(reason.to_string()) };
+    let deny = |reason: &str| DragCheck {
+        ok: false,
+        reason: Some(reason.to_string()),
+    };
     if cfg!(target_os = "linux") && is_wayland() {
         return deny("wayland");
     }
@@ -131,7 +170,8 @@ pub fn drag_check(path: &str, mounts: Option<&str>) -> DragCheck {
                 let mut parts = line.split_whitespace();
                 let (_dev, mount, fs) = (parts.next()?, parts.next()?, parts.next()?);
                 let mount = mount.replace("\\040", " ");
-                let inside = path == mount || path.starts_with(&format!("{}/", mount.trim_end_matches('/')));
+                let inside =
+                    path == mount || path.starts_with(&format!("{}/", mount.trim_end_matches('/')));
                 inside.then_some((mount.len(), fs.to_string()))
             })
             .max_by_key(|(len, _)| *len);
@@ -139,7 +179,10 @@ pub fn drag_check(path: &str, mounts: Option<&str>) -> DragCheck {
             return deny("network_mount");
         }
     }
-    DragCheck { ok: true, reason: None }
+    DragCheck {
+        ok: true,
+        reason: None,
+    }
 }
 
 /// Facts for the UI about the environment.
@@ -164,7 +207,9 @@ mod tests {
 
     #[test]
     fn parses_nvidia_smi_output() {
-        let stats = parse_nvidia_smi("NVIDIA GeForce RTX 3070, 61, 123.45, 220.00, 97, 7100, 8192\n").unwrap();
+        let stats =
+            parse_nvidia_smi("NVIDIA GeForce RTX 3070, 61, 123.45, 220.00, 97, 7100, 8192\n")
+                .unwrap();
         assert_eq!(stats.name, "NVIDIA GeForce RTX 3070");
         assert_eq!(stats.temperature_c, Some(61.0));
         assert_eq!(stats.power_limit_w, Some(220.0));
@@ -186,9 +231,22 @@ mod tests {
         }
         let table = "/dev/sda1 / ext4 rw 0 0\n//nas/media /mnt/nas cifs rw 0 0\n";
         assert!(drag_check("/home/me/clip.mov", Some(table)).ok);
-        assert_eq!(drag_check("/mnt/nas/Content/a.mov", Some(table)).reason.as_deref(), Some("network_mount"));
+        assert_eq!(
+            drag_check("/mnt/nas/Content/a.mov", Some(table))
+                .reason
+                .as_deref(),
+            Some("network_mount")
+        );
         assert_eq!(drag_check("/mnt/nasty/a.mov", Some(table)).reason, None);
-        assert_eq!(drag_check(&format!("/home/{}", "x".repeat(250)), None).reason.as_deref(), Some("path_too_long"));
-        assert_eq!(drag_check("\\\\nas\\share\\a.mov", None).reason.as_deref(), Some("network_mount"));
+        assert_eq!(
+            drag_check(&format!("/home/{}", "x".repeat(250)), None)
+                .reason
+                .as_deref(),
+            Some("path_too_long")
+        );
+        assert_eq!(
+            drag_check("\\\\nas\\share\\a.mov", None).reason.as_deref(),
+            Some("network_mount")
+        );
     }
 }

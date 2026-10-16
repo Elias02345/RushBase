@@ -39,7 +39,7 @@ function line(
 
 /** The most recent worker events, newest first. */
 export function EventLog({ log }: { log: LogEntry[] }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const entries = log
     .filter((e) => SHOWN.has(e.event.event))
     .slice(-12)
@@ -55,7 +55,7 @@ export function EventLog({ log }: { log: LogEntry[] }) {
               key={`${entry.at}-${entry.event.job_id ?? entry.event.event}`}
               data-failed={entry.event.event === "job_failed" || undefined}
             >
-              <time>{new Date(entry.at).toLocaleTimeString()}</time>
+              <time>{new Date(entry.at).toLocaleTimeString(i18n.language)}</time>
               <span>{line(entry, t)}</span>
             </li>
           ))}

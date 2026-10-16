@@ -240,7 +240,7 @@ function RunHero({ overview }: { overview: Overview }) {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
-  const total = Math.max(state.totalJobs, state.done + state.failed);
+  const total = Math.max(state.totalJobs || overview.totals.jobs, state.done + state.failed);
   const percent = total > 0 ? ((state.done + state.failed) / total) * 100 : 0;
   const rate = jobsPerMinute(state, now);
   const eta = etaSeconds(state, now);

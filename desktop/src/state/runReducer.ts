@@ -84,7 +84,7 @@ export function runReducer(state: RunState, action: RunAction): RunState {
       const next: RunState = {
         ...state,
         log,
-        phase: state.phase === "starting" || state.phase === "waiting" ? "running" : state.phase,
+        phase: ["idle", "starting", "waiting"].includes(state.phase) ? "running" : state.phase,
       };
       switch (event.event) {
         case "job_started":

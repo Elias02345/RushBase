@@ -33,7 +33,9 @@ pub fn stream_args(name: &str, options: &[String]) -> Result<Vec<String>, String
         if flags.contains(&option.as_str()) {
             args.push(option.clone());
         } else if flags_with_value.contains(&option.as_str()) {
-            let value = iter.next().ok_or_else(|| format!("{option} needs a value"))?;
+            let value = iter
+                .next()
+                .ok_or_else(|| format!("{option} needs a value"))?;
             if value.starts_with('-') || value.len() > 200 {
                 return Err(format!("invalid value for {option}"));
             }
@@ -56,7 +58,9 @@ pub fn terminate(pid: u32) {
     }
     #[cfg(windows)]
     {
-        let _ = std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/T"]).output();
+        let _ = std::process::Command::new("taskkill")
+            .args(["/PID", &pid.to_string(), "/T"])
+            .output();
     }
 }
 
@@ -67,13 +71,18 @@ fn kill(pid: u32) {
     }
     #[cfg(windows)]
     {
-        let _ = std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).output();
+        let _ = std::process::Command::new("taskkill")
+            .args(["/PID", &pid.to_string(), "/T", "/F"])
+            .output();
     }
 }
 
 impl Streams {
     pub fn is_running(&self, name: &str) -> bool {
-        self.running.lock().expect("streams lock").contains_key(name)
+        self.running
+            .lock()
+            .expect("streams lock")
+            .contains_key(name)
     }
 
     /// Start stream `name`; every stdout line becomes a `stream-event`, the end a `stream-exit`.
@@ -97,7 +106,10 @@ impl Streams {
             .spawn()
             .map_err(|e| format!("cannot start the worker CLI: {e}"))?;
         let pid = child.id();
-        self.running.lock().expect("streams lock").insert(name.to_string(), pid);
+        self.running
+            .lock()
+            .expect("streams lock")
+            .insert(name.to_string(), pid);
         let stdout = child.stdout.take().expect("piped stdout");
         let stderr = child.stderr.take().expect("piped stderr");
         let (app_out, label) = (app.clone(), name.to_string());
@@ -122,13 +134,24 @@ impl Streams {
 
     /// Gracefully stop one stream.
     pub fn stop(&self, name: &str) -> bool {
-        let pid = self.running.lock().expect("streams lock").get(name).copied();
+        let pid = self
+            .running
+            .lock()
+            .expect("streams lock")
+            .get(name)
+            .copied();
         pid.map(terminate).is_some()
     }
 
     /// Stop everything and wait up to `timeout` for the children to release their jobs.
     pub fn stop_all_blocking(&self, timeout: Duration) {
-        let pids: Vec<u32> = self.running.lock().expect("streams lock").values().copied().collect();
+        let pids: Vec<u32> = self
+            .running
+            .lock()
+            .expect("streams lock")
+            .values()
+            .copied()
+            .collect();
         pids.iter().for_each(|pid| terminate(*pid));
         let deadline = Instant::now() + timeout;
         while Instant::now() < deadline && !self.running.lock().expect("streams lock").is_empty() {
@@ -150,7 +173,17 @@ mod tests {
 
     #[test]
     fn process_options_are_whitelisted() {
-        let args = stream_args("process", &opts(&["--stages", "probe,preview", "--until", "06:30", "--exit-when-empty"])).unwrap();
+        let args = stream_args(
+            "process",
+            &opts(&[
+                "--stages",
+                "probe,preview",
+                "--until",
+                "06:30",
+                "--exit-when-empty",
+            ]),
+        )
+        .unwrap();
         assert_eq!(args[..2], ["process", "--json"]);
         assert!(args.contains(&"probe,preview".to_string()));
         assert!(stream_args("process", &opts(&["--exec", "x"])).is_err());
@@ -169,7 +202,10 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn terminate_stops_a_child() {
-        let mut child = std::process::Command::new("sleep").arg("30").spawn().unwrap();
+        let mut child = std::process::Command::new("sleep")
+            .arg("30")
+            .spawn()
+            .unwrap();
         terminate(child.id());
         let status = child.wait().unwrap();
         assert!(!status.success());

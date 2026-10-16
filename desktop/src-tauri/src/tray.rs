@@ -8,9 +8,19 @@ use tauri::{AppHandle, Emitter, Manager};
 /// Menu labels in the UI language.
 pub fn labels(language: &str) -> [&'static str; 4] {
     if language == "en" {
-        ["Show Rushbase", "Start processing", "Stop processing", "Quit"]
+        [
+            "Show Rushbase",
+            "Start processing",
+            "Stop processing",
+            "Quit",
+        ]
     } else {
-        ["Rushbase anzeigen", "Verarbeiten starten", "Verarbeitung stoppen", "Beenden"]
+        [
+            "Rushbase anzeigen",
+            "Verarbeiten starten",
+            "Verarbeitung stoppen",
+            "Beenden",
+        ]
     }
 }
 
@@ -35,8 +45,15 @@ pub fn build(app: &AppHandle, language: &str, on_quit: fn(&AppHandle)) -> bool {
             MenuItem::with_id(app, "quit", quit, true, None::<&str>)?,
         ];
         let separator = PredefinedMenuItem::separator(app)?;
-        let menu = Menu::with_items(app, &[&items[0], &separator, &items[1], &items[2], &separator, &items[3]])?;
-        let mut builder = TrayIconBuilder::with_id("main").menu(&menu).tooltip("Rushbase");
+        let menu = Menu::with_items(
+            app,
+            &[
+                &items[0], &separator, &items[1], &items[2], &separator, &items[3],
+            ],
+        )?;
+        let mut builder = TrayIconBuilder::with_id("main")
+            .menu(&menu)
+            .tooltip("Rushbase");
         if let Some(icon) = app.default_window_icon() {
             builder = builder.icon(icon.clone());
         }
