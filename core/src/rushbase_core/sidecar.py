@@ -106,9 +106,17 @@ class SidecarAI(_Model):
     audio: dict[str, Any] | None = None
     transcript_segments: int = 0
     transcript_language: str | None = None
+    transcript: list[dict[str, Any]] = Field(default_factory=list)
+    """Segments: idx, start_ms, end_ms, text, language, speaker, words."""
+    audio_events: list[dict[str, Any]] = Field(default_factory=list)
+    """Grouped audio events: tag, start_ms, end_ms, confidence, raw_top."""
     review_state: str = "none"
     review_reasons: list[str] = Field(default_factory=list)
     models: dict[str, Any] = Field(default_factory=dict)
+    ai_details: dict[str, Any] = Field(default_factory=dict)
+    """Asset-level model output kept for the review UI (``models`` is a part of it)."""
+    human_fields: list[str] = Field(default_factory=list)
+    """Asset columns edited by a person; AI results must not overwrite them after a rebuild."""
 
 
 class SidecarV1(_Model):

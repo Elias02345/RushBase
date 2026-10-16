@@ -15,6 +15,8 @@ import hashlib
 import json
 import logging
 import threading
+from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -24,6 +26,7 @@ from rushbase_server.settings import Settings
 logger = logging.getLogger(__name__)
 
 DIM = 768
+QUERY_CACHE_SIZE = 512
 SIGLIP_TEXT_LENGTH = 64
 LOCK_PATH = Path(__file__).resolve().parents[4] / "worker" / "models.lock.json"
 SIGLIP_FILES = ("text_model_fp16.onnx", "tokenizer.json")
@@ -76,6 +79,8 @@ class EncoderInfo:
     available: bool
     reason: str | None = None
     """Why the encoder is unavailable (shown by ``/search/capabilities``)."""
+    warming: bool = False
+    """The model is being loaded in the background; the first query would otherwise pay for it."""
 
 
 class QueryEncoder(Protocol):
@@ -93,6 +98,10 @@ class QueryEncoder(Protocol):
         """e5 vector (``query: `` prefix) for text-to-text retrieval."""
         ...
 
+    def warm(self) -> None:
+        """Load the models and run one query through them (blocking; call from a thread)."""
+        ...
+
 
 class NullEncoder:
     """No models configured: search degrades to full-text."""
@@ -108,6 +117,9 @@ class NullEncoder:
 
     def encode_text_query(self, text: str) -> list[float]:
         raise RuntimeError(self._reason)
+
+    def warm(self) -> None:
+        """Nothing to load."""
 
 
 class FakeEncoder:
@@ -133,6 +145,9 @@ class FakeEncoder:
 
     def encode_text_query(self, text: str) -> list[float]:
         return fake_vector(text, "text")
+
+    def warm(self) -> None:
+        """Nothing to load."""
 
 
 def _word_vector(word: str, salt: str) -> list[float]:
@@ -165,6 +180,8 @@ class OnnxEncoder:
         self._ids = load_layout(settings)
         self._sessions: dict[str, tuple[Any, Any]] = {}
         self._lock = threading.Lock()
+        self._warming = False
+        self._cache: OrderedDict[tuple[str, str], list[float]] = OrderedDict()
 
     def _missing(self, space: str) -> list[str]:
         model_id, _revision, files = self._ids[space]
@@ -176,7 +193,35 @@ class OnnxEncoder:
         reason = (
             f"missing files in {self._dir / model_id}: {', '.join(missing)}" if missing else None
         )
-        return EncoderInfo(space, model_id, revision, not missing, reason)
+        warming = self._warming and space not in self._sessions and not missing
+        return EncoderInfo(space, model_id, revision, not missing, reason, warming)
+
+    def warm(self) -> None:
+        """Load both towers and encode one query each, so the first real search is fast."""
+        self._warming = True
+        try:
+            for space in ("image", "text"):
+                if self._missing(space):
+                    continue
+                encode = self.encode_image_query if space == "image" else self.encode_text_query
+                encode("warm-up")
+        finally:
+            self._warming = False
+
+    def _cached(self, space: str, text: str, compute: Callable[[str], list[float]]) -> list[float]:
+        """Small LRU of query vectors: repeated queries (needs items, paging) skip the model."""
+        key = (space, text)
+        with self._lock:
+            hit = self._cache.get(key)
+            if hit is not None:
+                self._cache.move_to_end(key)
+                return list(hit)
+        vector = compute(text)
+        with self._lock:
+            self._cache[key] = vector
+            while len(self._cache) > QUERY_CACHE_SIZE:
+                self._cache.popitem(last=False)
+        return list(vector)
 
     def _load(self, space: str) -> tuple[Any, Any]:
         with self._lock:
@@ -197,6 +242,12 @@ class OnnxEncoder:
             return self._sessions[space]
 
     def encode_image_query(self, text: str) -> list[float]:
+        return self._cached("image", text, self._encode_image)
+
+    def encode_text_query(self, text: str) -> list[float]:
+        return self._cached("text", text, self._encode_text)
+
+    def _encode_image(self, text: str) -> list[float]:
         import numpy as np
 
         session, tokenizer = self._load("image")
@@ -207,7 +258,7 @@ class OnnxEncoder:
         output = np.asarray(session.run(["pooler_output"], {"input_ids": ids})[0], dtype=np.float32)
         return _normalise(output[0])
 
-    def encode_text_query(self, text: str) -> list[float]:
+    def _encode_text(self, text: str) -> list[float]:
         import numpy as np
 
         session, tokenizer = self._load("text")

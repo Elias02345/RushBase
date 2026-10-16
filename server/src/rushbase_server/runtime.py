@@ -171,6 +171,17 @@ class Runtime:
         logger.info("backup created", extra={"file": info.name, "bytes": info.size})
         return info
 
+    def warm_encoder(self) -> None:
+        """Load the query encoders in a worker thread so the first search is not slow."""
+
+        async def warm() -> None:
+            try:
+                await asyncio.to_thread(self.encoder.warm)
+            except Exception:
+                logger.warning("query encoder warm-up failed", exc_info=True)
+
+        self.tasks.append(asyncio.create_task(warm(), name="rushbase-encoder-warmup"))
+
     # --- loops ---
 
     def start(self) -> None:

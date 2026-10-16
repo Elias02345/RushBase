@@ -57,6 +57,8 @@ class SpaceStatus(BaseModel):
     """State of one semantic channel."""
 
     available: bool
+    warming: bool = False
+    """The query encoder is still loading in the background (searches wait for it)."""
     model_id: str
     revision: str | None
     reason: str | None
@@ -149,6 +151,7 @@ async def capabilities(_: ViewerDep, db: DbDep, runtime: RuntimeDep) -> Capabili
         )
         return SpaceStatus(
             available=info.available,
+            warming=info.warming,
             model_id=info.model_id,
             revision=info.revision,
             reason=info.reason,

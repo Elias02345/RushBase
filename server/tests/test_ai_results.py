@@ -3,7 +3,7 @@ from contextlib import AbstractAsyncContextManager
 from pathlib import Path
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from ai_support import (
     audio_output,
@@ -22,12 +22,15 @@ from rushbase_server.models import (
     Asset,
     AssetTag,
     AudioEvent,
+    Batch,
     EmbeddingImage,
     EmbeddingText,
     Shot,
+    TaxField,
+    TaxValue,
     TranscriptSegment,
 )
-from rushbase_server.services import ai_results, ai_sidecar
+from rushbase_server.services import ai_results, ai_sidecar, rebuild
 from support import Server
 
 pytestmark = pytest.mark.postgres
@@ -174,3 +177,98 @@ async def test_sidecar_refresh_rewrites_in_place(
         assert document.ai.summary_short_en == "Hafen short"
         assert document.ai.shot_descriptions[0]["short_de"] == "Boot kurz"
         assert tax
+
+
+async def test_rebuild_from_sidecars_restores_the_ai_section(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        async with server.runtime.session_factory() as session:
+            tax = await seed_taxonomy(session)
+            asset = await seed_shots_asset(session, shots=2)
+            asset.content_rel_dir = "Content/2026/rebuild"
+            (library_root / "Content/2026/rebuild").mkdir(parents=True)
+            for job, output in (
+                ("audio", audio_output(["Willkommen am Leuchtturm", "Zweiter Satz"])),
+                (
+                    "vision",
+                    vision_output([description(0, "Boot"), description(1, "Markt")], "Hafen"),
+                ),
+                ("classify", classify_output([tag("harbour", 0), tag("street", 1)])),
+            ):
+                await ai_results.apply_output(session, fake_job(asset.id, job), output)
+            session.add(
+                AssetTag(
+                    asset_id=asset.id,
+                    field_id=tax["field"],
+                    value_id=tax["street"],
+                    source="human",
+                    confidence=None,
+                )
+            )
+            asset.human_fields = ["title"]
+            await session.flush()
+            assert await ai_sidecar.refresh_for_runtime(server.runtime, session, asset.id)
+            await session.commit()
+            asset_id = asset.id
+
+        async def state() -> dict[str, object]:
+            async with server.runtime.session_factory() as session:
+                row = await session.get_one(Asset, asset_id)
+                tags = await session.execute(
+                    select(TaxField.key, TaxValue.value, AssetTag.source, AssetTag.confidence)
+                    .join(TaxField, TaxField.id == AssetTag.field_id)
+                    .join(TaxValue, TaxValue.id == AssetTag.value_id)
+                    .where(AssetTag.asset_id == asset_id)
+                    .order_by(TaxValue.value, AssetTag.source)
+                )
+                shots = await session.execute(
+                    select(
+                        Shot.idx,
+                        Shot.description_short_de,
+                        Shot.description_long_en,
+                        Shot.shot_size,
+                        Shot.ai_details,
+                    )
+                    .where(Shot.asset_id == asset_id)
+                    .order_by(Shot.idx)
+                )
+                segments = await session.execute(
+                    select(
+                        TranscriptSegment.idx, TranscriptSegment.text, TranscriptSegment.language
+                    )
+                    .where(TranscriptSegment.asset_id == asset_id)
+                    .order_by(TranscriptSegment.idx)
+                )
+                events = await session.execute(
+                    select(AudioEvent.tag, AudioEvent.start_ms, AudioEvent.confidence).where(
+                        AudioEvent.asset_id == asset_id
+                    )
+                )
+                return {
+                    "summary": (row.summary_short, row.summary_short_en, row.summary_long_en),
+                    "attributes": (row.shot_size, row.camera_angle, row.people_count),
+                    "audio_info": row.audio_info,
+                    "review": (row.review_state, row.review_reasons),
+                    "human_fields": row.human_fields,
+                    "ai_details": row.ai_details,
+                    "tags": [tuple(r) for r in tags],
+                    "shots": [tuple(r) for r in shots],
+                    "segments": [tuple(r) for r in segments],
+                    "events": [tuple(r) for r in events],
+                }
+
+        before = await state()
+        assert len(before["tags"]) == 3  # type: ignore[arg-type]
+        assert len(before["segments"]) == 2  # type: ignore[arg-type]
+        async with server.runtime.session_factory() as session:
+            await session.execute(delete(Asset))
+            await session.execute(delete(Batch))
+            await session.execute(delete(TaxValue))
+            await session.execute(delete(TaxField))
+            await session.commit()
+        async with server.runtime.session_factory() as session:
+            report = await rebuild.rebuild_from_sidecars(session, library_root)
+            await session.commit()
+        assert report.created == 1
+        assert await state() == before

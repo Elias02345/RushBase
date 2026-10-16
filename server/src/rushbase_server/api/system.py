@@ -32,6 +32,8 @@ class HealthResponse(BaseModel):
     setup_required: bool | None = None
     warnings: list[str] = []
     """Non-fatal configuration problems, e.g. ``mcp_public_url_missing``."""
+    encoders: dict[str, str] = {}
+    """Query encoder per space (``text``, ``image``): ``ready``, ``warming`` or ``unavailable``."""
 
 
 @router.get(
@@ -53,6 +55,10 @@ async def health(runtime: RuntimeDep, response: Response) -> HealthResponse:
         async with runtime.session_factory() as session:
             setup_required = not await session.scalar(select(func.count()).select_from(User))
     healthy = database and (not bound or (binding.mounted and binding.held))
+    encoders = {space: _encoder_state(runtime, space) for space in ("text", "image")}
+    warnings = [] if runtime.settings.public_url else ["mcp_public_url_missing"]
+    if runtime.settings.models_dir is not None and "unavailable" in encoders.values():
+        warnings.append("encoder_models_missing")
     if not healthy:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return HealthResponse(
@@ -62,8 +68,16 @@ async def health(runtime: RuntimeDep, response: Response) -> HealthResponse:
         library_mounted=mounted,
         lease_held=held,
         setup_required=setup_required,
-        warnings=[] if runtime.settings.public_url else ["mcp_public_url_missing"],
+        warnings=warnings,
+        encoders=encoders,
     )
+
+
+def _encoder_state(runtime: Runtime, space: str) -> str:
+    info = runtime.encoder.info(space)
+    if not info.available:
+        return "unavailable"
+    return "warming" if info.warming else "ready"
 
 
 class StageBacklogOut(BaseModel):

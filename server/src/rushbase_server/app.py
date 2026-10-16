@@ -82,6 +82,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
         app.state.runtime = runtime
         try:
             await _bind_library(runtime)
+            runtime.warm_encoder()
             if settings.background_tasks:
                 runtime.start()
             if settings.public_url:
