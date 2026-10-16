@@ -1,23 +1,487 @@
 {
-  "app": {
-    "tagline": "Dein Rohmaterial, sofort auffindbar.",
-    "intro": "Rushbase sammelt, analysiert und ordnet Video, Foto und Audio auf deinem Netzwerkspeicher. Die eigentliche Oberfläche kommt in Meilenstein 3."
+  "common": {
+    "back": "Zurück",
+    "next": "Weiter",
+    "clear": "Leeren",
+    "close": "Schließen",
+    "copied": "In die Zwischenablage kopiert",
+    "copyFailed": "Kopieren hat nicht geklappt",
+    "error": "Das hat nicht geklappt.",
+    "loading": "Lädt …",
+    "notifications": "Benachrichtigungen",
+    "retry": "Nochmal versuchen",
+    "save": "Speichern",
+    "saved": "Gespeichert"
   },
   "nav": {
-    "theme": "Farbschema wechseln",
-    "language": "Sprache wechseln"
+    "skip": "Zum Inhalt springen",
+    "home": "Rushbase Startseite",
+    "main": "Hauptnavigation",
+    "dashboard": "Übersicht",
+    "library": "Bibliothek",
+    "processing": "Verarbeitung",
+    "admin": "Verwaltung",
+    "logout": "Abmelden",
+    "language": "Sprache wechseln zu {{language}}",
+    "shortcuts": "Tastenkürzel",
+    "pending_one": "{{count}} offener Auftrag",
+    "pending_other": "{{count}} offene Aufträge"
   },
-  "health": {
-    "title": "Serverstatus",
-    "readiness": "Bereitschaft",
-    "server": "Server",
-    "database": "Datenbank",
-    "version": "Version {{version}}",
-    "refresh": "Neu prüfen",
-    "checking": "Prüfe …",
-    "up": "erreichbar",
-    "down": "nicht erreichbar",
-    "dbUp": "verbunden",
-    "dbDown": "keine Verbindung"
+  "theme": {
+    "system": "Farbschema: System (zum Wechseln klicken)",
+    "light": "Farbschema: Hell (zum Wechseln klicken)",
+    "dark": "Farbschema: Dunkel (zum Wechseln klicken)"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "editor": "Redakteur",
+    "viewer": "Betrachter"
+  },
+  "os": {
+    "windows": "Windows",
+    "macos": "macOS",
+    "linux": "Linux"
+  },
+  "media": {
+    "video": "Video",
+    "photo": "Foto",
+    "audio": "Audio",
+    "other": "Sonstiges"
+  },
+  "orientation": {
+    "landscape": "Querformat",
+    "portrait": "Hochformat",
+    "square": "Quadratisch"
+  },
+  "status": {
+    "copying": "Kopiert",
+    "waiting": "Wartet",
+    "processing": "In Arbeit",
+    "filed": "Einsortiert",
+    "review": "Prüfen",
+    "quarantine": "Quarantäne"
+  },
+  "assetStatus": {
+    "ingesting": "Wird kopiert",
+    "processing": "In Arbeit",
+    "review": "Prüfen",
+    "filed": "Einsortiert",
+    "quarantined": "Quarantäne",
+    "trashed": "Papierkorb",
+    "duplicate": "Duplikat"
+  },
+  "batch": {
+    "paused": "Pausiert",
+    "scanning": "Wird gelesen",
+    "waiting": "Wartet",
+    "processing": "In Arbeit",
+    "done": "Fertig",
+    "error": "Fehler"
+  },
+  "stages": {
+    "probe": "Analyse",
+    "hash": "Prüfsumme",
+    "preview": "Vorschau",
+    "shots": "Szenen",
+    "audio": "Audio",
+    "embed": "Embeddings",
+    "vision": "Bildverstehen",
+    "classify": "Einordnen",
+    "finalize": "Abschluss"
+  },
+  "fileRole": {
+    "original": "Original",
+    "sidecar": "Sidecar",
+    "proxy": "Proxy"
+  },
+  "history": {
+    "ingest": {
+      "grouped": "Im Eingang gruppiert"
+    },
+    "stage": {
+      "probe": "Analyse abgeschlossen",
+      "preview": "Vorschau erstellt"
+    },
+    "filing": {
+      "moved": "Einsortiert"
+    }
+  },
+  "meta": {
+    "groups": {
+      "camera": "Kamera",
+      "lens": "Objektiv",
+      "exposure": "Belichtung",
+      "video": "Video",
+      "audio": "Audio",
+      "location": "Ort",
+      "other": "Weiteres"
+    },
+    "fields": {
+      "make": "Hersteller",
+      "model": "Modell",
+      "serial_number": "Seriennummer",
+      "focal_length_mm": "Brennweite (mm)",
+      "aperture": "Blende",
+      "iso": "ISO",
+      "shutter": "Verschlusszeit",
+      "white_balance_k": "Weißabgleich (K)",
+      "codec": "Codec",
+      "resolution": "Auflösung",
+      "fps": "Bildrate",
+      "bit_depth": "Bittiefe",
+      "bitrate_mbps": "Bitrate (Mbit/s)",
+      "color_space": "Farbraum",
+      "log_profile": "Log-Profil",
+      "channels": "Kanäle",
+      "sample_rate_hz": "Abtastrate (Hz)",
+      "latitude": "Breitengrad",
+      "longitude": "Längengrad",
+      "altitude_m": "Höhe (m)"
+    }
+  },
+  "login": {
+    "title": "Willkommen zurück",
+    "lead": "Melde dich an, um dein Material zu finden.",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "invalid": "Benutzername oder Passwort stimmt nicht.",
+    "tooMany": "Zu viele Versuche. Bitte warte {{seconds}} Sekunden.",
+    "failed": "Anmeldung fehlgeschlagen.",
+    "unreachable": "Der Server ist nicht erreichbar.",
+    "demoHint": "Demo: elias, mara oder jonas mit dem Passwort rushbase-demo-pass"
+  },
+  "setup": {
+    "progress": "Fortschritt der Einrichtung",
+    "steps": {
+      "language": "Sprache",
+      "admin": "Konto",
+      "library": "Bibliothek",
+      "paths": "Pfade",
+      "done": "Fertig"
+    },
+    "language": {
+      "title": "Willkommen bei Rushbase",
+      "lead": "In welcher Sprache möchtest du starten? Das lässt sich später ändern.",
+      "deText": "Oberfläche auf Deutsch",
+      "enText": "Interface in English"
+    },
+    "admin": {
+      "title": "Dein Administrator-Konto",
+      "lead": "Damit verwaltest du Rushbase. Weitere Personen legst du später an.",
+      "displayName": "Anzeigename",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "passwordHint": "Mindestens {{count}} Zeichen.",
+      "confirm": "Passwort wiederholen"
+    },
+    "passwordShort": "Das Passwort braucht mindestens {{count}} Zeichen.",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+    "library": {
+      "title": "Deine Bibliothek",
+      "lead": "Rushbase legt nichts um: Originale bleiben, wo sie sind.",
+      "new": "Neue Bibliothek anlegen",
+      "newText": "Startet leer und legt die Ordner Input und Content an.",
+      "adopt": "Vorhandene Bibliothek übernehmen",
+      "adoptText": "Nutzt einen bereits eingerichteten Ordner weiter.",
+      "adoptFound": "Es wurde bereits eine Bibliothek gefunden. Sie wird übernommen.",
+      "restore": "Aus Backup wiederherstellen",
+      "restoreText_one": "{{count}} Backup gefunden.",
+      "restoreText_other": "{{count}} Backups gefunden.",
+      "name": "Name der Bibliothek",
+      "backup": "Backup",
+      "create": "Bibliothek einrichten",
+      "doRestore": "Wiederherstellen",
+      "failed": "Die Bibliothek konnte nicht eingerichtet werden."
+    },
+    "restored": "Backup wiederhergestellt",
+    "restoredText": "Melde dich mit deinem bisherigen Konto an.",
+    "paths": {
+      "title": "Wo liegt die Bibliothek?",
+      "lead": "Jeder Rechner sieht die Freigabe unter einem eigenen Pfad. Trage die Stammpfade ein, damit Rushbase dir den passenden Pfad zum Kopieren zeigt.",
+      "skip": "Später in der Verwaltung",
+      "failed": "Die Pfade konnten nicht gespeichert werden.",
+      "hint": {
+        "windows": "Zum Beispiel ein Netzlaufwerk oder UNC-Pfad.",
+        "macos": "Unter /Volumes eingehängt.",
+        "linux": "Zum Beispiel unter /mnt eingehängt."
+      },
+      "example": {
+        "windows": "\\\\nas\\media",
+        "macos": "/Volumes/media",
+        "linux": "/mnt/media"
+      }
+    },
+    "done": {
+      "title": "Alles bereit",
+      "lead": "Rushbase läuft. Zum Verarbeiten verbindest du jetzt deinen Rechner mit der Grafikkarte als Worker.",
+      "tokenTitle": "Worker verbinden",
+      "copyCommand": "Befehl kopieren",
+      "copyToken": "Nur Token kopieren",
+      "tokenNote": "Führe den Befehl auf dem Verarbeitungs-PC aus. Der Token gilt einmalig und wird nur jetzt angezeigt.",
+      "tokenFailed": "Der Token konnte nicht erstellt werden. Du findest ihn später unter Verwaltung.",
+      "open": "Rushbase öffnen"
+    },
+    "firstWorkerNote": "Erster Worker"
+  },
+  "shortcuts": {
+    "title": "Tastenkürzel",
+    "description": "Alles Wichtige geht ohne Maus.",
+    "palette": "Befehlspalette öffnen",
+    "search": "Suche fokussieren",
+    "goDashboard": "Zur Übersicht",
+    "goLibrary": "Zur Bibliothek",
+    "goProcessing": "Zur Verarbeitung",
+    "grid": "Im Raster navigieren",
+    "open": "Material öffnen",
+    "select": "Material auswählen",
+    "escape": "Dialog schließen",
+    "help": "Diese Hilfe"
+  },
+  "palette": {
+    "open": "Befehle",
+    "label": "Befehlspalette",
+    "placeholder": "Wohin soll es gehen?",
+    "empty": "Dazu gibt es nichts.",
+    "goTo": "Gehe zu",
+    "actions": "Aktionen",
+    "toggleTheme": "Farbschema wechseln",
+    "switchLanguage": "Sprache wechseln zu {{language}}",
+    "shortcuts": "Tastenkürzel anzeigen",
+    "pauseQueue": "Warteschlange pausieren",
+    "resumeQueue": "Warteschlange fortsetzen"
+  },
+  "errors": {
+    "notFoundTitle": "Hier ist nichts",
+    "notFoundText": "Diese Seite gibt es nicht. Vielleicht hilft ein Weg zurück zur Übersicht.",
+    "backHome": "Zur Übersicht",
+    "genericTitle": "Das ging schief",
+    "genericText": "Ein unerwarteter Fehler ist aufgetreten."
+  },
+  "dashboard": {
+    "morning": "Guten Morgen, {{name}}",
+    "afternoon": "Hallo, {{name}}",
+    "evening": "Guten Abend, {{name}}",
+    "summary": "{{filed}} Clips sind einsortiert, {{processing}} sind gerade in Arbeit.",
+    "queuePaused": "Warteschlange pausiert",
+    "pipeline": "So fließt dein Material",
+    "pipelineLabel": "Eingang, Analyse und Inhalt",
+    "input": "Eingang",
+    "analysis": "Analyse",
+    "content": "Bibliothek",
+    "analysisProgress": "Fortschritt der Analyse",
+    "jobsOpen_one": "{{count}} Auftrag offen",
+    "jobsOpen_other": "{{count}} Aufträge offen",
+    "workers": "Worker",
+    "allWorkers": "Alle Worker",
+    "noWorkerTitle": "Kein Worker online",
+    "noWorker": "Neues Material wartet, bis dein Verarbeitungs-PC startet. Die Suche funktioniert weiter.",
+    "workersOnline": "Worker online",
+    "workersOnlineText_one": "{{count}} Worker arbeitet",
+    "workersOnlineText_other": "{{count}} Worker arbeiten",
+    "recentBatches": "Letzte Stapel",
+    "allBatches": "Alle Stapel",
+    "noBatches": "Noch keine Stapel",
+    "noBatchesText": "Kopiere Material in den Input-Ordner, dann taucht es hier auf.",
+    "storage": "Speicher",
+    "storageIn_one": "in {{count}} Datei",
+    "storageIn_other": "in {{count}} Dateien",
+    "storageBar": "Speicherverteilung nach Medientyp",
+    "duplicates_one": "{{count}} Duplikat belegt {{size}}.",
+    "duplicates_other": "{{count}} Duplikate belegen {{size}}."
+  },
+  "library": {
+    "searchLabel": "Material durchsuchen",
+    "searchPlaceholder": "Suche nach Titel, Kamera, Objektiv, Ort …",
+    "searchPlaceholderShort": "Suchen …",
+    "filters": "Filter",
+    "clearFilters": "Zurücksetzen",
+    "removeFilter": "Filter entfernen",
+    "showMore": "{{count}} weitere",
+    "showLess": "Weniger",
+    "from": "Von",
+    "to": "Bis",
+    "sort": "Sortierung",
+    "sorts": {
+      "capture_desc": "Neueste zuerst",
+      "capture_asc": "Älteste zuerst",
+      "name_asc": "Name A–Z",
+      "size_desc": "Größte zuerst",
+      "duration_desc": "Längste zuerst"
+    },
+    "view": "Ansicht",
+    "viewGrid": "Rasteransicht",
+    "viewList": "Listenansicht",
+    "results": "Treffer",
+    "count_one": "{{formatted}} Treffer",
+    "count_other": "{{formatted}} Treffer",
+    "col": {
+      "name": "Name",
+      "type": "Typ",
+      "duration": "Dauer",
+      "resolution": "Auflösung",
+      "camera": "Kamera",
+      "date": "Aufnahme",
+      "size": "Größe",
+      "status": "Status"
+    },
+    "select": "{{name}} auswählen",
+    "selected_one": "{{count}} ausgewählt",
+    "selected_other": "{{count}} ausgewählt",
+    "selectLoaded": "Alle geladenen",
+    "clearSelection": "Auswahl aufheben",
+    "addToCollection": "Zur Sammlung",
+    "soon": "Sammlungen kommen in einem späteren Schritt",
+    "bulk": "Auswahl-Aktionen",
+    "emptyTitle": "Nichts gefunden",
+    "emptyFiltered": "Zu dieser Suche passt noch nichts. Lockere die Filter oder suche anders.",
+    "emptyFresh": "Sobald Material im Input-Ordner liegt und analysiert wurde, erscheint es hier.",
+    "resetSearch": "Suche zurücksetzen",
+    "errorTitle": "Laden hat nicht geklappt",
+    "errorText": "Der Server hat nicht geantwortet. Versuch es gleich nochmal."
+  },
+  "asset": {
+    "back": "Zurück",
+    "backToLibrary": "Zur Bibliothek",
+    "missingTitle": "Dieses Material gibt es nicht",
+    "missingText": "Es wurde entfernt oder der Link ist falsch.",
+    "noPreview": "Für dieses Material gibt es noch keine Vorschau.",
+    "noProxy": "Die Video-Vorschau wird noch vorbereitet.",
+    "shots_one": "{{count}} Szene",
+    "shots_other": "{{count}} Szenen",
+    "shotLabel": "Szene {{n}}, {{start}} bis {{end}}",
+    "keyframes": "Schlüsselbilder",
+    "jumpTo": "Springe zu {{time}}",
+    "sections": "Bereiche",
+    "tabs": {
+      "data": "Technik",
+      "files": "Dateien",
+      "history": "Verlauf",
+      "transcript": "Transkript",
+      "tags": "Tags"
+    },
+    "noMetadata": "Noch keine Metadaten",
+    "noMetadataText": "Sobald die Analyse gelaufen ist, stehen die Daten hier.",
+    "pathFor": "Pfad für Betriebssystem",
+    "copyPath": "Pfad kopieren",
+    "copyRelative": "Relativen Pfad kopieren",
+    "transcriptTitle": "Transkript folgt",
+    "transcriptText": "Gesprochenes Wort wird in einem späteren Schritt automatisch transkribiert und durchsuchbar.",
+    "tagsTitle": "Tags folgen",
+    "tagsText": "Automatische Schlagworte und Motive kommen in einem späteren Schritt."
+  },
+  "processing": {
+    "title": "Verarbeitung",
+    "lead": "Was gerade läuft, was wartet und was Hilfe braucht.",
+    "pauseQueue": "Warteschlange pausieren",
+    "resumeQueue": "Warteschlange fortsetzen",
+    "sections": "Bereiche der Verarbeitung",
+    "tabs": {
+      "queue": "Warteschlange",
+      "batches": "Stapel",
+      "workers": "Worker",
+      "quarantine": "Quarantäne"
+    },
+    "queueEmpty": "Nichts in der Warteschlange",
+    "queueEmptyText": "Neue Dateien erscheinen hier, sobald sie erkannt wurden.",
+    "stageBar": "{{done}} fertig, {{running}} laufen, {{queued}} warten, {{failed}} fehlgeschlagen",
+    "stageFacts": "{{bytes}} offen, etwa {{duration}} Material",
+    "batch": "Stapel",
+    "batches": "Stapel",
+    "firstSeen": "Entdeckt",
+    "priority": "Priorität",
+    "priorityValue": "Priorität {{value}}",
+    "lower": "Priorität von {{name}} senken",
+    "raise": "Priorität von {{name}} erhöhen",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "workers": "Worker",
+    "worker": "Worker",
+    "platform": "System",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Zuletzt gesehen",
+    "lastStage": "Letzte Stufe",
+    "revoke": "Entziehen",
+    "workersCount": "{{online}} von {{total}} Workern online.",
+    "workersAdminOnly": "Details sehen nur Administratoren.",
+    "quarantineEmpty": "Quarantäne ist leer",
+    "quarantineEmptyText": "Alles, was nicht verarbeitet werden konnte, landet hier und lässt sich nochmal anstoßen.",
+    "retry": "Erneut versuchen",
+    "retryQueued": "Wird erneut verarbeitet"
+  },
+  "admin": {
+    "title": "Verwaltung",
+    "lead": "Konten, Worker, Ablageregeln, Pfade und Backups.",
+    "sections": "Bereiche der Verwaltung",
+    "tabs": {
+      "users": "Konten",
+      "workers": "Worker-Tokens",
+      "rules": "Ablageregeln",
+      "settings": "Einstellungen",
+      "backups": "Backups"
+    },
+    "users": {
+      "title": "Konten",
+      "lead": "Wer Rushbase nutzen darf und was er dort darf.",
+      "add": "Konto hinzufügen",
+      "create": "Konto anlegen",
+      "name": "Name",
+      "role": "Rolle",
+      "roleOf": "Rolle von {{name}}",
+      "lastLogin": "Letzte Anmeldung",
+      "active": "Aktiv",
+      "activeLabel": "{{name}} aktiv"
+    },
+    "tokens": {
+      "title": "Worker-Tokens",
+      "lead": "Mit einem Token verbindest du einen neuen Verarbeitungs-PC. Jeder Token gilt einmalig.",
+      "note": "Notiz",
+      "notePlaceholder": "Zum Beispiel Schnittplatz",
+      "create": "Token erstellen",
+      "created": "Erstellt",
+      "createdTitle": "Token erstellt",
+      "createdText": "Führe diesen Befehl auf dem Worker-PC aus. Der Token wird nur jetzt angezeigt.",
+      "empty": "Noch keine Tokens",
+      "emptyText": "Erstelle einen Token, um einen Worker zu verbinden.",
+      "open": "Offen",
+      "used": "Eingelöst",
+      "expired": "Abgelaufen",
+      "revoked": "Widerrufen",
+      "revoke": "Widerrufen"
+    },
+    "rules": {
+      "lead": "Regeln gelten nur für neues Material. Bereits einsortierte Dateien bleiben, wo sie sind.",
+      "tokens": "Platzhalter: {year} {month} {day} {camera} {type} {batch}",
+      "preview": "Vorschau (Probelauf)",
+      "previewTitle": "Probelauf",
+      "previewSummary": "{{count}} Dateien geprüft, {{unmatched}} ohne passende Regel. Es wurde nichts verschoben.",
+      "name": "Name der Regel",
+      "enabled": "Aktiv",
+      "up": "Regel nach oben",
+      "down": "Regel nach unten",
+      "remove": "Regel entfernen",
+      "mediaType": "Medientyp",
+      "camera": "Kamera",
+      "batch": "Stapelname enthält",
+      "target": "Zielordner",
+      "any": "Beliebig",
+      "add": "Regel hinzufügen",
+      "newName": "Neue Regel",
+      "fallback": "Wenn keine Regel passt"
+    },
+    "settings": {
+      "paths": "Pfade pro Betriebssystem"
+    },
+    "backups": {
+      "title": "Backups",
+      "lead": "Sicherungen von Datenbank und Einstellungen liegen auf der Freigabe.",
+      "now": "Jetzt sichern",
+      "done": "Backup erstellt",
+      "file": "Datei",
+      "kind": "Art",
+      "empty": "Noch keine Backups",
+      "emptyText": "Sichere jetzt zum ersten Mal."
+    }
   }
 }

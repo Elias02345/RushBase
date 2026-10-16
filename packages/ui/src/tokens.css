@@ -1,0 +1,115 @@
+/* Rushbase design tokens.
+   Light and dark values live side by side via light-dark(); the theme is chosen with
+   [data-theme="light"|"dark"] on <html>, otherwise the OS preference applies.
+   Colours are OKLCH: neutrals carry a whisper of the accent hue (265), the accent is a
+   confident cobalt, and every pipeline status owns one hue so state reads at a glance. */
+
+:root {
+  color-scheme: light dark;
+
+  --rb-font: "Figtree Variable", ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --rb-font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", "Cascadia Code", monospace;
+
+  /* Type scale (fixed, product register) */
+  --rb-text-xs: 0.75rem;
+  --rb-text-sm: 0.8125rem;
+  --rb-text-base: 0.9375rem;
+  --rb-text-md: 1.0625rem;
+  --rb-text-lg: 1.25rem;
+  --rb-text-xl: 1.625rem;
+  --rb-text-2xl: 2.125rem;
+
+  /* Shape */
+  --rb-radius-xs: 8px;
+  --rb-radius-sm: 12px;
+  --rb-radius: 16px;
+  --rb-radius-lg: 22px;
+  --rb-radius-xl: 30px;
+
+  /* Spacing (4px base) */
+  --rb-space-1: 0.25rem;
+  --rb-space-2: 0.5rem;
+  --rb-space-3: 0.75rem;
+  --rb-space-4: 1rem;
+  --rb-space-5: 1.5rem;
+  --rb-space-6: 2rem;
+  --rb-space-7: 3rem;
+
+  /* Surfaces */
+  --rb-bg: light-dark(oklch(0.978 0.005 265), oklch(0.165 0.014 265));
+  --rb-bg-sunken: light-dark(oklch(0.955 0.008 265), oklch(0.135 0.014 265));
+  --rb-surface: light-dark(oklch(1 0 0), oklch(0.208 0.016 265));
+  --rb-surface-raised: light-dark(oklch(1 0 0), oklch(0.245 0.018 265));
+  --rb-surface-muted: light-dark(oklch(0.958 0.007 265), oklch(0.265 0.018 265));
+  --rb-surface-hover: light-dark(oklch(0.94 0.01 265), oklch(0.3 0.02 265));
+  --rb-border: light-dark(oklch(0.915 0.01 265), oklch(0.32 0.02 265));
+  --rb-border-strong: light-dark(oklch(0.82 0.014 265), oklch(0.42 0.022 265));
+  --rb-overlay: light-dark(oklch(0.2 0.03 265 / 38%), oklch(0.05 0.02 265 / 62%));
+
+  /* Text (all pairs verified >= 4.5:1 on their surface) */
+  --rb-text: light-dark(oklch(0.24 0.02 265), oklch(0.95 0.006 265));
+  --rb-text-muted: light-dark(oklch(0.45 0.02 265), oklch(0.76 0.015 265));
+  --rb-text-faint: light-dark(oklch(0.5 0.02 265), oklch(0.7 0.015 265));
+
+  /* Accent: used for primary actions, selection, focus and links */
+  --rb-accent: light-dark(oklch(0.52 0.2 262), oklch(0.75 0.14 262));
+  --rb-accent-hover: light-dark(oklch(0.46 0.2 262), oklch(0.82 0.12 262));
+  --rb-accent-soft: light-dark(oklch(0.95 0.035 262), oklch(0.3 0.07 262));
+  --rb-on-accent: light-dark(oklch(1 0 0), oklch(0.17 0.03 262));
+  --rb-focus: light-dark(oklch(0.52 0.2 262 / 40%), oklch(0.75 0.14 262 / 55%));
+
+  /* Pipeline status: fg (text on tint), bg (tint), solid (dots, bars, rings) */
+  --rb-copying-fg: light-dark(oklch(0.42 0.1 232), oklch(0.86 0.09 232));
+  --rb-copying-bg: light-dark(oklch(0.95 0.035 232), oklch(0.3 0.06 232));
+  --rb-copying-solid: light-dark(oklch(0.66 0.14 232), oklch(0.74 0.13 232));
+  --rb-waiting-fg: light-dark(oklch(0.46 0.1 80), oklch(0.88 0.1 85));
+  --rb-waiting-bg: light-dark(oklch(0.955 0.06 90), oklch(0.32 0.06 85));
+  --rb-waiting-solid: light-dark(oklch(0.78 0.15 80), oklch(0.8 0.14 85));
+  --rb-processing-fg: light-dark(oklch(0.44 0.15 300), oklch(0.85 0.1 300));
+  --rb-processing-bg: light-dark(oklch(0.95 0.035 300), oklch(0.3 0.08 300));
+  --rb-processing-solid: light-dark(oklch(0.6 0.19 300), oklch(0.72 0.16 300));
+  --rb-filed-fg: light-dark(oklch(0.4 0.1 155), oklch(0.86 0.11 155));
+  --rb-filed-bg: light-dark(oklch(0.95 0.04 155), oklch(0.3 0.06 155));
+  --rb-filed-solid: light-dark(oklch(0.64 0.16 155), oklch(0.75 0.16 155));
+  --rb-review-fg: light-dark(oklch(0.46 0.12 50), oklch(0.87 0.1 55));
+  --rb-review-bg: light-dark(oklch(0.955 0.04 55), oklch(0.32 0.07 50));
+  --rb-review-solid: light-dark(oklch(0.7 0.17 50), oklch(0.77 0.15 55));
+  --rb-quarantine-fg: light-dark(oklch(0.45 0.16 25), oklch(0.86 0.09 22));
+  --rb-quarantine-bg: light-dark(oklch(0.955 0.03 22), oklch(0.31 0.08 22));
+  --rb-quarantine-solid: light-dark(oklch(0.6 0.2 25), oklch(0.72 0.17 22));
+  --rb-neutral-fg: var(--rb-text-muted);
+  --rb-neutral-bg: var(--rb-surface-muted);
+  --rb-neutral-solid: light-dark(oklch(0.7 0.02 265), oklch(0.55 0.02 265));
+
+  /* Elevation */
+  --rb-shadow-c1: light-dark(oklch(0.3 0.05 265 / 7%), oklch(0 0 0 / 35%));
+  --rb-shadow-c2: light-dark(oklch(0.3 0.05 265 / 9%), oklch(0 0 0 / 30%));
+  --rb-shadow-c3: light-dark(oklch(0.25 0.06 265 / 22%), oklch(0 0 0 / 55%));
+  --rb-shadow-sm: 0 1px 2px var(--rb-shadow-c1);
+  --rb-shadow: 0 1px 2px var(--rb-shadow-c1), 0 8px 24px var(--rb-shadow-c2);
+  --rb-shadow-lg: 0 24px 60px var(--rb-shadow-c3);
+
+  /* Motion: strong ease-out for entering things, a springy settle for playful hovers */
+  --rb-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --rb-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --rb-spring: linear(0, 0.2 5%, 0.62 12%, 0.97 20%, 1.07 27%, 1.06 34%, 1.01 46%, 0.995 60%, 1);
+  --rb-dur-fast: 120ms;
+  --rb-dur: 180ms;
+  --rb-dur-slow: 260ms;
+
+  /* z-index scale */
+  --rb-z-sticky: 20;
+  --rb-z-dropdown: 40;
+  --rb-z-overlay: 60;
+  --rb-z-modal: 70;
+  --rb-z-toast: 80;
+  --rb-z-tooltip: 90;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}

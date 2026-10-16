@@ -37,6 +37,16 @@ All notable changes to this project are documented here. The format follows
 - `rushbase-server rebuild-from-sidecars [--dry-run]`.
 - Read APIs: `/api/v1/assets`, `/assets/{id}`, `/facets`, `/stats`, `/batches`,
   `/derived/{asset_id}/{path}` (Range, cache headers) and library settings (per-OS path roots).
+### Added (milestone M3, web UI)
+
+- Web app: setup wizard, login, dashboard with a live "material flows" pipeline, library search with
+  URL-synced facets, tile grid with hover scrubbing, list view and multi-select, asset detail with
+  player, shot timeline, grouped technical data and per-OS file paths, processing (queue, batches,
+  workers, quarantine retry) and admin (users, worker tokens, filing rules with dry run, path
+  mapping, backups). German and English, light and dark, keyboard first (command palette, `/`, `?`).
+- `packages/ui`: accessible component library on Radix and cmdk with OKLCH design tokens.
+- Mock API (MSW) for demos, tests and Playwright; Playwright and axe suite with CI browser cache;
+  screenshots in `docs/screenshots/`. ADR-0013.
 
 ### Added (milestone M1, server core)
 
