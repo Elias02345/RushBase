@@ -1,5 +1,8 @@
 """CLI commands of the AI toolchain: ``hardware``, ``models`` and ``bench``."""
 
+import asyncio
+import json
+from pathlib import Path
 from typing import Annotated, Any
 
 import typer
@@ -7,15 +10,18 @@ import typer
 from rushbase_worker.assets import BackendStore, ModelStore, load_models_lock
 from rushbase_worker.assets.download import DownloadError
 from rushbase_worker.assets.plan import models_for_profile
+from rushbase_worker.bench import bench_embeddings, bench_vision, bench_whisper, collect_items
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.hardware import HardwareReport, Profile, detect_hardware
 from rushbase_worker.output import emit_json, envelope
+from rushbase_worker.runtimes.manager import Runtimes
 
 JsonOption = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
 ProfileOption = Annotated[
     Profile | None, typer.Option(help="Hardware profile (default: detected).")
 ]
 
+bench_app = typer.Typer(help="Benchmark the local AI stack on this machine.", no_args_is_help=True)
 models_app = typer.Typer(
     help="Manage the pinned AI models and inference binaries.", no_args_is_help=True
 )
@@ -154,3 +160,70 @@ def models_remove(
     emit = _emitter("models remove", as_json)
     for spec in _resolve(model):
         emit({"event": "removed", "id": spec.id, "removed": store.remove(spec)})
+
+
+@bench_app.command("vision")
+def bench_vision_command(
+    frames: Annotated[
+        Path, typer.Option(exists=True, file_okay=False, help="Directory with keyframes.")
+    ],
+    profiles: Annotated[
+        str, typer.Option(help="Comma separated VLM variants (profiles.toml).")
+    ] = "gpu8-4b,gpu8-9b,baseline-qwen3vl8b",
+    repeats: Annotated[int, typer.Option(min=1, help="Passes over all items per variant.")] = 2,
+    output: Annotated[Path | None, typer.Option(help="Write the full result JSON here.")] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """Peak VRAM, latency per shot (3 images), tokens/s and JSON validity per VLM variant."""
+    runtimes = Runtimes(WorkerSettings())
+    items = collect_items(frames)
+    if not items:
+        raise typer.BadParameter(f"no keyframes (shot-NNNN-start|middle|end.jpg) below {frames}")
+    emit = _emitter("bench vision", as_json)
+    results = asyncio.run(
+        bench_vision(
+            runtimes, [v.strip() for v in profiles.split(",")], items, repeats=repeats, emit=emit
+        )  # fmt: skip
+    )
+    summaries = [r.summary() for r in results]
+    document = {"hardware": runtimes.hardware.model_dump(mode="json"), "items": len(items),
+                "repeats": repeats, "results": summaries}  # fmt: skip
+    if output:
+        output.write_text(json.dumps(document, indent=2, ensure_ascii=False))
+    emit({"event": "bench_done", **document})
+
+
+@bench_app.command("whisper")
+def bench_whisper_command(
+    audio: Annotated[Path, typer.Option(exists=True, dir_okay=False, help="16 kHz speech WAV.")],
+    seconds: Annotated[
+        float, typer.Option(help="Duration of the audio (for the realtime factor).")
+    ],
+    output: Annotated[Path | None, typer.Option(help="Write the result JSON here.")] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """Whisper large-v3-turbo on CUDA vs CPU, and the small model on CPU."""
+    runtimes = Runtimes(WorkerSettings())
+    emit = _emitter("bench whisper", as_json)
+    rows = asyncio.run(bench_whisper(runtimes, audio, seconds, emit))
+    if output:
+        output.write_text(json.dumps(rows, indent=2))
+    emit({"event": "bench_done", "results": rows})
+
+
+@bench_app.command("embed")
+def bench_embed_command(
+    images: Annotated[
+        Path, typer.Option(exists=True, file_okay=False, help="Directory with images.")
+    ],
+    output: Annotated[Path | None, typer.Option(help="Write the result JSON here.")] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """CPU latency of SigLIP 2 (fp16/int8), the text towers and CED."""
+    runtimes = Runtimes(WorkerSettings())
+    emit = _emitter("bench embed", as_json)
+    files = sorted(p for p in images.rglob("*") if p.suffix.lower() in {".jpg", ".png"})
+    rows = bench_embeddings(runtimes, files, emit)
+    if output:
+        output.write_text(json.dumps(rows, indent=2))
+    emit({"event": "bench_done", "results": rows})
