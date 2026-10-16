@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M2, CPU worker)
+
+- `rushbase-worker`: headless engine (config, retrying API client, claim loop with heartbeats,
+  graceful release on SIGINT/SIGTERM or stop time, mount check against the server's library id)
+  and stages `probe` (ffprobe + ExifTool + sidecar XML via a data-driven mapping table, decode
+  status per ADR-0003), `hash` (streaming BLAKE3), `preview` (poster, hover sprite, 720p proxy,
+  waveform + peaks, photo previews incl. HEIC/RAW, dHash, optional LUT normalisation) and `shots`
+  (PySceneDetect, keyframes, camera motion, quality).
+- CLI: `enroll`, `process` (alias `worker run`), `status`, `analyze`, extended `doctor`; JSON
+  contracts in `docs/cli-json.md`; documentation in `docs/worker.md`.
+- `worker/scripts/fetch-exiftool.py` installs the pinned, checksum-verified ExifTool into the
+  toolchain.
+
 ### Added (milestone M1, server core)
 
 - `rushbase-core`: UUIDv7 ids, media type tables, pure asset grouping (RAW+JPEG, sidecars, camera

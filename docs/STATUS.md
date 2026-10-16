@@ -12,6 +12,22 @@
 | Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
 | M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
 
+## M2 worker (engine part)
+
+The CPU worker engine is implemented on `feature/m2-worker-engine` (server-side filing and
+sidecars are separate work). Demo against a running server (see M1 demo):
+
+```sh
+python3 worker/scripts/fetch-exiftool.py          # pinned ExifTool into the toolchain
+uv run rushbase enroll --server http://127.0.0.1:18080 --token <token> --name dev-worker
+uv run rushbase doctor --library dev/library
+uv run rushbase process --exit-when-empty         # probe, hash, preview, shots
+uv run rushbase analyze dev/library/Input/<file>.mp4 --json   # no server needed
+```
+
+Details: `docs/worker.md`. The integration test `worker/tests/test_integration.py` starts a real
+server on port 18081 (needs `RUSHBASE_TEST_DATABASE_URL`).
+
 ## M0 demo
 
 Prerequisites: Docker, and nothing else on the host: `make setup` fetches Python 3.12 (uv),

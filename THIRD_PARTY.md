@@ -26,6 +26,12 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | Pillow | test media (EXIF images) | MIT-CMU (HPND) |
 | NumPy | test media | BSD-3-Clause |
 | tifffile | test media (DNG-style TIFF) | BSD-3-Clause |
+| pydantic-settings, platformdirs | worker configuration and data directories | MIT |
+| defusedxml | safe parsing of camera sidecar XML | PSF-2.0 |
+| pillow-heif (bundles libheif, libde265) | HEIC photos | BSD-3-Clause (libheif LGPL-3.0, libde265 LGPL-3.0) |
+| rawpy (bundles LibRaw) | camera RAW/DNG previews | MIT (LibRaw: LGPL-2.1 / CDDL-1.0) |
+| opencv-python-headless (OpenCV) | optical flow, image measures | Apache-2.0 (OpenCV 4.5+) |
+| PySceneDetect 0.6.6 | shot detection | BSD-3-Clause |
 
 ## JavaScript / TypeScript (web, packages)
 
@@ -49,7 +55,7 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | PostgreSQL, pgvector (`pgvector/pgvector` image) | database | PostgreSQL License |
 | `pg_dump` / `pg_restore` (PostgreSQL client tools) | scheduled backups and restore, invoked as separate processes | PostgreSQL License |
 | FFmpeg / ffprobe | media probing, test media | LGPL-2.1+ / GPL-2.0+ (build dependent), invoked as a separate process |
-| ExifTool | metadata extraction | Perl Artistic License / GPL, invoked as a separate process |
+| ExifTool 13.59 (pinned in `worker/binaries.lock.json`) | metadata extraction | Perl Artistic License / GPL, invoked as a separate process |
 | Samba (`dockurr/samba` image) | simulated NAS in the dev stack only | GPL-3.0 (Samba), MIT (image scripts) |
 | Docker Compose | dev orchestration | Apache-2.0 |
 | uv | Python tooling | MIT / Apache-2.0 |
