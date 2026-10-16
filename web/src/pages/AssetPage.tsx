@@ -10,14 +10,16 @@ import {
   TabsTrigger,
   useToast,
 } from "@rushbase/ui";
-import { Link, useParams, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Captions, Copy, FileSearch, Tags } from "lucide-react";
+import { Link, useParams, useRouter, useSearch } from "@tanstack/react-router";
+import { ArrowLeft, Copy, FileSearch, ScanSearch } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useTranscript } from "../api/aiQueries";
 import { ApiError } from "../api/client";
 import type { AssetDetail, Shot } from "../api/contracts";
-import { useAsset } from "../api/queries";
+import { hasRole, useAsset, useMe } from "../api/queries";
+import { timecode } from "../lib/ai";
 import {
   formatBytes,
   formatDate,
@@ -25,8 +27,13 @@ import {
   formatDuration,
   formatResolution,
 } from "../lib/format";
+import { formatMetaValue, hasValue } from "../lib/metadata";
 import { detectOs, copyText, type Os } from "../lib/platform";
 import { assetTone } from "../lib/status";
+import { AiDescription } from "./asset/AiDescription";
+import { SimilarPanel } from "./asset/SimilarPanel";
+import { TagsPanel } from "./asset/TagsPanel";
+import { TranscriptPanel } from "./asset/TranscriptPanel";
 
 function humanize(key: string): string {
   return key.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase());
@@ -38,13 +45,14 @@ function MetadataGroups({ detail }: { detail: AssetDetail }) {
   const groups: [string, [string, string][]][] = [];
   const loose: [string, string][] = [];
   for (const [key, value] of Object.entries(normalized)) {
+    if (!hasValue(value)) continue;
     if (value && typeof value === "object" && !Array.isArray(value)) {
       const rows = Object.entries(value as Record<string, unknown>)
-        .filter(([, v]) => v !== null && v !== undefined && v !== "")
-        .map(([k, v]): [string, string] => [k, String(v)]);
+        .filter(([, v]) => hasValue(v))
+        .map(([k, v]): [string, string] => [k, formatMetaValue(t, k, v)]);
       if (rows.length > 0) groups.push([key, rows]);
-    } else if (value !== null && value !== undefined && value !== "") {
-      loose.push([key, String(value)]);
+    } else {
+      loose.push([key, formatMetaValue(t, key, value)]);
     }
   }
   if (loose.length > 0) groups.push(["other", loose]);
@@ -131,6 +139,11 @@ function FilesPanel({ detail }: { detail: AssetDetail }) {
   );
 }
 
+function middleFrame(shot: Shot) {
+  return shot.keyframes.find((k) => k.position === "middle") ?? shot.keyframes[0];
+}
+
+/** Shot segments (with keyframe thumbnails inside) and a track of audio events below. */
 function ShotTimeline({
   detail,
   current,
@@ -142,6 +155,7 @@ function ShotTimeline({
 }) {
   const { t } = useTranslation();
   const total = detail.duration_ms ?? 0;
+  const transcript = useTranscript(detail.id, "", detail.ai.audio_events > 0);
   if (detail.shots.length === 0 || total === 0) return null;
   const label = (shot: Shot) =>
     t("asset.shotLabel", {
@@ -149,12 +163,14 @@ function ShotTimeline({
       start: formatDuration(shot.start_ms),
       end: formatDuration(shot.end_ms),
     });
+  const events = transcript.data?.events ?? [];
   return (
     <div className="timeline">
       <h3 className="timeline__title">{t("asset.shots", { count: detail.shots.length })}</h3>
-      <div className="timeline__track">
+      <div className="timeline__track timeline__track--thumbs">
         {detail.shots.map((shot) => {
           const active = current >= shot.start_ms && current < shot.end_ms;
+          const frame = middleFrame(shot);
           return (
             <button
               key={shot.idx}
@@ -165,7 +181,10 @@ function ShotTimeline({
               aria-current={active || undefined}
               title={label(shot)}
               onClick={() => onSeek(shot.start_ms)}
-            />
+            >
+              {frame?.url ? <img src={frame.url} alt="" loading="lazy" /> : null}
+              <span className="timeline__stamp">{timecode(shot.start_ms)}</span>
+            </button>
           );
         })}
         <span
@@ -174,35 +193,47 @@ function ShotTimeline({
           aria-hidden="true"
         />
       </div>
-      <ul className="keyframes" aria-label={t("asset.keyframes")}>
-        {detail.shots.flatMap((shot) =>
-          shot.keyframes.map((frame) => (
-            <li key={`${shot.idx}-${frame.t_ms}-${frame.position}`}>
-              <button
-                type="button"
-                onClick={() => onSeek(frame.t_ms)}
-                aria-label={t("asset.jumpTo", { time: formatDuration(frame.t_ms) })}
-              >
-                <img src={frame.url ?? undefined} alt="" loading="lazy" width={160} height={90} />
-                <span>{formatDuration(frame.t_ms)}</span>
-              </button>
-            </li>
-          )),
-        )}
-      </ul>
+      {events.length > 0 ? (
+        <div className="timeline__events" role="list" aria-label={t("asset.audioEvents")}>
+          {events.map((event, index) => (
+            <button
+              key={`${event.tag}-${index}`}
+              type="button"
+              role="listitem"
+              className="timeline__event"
+              style={{
+                left: `${(event.start_ms / total) * 100}%`,
+                width: `max(6px, ${((event.end_ms - event.start_ms) / total) * 100}%)`,
+              }}
+              title={`${t(`audioEvent.${event.tag}`, { defaultValue: event.tag })} ${timecode(event.start_ms)}`}
+              aria-label={`${t(`audioEvent.${event.tag}`, { defaultValue: event.tag })} ${timecode(event.start_ms)}`}
+              onClick={() => onSeek(event.start_ms)}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function Stage({ detail }: { detail: AssetDetail }) {
+function Stage({
+  detail,
+  videoRef,
+  current,
+  setCurrent,
+  initialMs,
+}: {
+  detail: AssetDetail;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  current: number;
+  setCurrent: (ms: number) => void;
+  initialMs: number | undefined;
+}) {
   const { t } = useTranslation();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [current, setCurrent] = useState(0);
   const ratio = detail.width && detail.height ? detail.width / detail.height : 16 / 9;
   const seek = (ms: number) => {
     const video = videoRef.current;
-    if (!video) return;
-    video.currentTime = ms / 1000;
+    if (video) video.currentTime = ms / 1000;
     setCurrent(ms);
   };
   return (
@@ -215,6 +246,9 @@ function Stage({ detail }: { detail: AssetDetail }) {
             poster={detail.poster_url ?? undefined}
             controls
             preload="metadata"
+            onLoadedMetadata={(event) => {
+              if (initialMs) event.currentTarget.currentTime = initialMs / 1000;
+            }}
             onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime * 1000)}
             aria-label={detail.title ?? detail.filename}
           />
@@ -234,13 +268,113 @@ function Stage({ detail }: { detail: AssetDetail }) {
   );
 }
 
-export function AssetPage() {
+type SimilarTarget = { kind: "asset" | "shot"; id: string };
+
+interface BodyState {
+  tab: string;
+  setTab: (tab: string) => void;
+  similar: SimilarTarget;
+  setSimilar: (target: SimilarTarget) => void;
+}
+
+function AssetBody({
+  detail,
+  tab,
+  setTab,
+  similar,
+  setSimilar,
+}: { detail: AssetDetail } & BodyState) {
   const { t } = useTranslation();
+  const me = useMe();
+  const search = useSearch({ from: "/_app/assets/$id" });
+  const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
+  const [current, setCurrent] = useState(search.t ?? 0);
+  const canEdit = hasRole(me.data?.role, "editor");
+  const seek = (ms: number) => {
+    const video = videoRef.current;
+    if (video) video.currentTime = ms / 1000;
+    setCurrent(ms);
+  };
+  const showSimilar = (target: SimilarTarget) => {
+    setSimilar(target);
+    setTab("similar");
+  };
+  return (
+    <div className="asset-layout">
+      <Stage
+        detail={detail}
+        videoRef={videoRef}
+        current={current}
+        setCurrent={setCurrent}
+        initialMs={search.t}
+        key={detail.id}
+      />
+      <Tabs value={tab} onValueChange={setTab} className="asset-tabs">
+        <TabsList aria-label={t("asset.sections")}>
+          <TabsTrigger value="data">{t("asset.tabs.data")}</TabsTrigger>
+          <TabsTrigger value="ai">{t("asset.tabs.ai")}</TabsTrigger>
+          <TabsTrigger value="tags">{t("asset.tabs.tags")}</TabsTrigger>
+          <TabsTrigger value="transcript">{t("asset.tabs.transcript")}</TabsTrigger>
+          <TabsTrigger value="similar">{t("asset.tabs.similar")}</TabsTrigger>
+          <TabsTrigger value="files">{t("asset.tabs.files")}</TabsTrigger>
+          <TabsTrigger value="history">{t("asset.tabs.history")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="data">
+          <MetadataGroups detail={detail} />
+        </TabsContent>
+        <TabsContent value="ai">
+          <AiDescription
+            detail={detail}
+            canEdit={canEdit}
+            onSeek={seek}
+            onSimilarShot={(idx) => {
+              const shot = detail.shots.find((s) => s.idx === idx);
+              if (shot) showSimilar({ kind: "shot", id: shot.id });
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="tags">
+          <TagsPanel detail={detail} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="transcript">
+          <TranscriptPanel detail={detail} current={current} onSeek={seek} />
+        </TabsContent>
+        <TabsContent value="similar">
+          {tab === "similar" ? <SimilarPanel kind={similar.kind} id={similar.id} /> : null}
+        </TabsContent>
+        <TabsContent value="files">
+          <FilesPanel detail={detail} />
+        </TabsContent>
+        <TabsContent value="history">
+          <ol className="history">
+            {detail.history.map((entry) => (
+              <li key={`${entry.at}-${entry.action}`}>
+                <span className="history__action">
+                  {t(`history.${entry.action}`, { defaultValue: entry.action })}
+                </span>
+                <span className="muted">{formatDateTime(entry.at)}</span>
+              </li>
+            ))}
+          </ol>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+/** The page state (tab, similar target) resets with the asset. */
+export function AssetPage() {
   const { id } = useParams({ from: "/_app/assets/$id" });
+  return <AssetPageInner key={id} id={id} />;
+}
+
+function AssetPageInner({ id }: { id: string }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const query = useAsset(id);
   const detail = query.data;
-
+  const [tab, setTab] = useState("data");
+  const [similar, setSimilar] = useState<SimilarTarget>({ kind: "asset", id });
   if (query.isError) {
     const missing = query.error instanceof ApiError && query.error.status === 404;
     return (
@@ -294,56 +428,34 @@ export function AssetPage() {
                   .join(" · ")}
               </p>
             </div>
-            <StatusChip tone={assetTone(detail.status)}>
-              {t(`assetStatus.${detail.status}`)}
-            </StatusChip>
+            <div className="page__actions">
+              {detail.ai.review_state === "pending" ? (
+                <StatusChip tone="review">{t("ai.reviewState.pending")}</StatusChip>
+              ) : null}
+              <StatusChip tone={assetTone(detail.status)}>
+                {t(`assetStatus.${detail.status}`)}
+              </StatusChip>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<ScanSearch size={14} />}
+                onClick={() => {
+                  setSimilar({ kind: "asset", id });
+                  setTab("similar");
+                }}
+              >
+                {t("similar.button")}
+              </Button>
+            </div>
           </header>
-          <div className="asset-layout">
-            <Stage detail={detail} key={detail.id} />
-            <Tabs defaultValue="data" className="asset-tabs">
-              <TabsList aria-label={t("asset.sections")}>
-                <TabsTrigger value="data">{t("asset.tabs.data")}</TabsTrigger>
-                <TabsTrigger value="files">{t("asset.tabs.files")}</TabsTrigger>
-                <TabsTrigger value="history">{t("asset.tabs.history")}</TabsTrigger>
-                <TabsTrigger value="transcript">{t("asset.tabs.transcript")}</TabsTrigger>
-                <TabsTrigger value="tags">{t("asset.tabs.tags")}</TabsTrigger>
-              </TabsList>
-              <TabsContent value="data">
-                <MetadataGroups detail={detail} />
-              </TabsContent>
-              <TabsContent value="files">
-                <FilesPanel detail={detail} />
-              </TabsContent>
-              <TabsContent value="history">
-                <ol className="history">
-                  {detail.history.map((entry) => (
-                    <li key={`${entry.at}-${entry.action}`}>
-                      <span className="history__action">
-                        {t(`history.${entry.action}`, { defaultValue: entry.action })}
-                      </span>
-                      <span className="muted">{formatDateTime(entry.at)}</span>
-                    </li>
-                  ))}
-                </ol>
-              </TabsContent>
-              <TabsContent value="transcript">
-                <EmptyState
-                  compact
-                  icon={<Captions size={24} />}
-                  title={t("asset.transcriptTitle")}
-                  description={t("asset.transcriptText")}
-                />
-              </TabsContent>
-              <TabsContent value="tags">
-                <EmptyState
-                  compact
-                  icon={<Tags size={24} />}
-                  title={t("asset.tagsTitle")}
-                  description={t("asset.tagsText")}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <AssetBody
+            detail={detail}
+            key={detail.id}
+            tab={tab}
+            setTab={setTab}
+            similar={similar}
+            setSimilar={setSimilar}
+          />
         </>
       )}
     </div>

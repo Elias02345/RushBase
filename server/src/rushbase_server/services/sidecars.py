@@ -19,11 +19,13 @@ from rushbase_core.sidecar import (
     META_DIR_NAME,
     RUSHBASE_XMP_SUFFIX,
     XMP_EXTENSION,
+    SidecarAI,
     SidecarBatch,
     SidecarDescriptive,
     SidecarFile,
     SidecarMetadata,
     SidecarShot,
+    SidecarTag,
     SidecarV1,
     render_xmp,
     sidecar_rel_path,
@@ -40,6 +42,8 @@ def build_sidecar(
     rule: FilingRule | None,
     library_id: UUID | None,
     written_at: datetime,
+    tags: Sequence[SidecarTag] = (),
+    ai: SidecarAI | None = None,
 ) -> SidecarV1:
     """Assemble the sidecar document of a (just filed) asset from database rows."""
     primary = next((f for f in files if f.id == asset.primary_file_id), files[0])
@@ -110,6 +114,8 @@ def build_sidecar(
             locked=asset.locked,
             analysis_profile=asset.analysis_profile,
         ),
+        tags=list(tags),
+        ai=ai,
         rule_version=rule.version if rule else None,
         created_at=asset.created_at,
         filed_at=asset.filed_at,
@@ -124,7 +130,7 @@ def xmp_for(sidecar: SidecarV1) -> bytes:
         title=descriptive.title,
         description_en=descriptive.summary_long_en or descriptive.tech_summary_en,
         description_de=descriptive.summary_long_de or descriptive.tech_summary_de,
-        keywords=[],
+        keywords=sorted({t.value for t in sidecar.tags}),
         rating=descriptive.rating,
     )
 
@@ -152,6 +158,11 @@ class WrittenSidecars:
     directories: list[str] = field(default_factory=list)
 
 
+def central_rel(asset_id: UUID) -> str:
+    """Library-relative path of the optional central copy of a sidecar."""
+    return f"{SYSTEM_DIR}/{META_DIR}/{asset_id}.json"
+
+
 def _existing_owner(path: Path) -> str | None:
     try:
         return str(json.loads(path.read_text(encoding="utf-8")).get("asset_id"))
@@ -159,7 +170,7 @@ def _existing_owner(path: Path) -> str | None:
         return None
 
 
-def _json_rel(root: Path, task: SidecarTask) -> str:
+def json_rel(root: Path, task: SidecarTask) -> str:
     rel = sidecar_rel_path(task.meta_directory, task.filename)
     owner = _existing_owner(resolve_in_root(root, rel))
     if owner is None or owner == str(task.asset_id):
@@ -185,18 +196,18 @@ def write_sidecars(root: Path, tasks: Sequence[SidecarTask], central_copy: bool)
     try:
         for task in tasks:
             data = task.sidecar.to_json()
-            json_rel = _json_rel(root, task)
-            meta_dir = resolve_in_root(root, json_rel).parent
+            json_path = json_rel(root, task)
+            meta_dir = resolve_in_root(root, json_path).parent
             if not meta_dir.exists():
-                written.directories.append(str(PurePosixPath(json_rel).parent))
-            atomic_write_bytes(resolve_in_root(root, json_rel), data)
-            written.paths.append(json_rel)
+                written.directories.append(str(PurePosixPath(json_path).parent))
+            atomic_write_bytes(resolve_in_root(root, json_path), data)
+            written.paths.append(json_path)
             if task.xmp_directory is not None:
                 xmp_rel = _xmp_rel(root, task)
                 atomic_write_bytes(resolve_in_root(root, xmp_rel), xmp_for(task.sidecar))
                 written.paths.append(xmp_rel)
             if central_copy:
-                central = f"{SYSTEM_DIR}/{META_DIR}/{task.asset_id}.json"
+                central = central_rel(task.asset_id)
                 atomic_write_bytes(resolve_in_root(root, central), data)
                 written.paths.append(central)
     except BaseException:
@@ -223,6 +234,8 @@ __all__ = [
     "SidecarTask",
     "WrittenSidecars",
     "build_sidecar",
+    "central_rel",
+    "json_rel",
     "remove_written",
     "write_sidecars",
     "xmp_for",

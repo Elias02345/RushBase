@@ -16,6 +16,9 @@ dependencies = [
   "pydantic-settings>=2.6",
   "argon2-cffi>=23.1",
   "typer>=0.15",
+  "numpy>=2.1",
+  "onnxruntime>=1.23",
+  "tokenizers>=0.21",
 ]
 
 [project.scripts]

@@ -115,3 +115,19 @@ def test_queue_indexes_exist(database_url: str) -> None:
         engine.dispose()
     assert any("'queued'" in d and "priority DESC" in d for d in definitions)
     assert any("'leased'" in d and "lease_expires_at" in d for d in definitions)
+
+
+@pytest.mark.postgres
+def test_m4_migration_is_idempotent_and_reversible(
+    monkeypatch: pytest.MonkeyPatch, fresh_database_url: str
+) -> None:
+    config = _config(monkeypatch, fresh_database_url)
+    command.upgrade(config, "0005")
+    assert "review_state" in _asset_columns(fresh_database_url)
+    command.stamp(config, "0004")
+    command.upgrade(config, "0005")  # every object already exists
+    command.downgrade(config, "0004")
+    assert "review_state" not in _asset_columns(fresh_database_url)
+    assert "asset_tag" not in _tables(fresh_database_url)
+    command.upgrade(config, "head")
+    assert "asset_tag" in _tables(fresh_database_url)

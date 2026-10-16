@@ -85,6 +85,32 @@ class SidecarDescriptive(_Model):
     analysis_profile: str | None = None
 
 
+class SidecarTag(_Model):
+    """A taxonomy tag with provenance (precedence human > claude > ai)."""
+
+    field: str
+    value: str
+    source: str
+    confidence: float | None = None
+    shot_idx: int | None = None
+
+
+class SidecarAI(_Model):
+    """AI results kept next to the media: descriptions, review state, transcript pointer."""
+
+    summary_short_de: str | None = None
+    summary_short_en: str | None = None
+    shot_descriptions: list[dict[str, Any]] = Field(default_factory=list)
+    attributes: dict[str, Any] = Field(default_factory=dict)
+    """shot_size, camera_angle, interior_exterior, time_of_day, people_count (asset level)."""
+    audio: dict[str, Any] | None = None
+    transcript_segments: int = 0
+    transcript_language: str | None = None
+    review_state: str = "none"
+    review_reasons: list[str] = Field(default_factory=list)
+    models: dict[str, Any] = Field(default_factory=dict)
+
+
 class SidecarV1(_Model):
     """Complete record of one filed asset (version 1)."""
 
@@ -103,8 +129,10 @@ class SidecarV1(_Model):
     perceptual_hash: str | None = None
     shots: list[SidecarShot] = Field(default_factory=list)
     descriptive: SidecarDescriptive = Field(default_factory=SidecarDescriptive)
-    tags: list[dict[str, Any]] = Field(default_factory=list)
-    """Placeholder for tags with source and confidence (filled from milestone M4 on)."""
+    tags: list[SidecarTag] = Field(default_factory=list)
+    """Taxonomy tags with source and confidence (milestone M4)."""
+    ai: SidecarAI | None = None
+    """Optional AI section; absent in sidecars written before the AI stages ran."""
     rule_version: int | None = None
     created_at: datetime
     filed_at: datetime | None = None

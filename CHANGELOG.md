@@ -6,6 +6,24 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M4, server and web)
+
+- Migration 0005: taxonomy, tags with provenance, transcripts, audio events, embeddings
+  (`vector(768)`, HNSW), AI description columns, review state, golden labels, evaluation runs and
+  collections; the full-text vector now covers AI summaries, transcript and approved tag labels.
+- Ingestion of the `audio`, `embed`, `vision` and `classify` results with human > claude > ai
+  precedence, review reasons and thresholds, and sidecar refresh for filed assets.
+- Taxonomy API (proposals, approve, merge, rename, synonyms, deprecate), `GET /api/v1/worker/taxonomy`,
+  dynamic facets and tag/AI-attribute filters.
+- Hybrid search (`/api/v1/search`: full-text, e5 and SigLIP fused by RRF, assets or scenes),
+  `/search/capabilities`, find similar for assets and shots, admin re-embed; query encoders on ONNX
+  Runtime (CPU). See `docs/search.md`.
+- Review queue, human edits of assets and shots, bulk edit and collections; golden set labelling,
+  `rushbase-server eval` and `docs/eval/`.
+- Web: hybrid search with Assets/Scenes toggle, asset tabs for description, tags, transcript and
+  similar material, shot timeline with keyframe thumbnails and audio events, `/review`, `/golden`,
+  `/admin/taxonomy`, search administration; technical metadata with units and translated labels.
+
 ### Added (milestone M4, worker AI stages)
 
 - Hardware detection (NVIDIA, AMD, Intel, Apple, Vulkan, CPU features) with backend and profile

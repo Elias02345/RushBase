@@ -84,9 +84,9 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   const search = page.getByRole("searchbox", { name: "Material durchsuchen" });
   await search.fill("uhd");
   await expect(page).toHaveURL(/q=uhd/);
-  const tiles = page.getByRole("group", { name: "Treffer" }).getByRole("button");
+  const tiles = page.getByRole("list", { name: "Treffer" }).getByRole("link");
   await expect(tiles.first()).toBeVisible();
-  await expect(page.getByText(/1 Treffer/)).toBeVisible();
+  await expect(page.getByText(/1 Kandidat/)).toBeVisible();
 
   // --- asset detail: the proxy plays (Range -> 206) and the shots are listed ----------------
   await tiles.first().click();
@@ -96,9 +96,7 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   const src = (await video.getAttribute("src")) ?? "";
   const ranged = await page.request.get(src, { headers: { Range: "bytes=0-1023" } });
   expect(ranged.status()).toBe(206);
-  await expect(
-    page.getByRole("list", { name: "Schlüsselbilder" }).getByRole("button").first(),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Szene 1,/ }).first()).toBeVisible();
 
   // --- processing page lists the worker -----------------------------------------------------
   await page.getByRole("link", { name: /Verarbeitung/ }).click();

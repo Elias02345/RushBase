@@ -106,6 +106,21 @@ class Settings(BaseSettings):
         default=None, description="Development fallback: run pg_dump/pg_restore via docker exec."
     )
 
+    # --- search (query encoding on the CPU, ADR-0012) ---
+    models_dir: Path | None = Field(
+        default=None,
+        description="Directory with the ONNX text towers: <models_dir>/<model-id>/<file>.",
+    )
+    siglip_model_id: str = "siglip2-base-patch16-256"
+    siglip_revision: str | None = Field(
+        default=None, description="Revision workers stored with image vectors (None: not checked)."
+    )
+    e5_model_id: str = "multilingual-e5-base"
+    e5_revision: str | None = Field(
+        default=None, description="Revision workers stored with text vectors (None: not checked)."
+    )
+    encoder_threads: int = Field(default=2, ge=1, le=64)
+
     # --- ops ---
     metrics_enabled: bool = False
 

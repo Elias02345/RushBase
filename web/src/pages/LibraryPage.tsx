@@ -14,6 +14,7 @@ import { FilterX, FolderSearch, LayoutGrid, List, ListPlus, X } from "lucide-rea
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useBulkEdit, useCollections, useHybridSearch } from "../api/aiQueries";
 import type { AssetSummary, SortKey } from "../api/contracts";
 import { useAssets, useFacets } from "../api/queries";
 import {
@@ -28,6 +29,7 @@ import { facetQuery, type LibrarySearch } from "../routes/search";
 import { AssetGrid, type SelectModifiers } from "./library/AssetGrid";
 import { valueLabel } from "../lib/facets";
 import { FacetSidebar } from "./library/Facets";
+import { HitCard } from "./library/HitCard";
 
 const SORTS: SortKey[] = ["-date", "date", "filename", "-size", "-duration", "-created_at"];
 /** Search results rank by relevance until the user picks an explicit order. */
@@ -42,6 +44,14 @@ const FILTER_KEYS = [
   "date_from",
   "date_to",
   "batch_id",
+  "shot_size",
+  "camera_angle",
+  "interior_exterior",
+  "time_of_day",
+  "person_identifiable",
+  "review_state",
+  "consent",
+  "collection_id",
 ] as const;
 
 export function LibraryPage() {
@@ -56,14 +66,26 @@ export function LibraryPage() {
   const [listHeight, setListHeight] = useState(520);
 
   const view = search.view ?? "grid";
-  const query = useMemo(() => ({ ...search, view: undefined }), [search]);
+  const level = search.level ?? "asset";
+  // A text query without an explicit order runs the hybrid search (relevance, scenes).
+  const hybrid = Boolean(search.q) && !search.sort;
+  const query = useMemo(() => ({ ...search, view: undefined, level: undefined }), [search]);
   const assets = useAssets(query);
+  const hybridQuery = useMemo(
+    () => ({ ...facetQuery(search), q: search.q ?? "", level }),
+    [search, level],
+  );
+  const found = useHybridSearch(hybridQuery, hybrid);
+  const hits = useMemo(() => found.data?.pages.flatMap((page) => page.items) ?? [], [found.data]);
+  const skipped = found.data?.pages[0]?.skipped ?? {};
+  const collections = useCollections();
+  const bulk = useBulkEdit();
   const facets = useFacets(useMemo(() => facetQuery(search), [search]));
   const items = useMemo(
     () => assets.data?.pages.flatMap((page) => page.items) ?? [],
     [assets.data],
   );
-  const total = assets.data?.pages[0]?.total ?? null;
+  const total = hybrid ? null : (assets.data?.pages[0]?.total ?? null);
 
   const update = useCallback(
     (patch: Partial<LibrarySearch>) => {
@@ -103,9 +125,10 @@ export function LibraryPage() {
     return () => observer.disconnect();
   }, []);
 
-  const fetchNext = assets.fetchNextPage;
-  const hasNext = assets.hasNextPage;
-  const fetching = assets.isFetchingNextPage;
+  const active = hybrid ? found : assets;
+  const fetchNext = active.fetchNextPage;
+  const hasNext = active.hasNextPage;
+  const fetching = active.isFetchingNextPage;
   const onNearEnd = useCallback(() => {
     if (hasNext && !fetching) void fetchNext();
   }, [hasNext, fetching, fetchNext]);
@@ -132,6 +155,7 @@ export function LibraryPage() {
     void navigate({ to: "/assets/$id", params: { id: asset.id } });
 
   const activeFilters = FILTER_KEYS.filter((key) => search[key]);
+  const tagFilters = search.tag ?? [];
   const columns: DataColumn<AssetSummary>[] = [
     {
       key: "name",
@@ -245,6 +269,21 @@ export function LibraryPage() {
             }))}
             className="library__sort"
           />
+          {search.q ? (
+            <div className="segmented segmented--text" role="group" aria-label={t("search.level")}>
+              {(["asset", "shot"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="segmented__btn"
+                  aria-pressed={level === key}
+                  onClick={() => update({ level: key === "asset" ? undefined : key })}
+                >
+                  {t(`search.levels.${key}`)}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="segmented" role="group" aria-label={t("library.view")}>
             <IconButton
               label={t("library.viewGrid")}
@@ -265,9 +304,26 @@ export function LibraryPage() {
           <span>
             {total !== null
               ? t("library.count", { count: total, formatted: formatNumber(total) })
-              : ""}
+              : hybrid && found.data
+                ? t("search.count", { count: found.data.pages[0]?.candidates ?? 0 })
+                : ""}
           </span>
           <ul className="chips">
+            {tagFilters.map((tag) => (
+              <li key={tag}>
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => {
+                    const next = tagFilters.filter((v) => v !== tag);
+                    update({ tag: next.length > 0 ? next : undefined });
+                  }}
+                >
+                  {tag.slice(tag.indexOf(":") + 1)}
+                  <X size={14} aria-label={t("library.removeFilter")} />
+                </button>
+              </li>
+            ))}
             {activeFilters.map((key) => (
               <li key={key}>
                 <button
@@ -285,8 +341,51 @@ export function LibraryPage() {
           </ul>
         </div>
 
+        {hybrid && Object.keys(skipped).length > 0 ? (
+          <p className="library__note" role="status">
+            {t("search.degraded")}
+          </p>
+        ) : null}
+
         <div className="library__scroll" ref={scrollRef}>
-          {assets.isLoading ? (
+          {hybrid ? (
+            found.isLoading ? (
+              <div className="skeleton-grid" aria-busy="true">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <Skeleton key={i} height={180} radius={16} />
+                ))}
+              </div>
+            ) : found.isError ? (
+              <EmptyState
+                title={t("library.errorTitle")}
+                description={t("library.errorText")}
+                action={<Button onClick={() => void found.refetch()}>{t("common.retry")}</Button>}
+              />
+            ) : hits.length === 0 ? (
+              <EmptyState
+                icon={<FolderSearch size={28} />}
+                title={t("library.emptyTitle")}
+                description={t("library.emptyFiltered")}
+              />
+            ) : (
+              <>
+                <ul className="hit-grid" aria-label={t("library.results")}>
+                  {hits.map((hit) => (
+                    <HitCard key={`${hit.asset.id}-${hit.shot?.id ?? ""}`} hit={hit} />
+                  ))}
+                </ul>
+                {found.hasNextPage ? (
+                  <Button
+                    variant="secondary"
+                    loading={found.isFetchingNextPage}
+                    onClick={() => void found.fetchNextPage()}
+                  >
+                    {t("search.more")}
+                  </Button>
+                ) : null}
+              </>
+            )
+          ) : assets.isLoading ? (
             <div className="skeleton-grid" aria-busy="true">
               {Array.from({ length: 12 }, (_, i) => (
                 <div key={i}>
@@ -365,14 +464,30 @@ export function LibraryPage() {
             >
               {t("library.selectLoaded")}
             </Button>
+            <Select
+              aria-label={t("library.addToCollection")}
+              placeholder={t("library.addToCollection")}
+              value=""
+              onValueChange={(collection) =>
+                bulk.mutate(
+                  { asset_ids: [...selected], add_to_collection: collection },
+                  { onSuccess: () => setSelected(new Set()) },
+                )
+              }
+              options={(collections.data ?? []).map((c) => ({ value: c.id, label: c.name }))}
+            />
             <Button
               size="sm"
               variant="secondary"
               icon={<ListPlus size={14} />}
-              disabled
-              title={t("library.soon")}
+              onClick={() =>
+                bulk.mutate(
+                  { asset_ids: [...selected], locked: true },
+                  { onSuccess: () => setSelected(new Set()) },
+                )
+              }
             >
-              {t("library.addToCollection")}
+              {t("library.lockSelected")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
               {t("library.clearSelection")}

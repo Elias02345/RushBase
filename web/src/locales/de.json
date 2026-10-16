@@ -11,7 +11,10 @@
     "notifications": "Benachrichtigungen",
     "retry": "Nochmal versuchen",
     "save": "Speichern",
-    "saved": "Gespeichert"
+    "saved": "Gespeichert",
+    "cancel": "Abbrechen",
+    "yes": "Ja",
+    "no": "Nein"
   },
   "nav": {
     "skip": "Zum Inhalt springen",
@@ -25,7 +28,10 @@
     "language": "Sprache wechseln zu {{language}}",
     "shortcuts": "Tastenkürzel",
     "pending_one": "{{count}} offener Auftrag",
-    "pending_other": "{{count}} offene Aufträge"
+    "pending_other": "{{count}} offene Aufträge",
+    "review": "Prüfen",
+    "golden": "Referenzset",
+    "taxonomy": "Taxonomie"
   },
   "theme": {
     "system": "Farbschema: System (zum Wechseln klicken)",
@@ -104,6 +110,10 @@
     },
     "filing": {
       "moved": "Einsortiert"
+    },
+    "asset": {
+      "edit": "Von Hand bearbeitet",
+      "bulk_edit": "Mehrfachbearbeitung"
     }
   },
   "meta": {
@@ -114,7 +124,9 @@
       "video": "Video",
       "audio": "Audio",
       "location": "Ort",
-      "other": "Weiteres"
+      "other": "Weiteres",
+      "photo": "Foto",
+      "attitude": "Lage"
     },
     "fields": {
       "make": "Hersteller",
@@ -136,7 +148,49 @@
       "sample_rate_hz": "Abtastrate (Hz)",
       "latitude": "Breitengrad",
       "longitude": "Längengrad",
-      "altitude_m": "Höhe (m)"
+      "altitude_m": "Höhe (m)",
+      "width": "Breite",
+      "height": "Höhe",
+      "bitrate": "Bitrate",
+      "profile": "Profil",
+      "sample_rate": "Abtastrate",
+      "track_names": "Tonspuren",
+      "chroma_subsampling": "Chroma-Subsampling",
+      "capture_fps": "Aufnahme-Bildrate",
+      "rotation": "Drehung",
+      "timecode": "Timecode",
+      "recorder": "Rekorder",
+      "microphone": "Mikrofon",
+      "serial": "Seriennummer",
+      "firmware": "Firmware",
+      "recording_format": "Aufnahmeformat",
+      "sensor_mode": "Sensormodus",
+      "focal_length_35mm": "Brennweite (Kleinbild)",
+      "t_stop": "T-Blende",
+      "focus_distance_m": "Fokusdistanz",
+      "stabilization": "Stabilisierung",
+      "adapter": "Adapter",
+      "shutter_s": "Verschlusszeit",
+      "shutter_angle": "Verschlusswinkel",
+      "tint": "Tint",
+      "nd_filter": "ND-Filter",
+      "gamma": "Gamma",
+      "embedded_lut": "Eingebettete LUT",
+      "hdr": "HDR",
+      "lat": "Breitengrad",
+      "lon": "Längengrad",
+      "alt_m": "Höhe",
+      "heading_deg": "Richtung",
+      "speed_mps": "Geschwindigkeit",
+      "container": "Container",
+      "reel": "Rolle",
+      "clip_name": "Clipname",
+      "scene": "Szene",
+      "take": "Take",
+      "flash": "Blitz",
+      "pitch_deg": "Neigung",
+      "roll_deg": "Rollen",
+      "yaw_deg": "Gieren"
     }
   },
   "login": {
@@ -340,7 +394,8 @@
     "emptyFresh": "Sobald Material im Input-Ordner liegt und analysiert wurde, erscheint es hier.",
     "resetSearch": "Suche zurücksetzen",
     "errorTitle": "Laden hat nicht geklappt",
-    "errorText": "Der Server hat nicht geantwortet. Versuch es gleich nochmal."
+    "errorText": "Der Server hat nicht geantwortet. Versuch es gleich nochmal.",
+    "lockSelected": "Sperren"
   },
   "asset": {
     "back": "Zurück",
@@ -360,17 +415,22 @@
       "files": "Dateien",
       "history": "Verlauf",
       "transcript": "Transkript",
-      "tags": "Tags"
+      "tags": "Tags",
+      "ai": "Beschreibung",
+      "similar": "Ähnliches"
     },
     "noMetadata": "Noch keine Metadaten",
     "noMetadataText": "Sobald die Analyse gelaufen ist, stehen die Daten hier.",
     "pathFor": "Pfad für Betriebssystem",
     "copyPath": "Pfad kopieren",
     "copyRelative": "Relativen Pfad kopieren",
-    "transcriptTitle": "Transkript folgt",
-    "transcriptText": "Gesprochenes Wort wird in einem späteren Schritt automatisch transkribiert und durchsuchbar.",
-    "tagsTitle": "Tags folgen",
-    "tagsText": "Automatische Schlagworte und Motive kommen in einem späteren Schritt."
+    "transcriptTitle": "Noch kein Transkript",
+    "transcriptText": "Sobald ein Worker die Tonspur analysiert hat, steht das gesprochene Wort hier und ist durchsuchbar.",
+    "tagsTitle": "Noch keine Tags",
+    "tagsText": "Tags erscheinen nach der Analyse oder wenn du sie selbst vergibst.",
+    "transcriptSearch": "Im Transkript suchen",
+    "transcriptCount": "{{shown}} von {{total}} Abschnitten",
+    "audioEvents": "Tonereignisse"
   },
   "processing": {
     "title": "Verarbeitung",
@@ -421,7 +481,8 @@
       "workers": "Worker-Tokens",
       "rules": "Ablageregeln",
       "settings": "Einstellungen",
-      "backups": "Backups"
+      "backups": "Backups",
+      "search": "Suche"
     },
     "users": {
       "title": "Konten",
@@ -479,5 +540,216 @@
       "empty": "Noch keine Backups",
       "emptyText": "Sichere jetzt zum ersten Mal."
     }
+  },
+  "audioEvent": {
+    "speech": "Sprache",
+    "music": "Musik",
+    "applause": "Applaus",
+    "gunshot": "Schuss",
+    "explosion": "Explosion",
+    "wind": "Wind",
+    "silence": "Stille"
+  },
+  "ai": {
+    "noDescriptionTitle": "Noch keine Beschreibung",
+    "noDescriptionText": "Die Bildanalyse läuft, sobald ein Worker online ist. Suche und Filter funktionieren auch ohne.",
+    "language": "Sprache der Beschreibung",
+    "editedByPerson": "Von Hand bearbeitet",
+    "editDescription": "Beschreibung bearbeiten",
+    "shotDescriptions": "Beschreibung je Szene",
+    "similarScenes": "Ähnliche Szenen",
+    "field": {
+      "shot_size": "Einstellungsgröße",
+      "camera_angle": "Kamerawinkel",
+      "interior_exterior": "Innen/Außen",
+      "time_of_day": "Tageszeit",
+      "person_identifiable": "Person erkennbar",
+      "people_count": "Personen"
+    },
+    "reviewState": {
+      "none": "Ohne",
+      "pending": "Zu prüfen",
+      "done": "Geprüft"
+    },
+    "shotSize": {
+      "extreme_wide": "Panorama",
+      "wide": "Totale",
+      "full": "Halbtotale",
+      "medium": "Halbnah",
+      "medium_close": "Nah",
+      "close_up": "Groß",
+      "extreme_close_up": "Detail",
+      "detail": "Detail"
+    },
+    "cameraAngle": {
+      "eye_level": "Augenhöhe",
+      "low": "Froschperspektive",
+      "high": "Von oben",
+      "birds_eye": "Vogelperspektive",
+      "top_down": "Draufsicht",
+      "dutch": "Schräg",
+      "pov": "Ich-Perspektive"
+    },
+    "interiorExterior": {
+      "interior": "Innen",
+      "exterior": "Außen",
+      "mixed": "Gemischt",
+      "unknown": "Unbekannt"
+    },
+    "timeOfDay": {
+      "dawn": "Morgendämmerung",
+      "day": "Tag",
+      "golden_hour": "Goldene Stunde",
+      "dusk": "Abenddämmerung",
+      "night": "Nacht",
+      "unknown": "Unbekannt"
+    },
+    "tri": {
+      "yes": "Ja",
+      "no": "Nein",
+      "unknown": "Unbekannt"
+    }
+  },
+  "tags": {
+    "source": {
+      "human": "Von Hand",
+      "claude": "Claude",
+      "ai": "KI"
+    },
+    "sourceHint": {
+      "human": "Von einem Menschen gesetzt",
+      "claude": "Von Claude gesetzt",
+      "ai": "Automatisch erkannt"
+    },
+    "shot": "Szene {{n}}",
+    "confirm": "{{tag}} bestätigen",
+    "remove": "{{tag}} entfernen",
+    "lock": "Sperren",
+    "lockHint": "Gesperrte Medien ändert die Analyse nie automatisch.",
+    "field": "Feld",
+    "value": "Wert",
+    "add": "Hinzufügen"
+  },
+  "similar": {
+    "title": "Ähnliches Material",
+    "button": "Ähnliche finden",
+    "noVectorsTitle": "Noch keine Bildvektoren",
+    "noVectorsText": "Ähnliches finden geht, sobald ein Worker die Schlüsselbilder analysiert hat.",
+    "emptyTitle": "Nichts Ähnliches gefunden",
+    "emptyText": "Mit den aktuellen Filtern gibt es keine Treffer."
+  },
+  "search": {
+    "level": "Trefferart",
+    "levels": {
+      "asset": "Material",
+      "shot": "Szenen"
+    },
+    "count_one": "{{count}} Kandidat",
+    "count_other": "{{count}} Kandidaten",
+    "degraded": "Die semantische Suche ist gerade nicht aktiv (Modelle oder Vektoren fehlen). Du siehst Treffer aus der Volltextsuche.",
+    "more": "Mehr laden",
+    "agreement": "{{count}} Suchwege stimmen überein"
+  },
+  "review": {
+    "title": "Prüfen",
+    "lead": "Material, bei dem die Analyse unsicher war.",
+    "count_one": "{{count}} Objekt wartet auf Prüfung",
+    "count_other": "{{count}} Objekte warten auf Prüfung",
+    "queue": "Warteschlange der Prüfung",
+    "reasons": "Gründe",
+    "reasonCount_one": "{{count}} Grund",
+    "reasonCount_other": "{{count}} Gründe",
+    "reasonShot": "Szene {{n}}: {{reason}}",
+    "reason": {
+      "low_confidence": "unsicher bei {{field}}",
+      "flag": "Hinweis: {{flag}}",
+      "vlm_siglip_conflict": "Bildanalyse und Bildsuche widersprechen sich",
+      "no_tags": "keine Tags zugeordnet"
+    },
+    "approve": "Freigeben",
+    "approved": "Als geprüft markiert.",
+    "lock": "Sperren",
+    "correct": "Korrigieren",
+    "filterReason": "Nach Grund filtern",
+    "allReasons": "Alle Gründe",
+    "emptyTitle": "Nichts zu prüfen",
+    "emptyText": "Die Analyse war bei allem sicher genug.",
+    "more": "Mehr laden",
+    "keys": "Tasten: J/K oder Pfeile wechseln, A gibt frei, L sperrt, Korrigieren öffnet das Material."
+  },
+  "taxonomy": {
+    "title": "Taxonomie",
+    "lead": "Das Vokabular der Tags. Version {{version}}. Änderungen starten die Zuordnung neu.",
+    "sections": "Bereiche der Taxonomie",
+    "proposals": "Vorschläge",
+    "fields": "Felder und Werte",
+    "kind": {
+      "single": "ein Wert",
+      "multi": "mehrere Werte"
+    },
+    "status": {
+      "approved": "freigegeben",
+      "proposed": "vorgeschlagen",
+      "deprecated": "veraltet"
+    },
+    "assets_one": "{{count}} Objekt",
+    "assets_other": "{{count}} Objekte",
+    "noValues": "Noch keine Werte.",
+    "noProposalsTitle": "Keine offenen Vorschläge",
+    "noProposalsText": "Neue Begriffe aus der Analyse erscheinen hier zur Freigabe.",
+    "proposedTimes_one": "{{count}} Mal vorgeschlagen",
+    "proposedTimes_other": "{{count}} Mal vorgeschlagen",
+    "approve": "Freigeben",
+    "merge": "Zusammenführen",
+    "rename": "Umbenennen",
+    "addSynonym": "Synonym",
+    "deprecate": "Außer Dienst",
+    "add": "Hinzufügen",
+    "newValue": "Neuer Wert für {{field}}",
+    "newField": "Neues Feld",
+    "fieldKey": "Schlüssel",
+    "fieldKeyHint": "Kleinbuchstaben, Ziffern und Unterstrich",
+    "labelDe": "Name (Deutsch)",
+    "labelEn": "Name (Englisch)",
+    "createField": "Feld anlegen",
+    "mergeInto": "Zusammenführen mit",
+    "chooseTarget": "Wert wählen",
+    "newName": "Neuer Name",
+    "synonym": "Synonym",
+    "dialog": {
+      "rename": "{{value}} umbenennen",
+      "synonym": "Synonym für {{value}}",
+      "merge": "{{value}} zusammenführen",
+      "confirm": "Übernehmen"
+    }
+  },
+  "golden": {
+    "title": "Referenzset",
+    "lead": "{{labels}} Angaben zu {{assets}} Objekten, davon {{corrections}} aus Korrekturen.",
+    "skip": "Überspringen",
+    "emptyTitle": "Alles beschriftet",
+    "emptyText": "Es gibt kein unbeschriftetes Material mehr.",
+    "restart": "Von vorn",
+    "frames": "Schlüsselbilder",
+    "shots": "Szenen",
+    "fields": "Felder",
+    "aiGuess": "KI",
+    "keys": "Tasten: 1–9 wählt den Wert, Enter übernimmt den KI-Vorschlag, Pfeile wechseln Feld und Szene, N überspringt."
+  },
+  "searchAdmin": {
+    "channels": "Suchwege",
+    "fulltext": "Volltext",
+    "textChannel": "Text-Vektoren (e5)",
+    "imageChannel": "Bild-Vektoren (SigLIP)",
+    "available": "aktiv",
+    "unavailable": "nicht verfügbar",
+    "vectors": "{{ok}} passend, {{bad}} abweichend",
+    "reembedText": "Gespeicherte Vektoren stammen von einem anderen Modell als dem des Servers. Sie werden bei der Suche ignoriert.",
+    "reembed": "Neu einbetten",
+    "reembedQueued": "{{count}} Objekte eingeplant",
+    "byImage": "Suche per Beispielbild braucht den Bild-Encoder und läuft nur auf Workern (ADR-0012).",
+    "eval": "Auswertung",
+    "runEval": "Auswertung starten",
+    "runSummary": "{{labels}} Angaben, Trefferquote {{accuracy}}"
   }
 }

@@ -14,6 +14,7 @@ import { ErrorPage, NotFoundPage } from "./shell/ErrorPages";
 import { AppShell } from "./shell/AppShell";
 import {
   validateAdminSearch,
+  validateAssetSearch,
   validateLibrarySearch,
   validateLoginSearch,
   validateProcessingSearch,
@@ -79,6 +80,7 @@ const libraryRoute = createRoute({
 const assetRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/assets/$id",
+  validateSearch: validateAssetSearch,
   component: lazyRouteComponent(() => import("./pages/AssetPage"), "AssetPage"),
 });
 
@@ -100,10 +102,49 @@ const adminRoute = createRoute({
   component: lazyRouteComponent(() => import("./pages/AdminPage"), "AdminPage"),
 });
 
+const reviewRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/review",
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData({ queryKey: keys.me, queryFn: fetchMe });
+    if (!hasRole(me.role, "editor")) throw redirect({ to: "/" });
+  },
+  component: lazyRouteComponent(() => import("./pages/ReviewPage"), "ReviewPage"),
+});
+
+const goldenRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/golden",
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData({ queryKey: keys.me, queryFn: fetchMe });
+    if (!hasRole(me.role, "editor")) throw redirect({ to: "/" });
+  },
+  component: lazyRouteComponent(() => import("./pages/GoldenPage"), "GoldenPage"),
+});
+
+const taxonomyRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/admin/taxonomy",
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData({ queryKey: keys.me, queryFn: fetchMe });
+    if (!hasRole(me.role, "editor")) throw redirect({ to: "/" });
+  },
+  component: lazyRouteComponent(() => import("./pages/TaxonomyPage"), "TaxonomyPage"),
+});
+
 export const routeTree = rootRoute.addChildren([
   loginRoute,
   setupRoute,
-  appRoute.addChildren([dashboardRoute, libraryRoute, assetRoute, processingRoute, adminRoute]),
+  appRoute.addChildren([
+    dashboardRoute,
+    libraryRoute,
+    assetRoute,
+    reviewRoute,
+    goldenRoute,
+    processingRoute,
+    adminRoute,
+    taxonomyRoute,
+  ]),
 ]);
 
 export function createAppRouter(

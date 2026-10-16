@@ -49,6 +49,7 @@ import type { Role, User } from "../api/types";
 import { formatBytes, formatDateTime } from "../lib/format";
 import { copyText, enrollCommand } from "../lib/platform";
 import type { AdminTab } from "../routes/search";
+import { SearchAdmin } from "./admin/SearchAdmin";
 
 const ROLES: Role[] = ["admin", "editor", "viewer"];
 
@@ -646,6 +647,7 @@ export function AdminPage() {
           <TabsTrigger value="rules">{t("admin.tabs.rules")}</TabsTrigger>
           <TabsTrigger value="settings">{t("admin.tabs.settings")}</TabsTrigger>
           <TabsTrigger value="backups">{t("admin.tabs.backups")}</TabsTrigger>
+          <TabsTrigger value="search">{t("admin.tabs.search")}</TabsTrigger>
         </TabsList>
         <TabsContent value="users">
           <UsersPanel />
@@ -661,6 +663,9 @@ export function AdminPage() {
         </TabsContent>
         <TabsContent value="backups">
           <BackupsPanel />
+        </TabsContent>
+        <TabsContent value="search">
+          <SearchAdmin />
         </TabsContent>
       </Tabs>
     </div>

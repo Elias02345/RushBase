@@ -82,3 +82,4 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | multilingual-e5-base (ONNX by Xenova) | text embeddings | MIT |
 | CED-mini / CED-small (mispeech) | audio events | Apache-2.0 |
 | ONNX Runtime, tokenizers | inference | MIT / Apache-2.0 |
+| NumPy | array maths in the server query encoder | BSD-3-Clause |

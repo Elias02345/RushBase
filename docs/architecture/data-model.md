@@ -75,8 +75,7 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 - `shot` rows are upserted by `(asset_id, idx)`; `keyframes` keep library-relative derived paths.
 - Result ingestion contract: `docs/filing.md` and `rushbase_core.results`.
 
-M4 adds `transcript_segment`, embedding tables (one per dimension, by ADR), taxonomy tables, M5 the
-need lists, and collections arrive with the web UI.
+M4 (migration 0005, below) adds the AI tables; M5 adds the need lists.
 
 ### Full-text search (M3, migration 0004)
 
@@ -159,3 +158,34 @@ Bearer API key per worker (stored hashed, shown once at enrollment).
 | `POST jobs/{id}/release` | Graceful give-back without an attempt penalty. |
 
 No endpoint waits for a worker; the backlog (`GET /api/v1/status`) is answered from the database alone.
+
+### AI, taxonomy and evaluation (M4, migration 0005)
+
+Additive and idempotent; `downgrade` drops the tables and columns and restores the 0004 search
+functions.
+
+| Table | Content |
+|---|---|
+| `tax_field` / `tax_value` | Vocabulary. Values: `status` proposed/approved/deprecated, `synonyms text[]`, `parent_id`, `proposal_count`, `example_asset_ids`; unique `(field_id, lower(value))`. |
+| `taxonomy_version` | Single row (`id = 1`) counter, bumped by approved changes. |
+| `asset_tag` | `asset_id`, optional `shot_id`, `field_id`, `value_id`, `source` ai/claude/human, `confidence`, `model_ref`; unique `(asset, shot, value, source)` with `NULLS NOT DISTINCT`. |
+| `transcript_segment` | `idx`, `start_ms`, `end_ms`, `text`, `language`, `speaker`, `words` (JSONB) and a generated `tsv`. |
+| `audio_event` | `tag`, time range, `confidence`, `raw_top`. |
+| `embedding_image` / `embedding_text` | `vector(768)` with `model_id`, `revision`, HNSW `vector_cosine_ops`. Text rows carry `kind` (asset_summary, shot_description, transcript_chunk), time range and language. One table per space, so a model change never mixes spaces. |
+| `golden_label` | Expected value per `(asset, shot, field)`; `origin` label/correction. |
+| `eval_run` | Stored evaluation: model refs, `golden_count`, `metrics` (JSONB). |
+| `collection`, `collection_asset` | Manually curated sets (virtual organisation). |
+
+New `asset` columns: `summary_short_en`, `shot_size`, `camera_angle`, `interior_exterior`,
+`time_of_day`, `people_count`, `ai_details` (JSONB, models, rejected tags, review reasons per stage),
+`audio_info`, `review_state` none/pending/done, `review_reasons`, `human_fields`. New `shot` columns:
+`description_short_de/en`, `interior_exterior`, `time_of_day`, `people_count`, `person_identifiable`,
+`ai_details`, `human_fields`. `human_fields` lists columns edited by a person; AI results never
+overwrite them.
+
+`asset.search_tsv` now also covers the English summary, the transcript (weight C) and the labels,
+values and synonyms of approved tags (weight B). Transcript and tag changes refresh it through
+statement-level triggers with transition tables (one refresh per statement).
+
+Sidecars gain an optional `ai` section and typed `tags` (field, value, source, confidence); filed
+assets get them rewritten in place (temp file + rename) when AI results or human edits arrive.

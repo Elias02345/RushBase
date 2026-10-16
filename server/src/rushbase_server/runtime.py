@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
 from rushbase_server.models import Session, Worker
+from rushbase_server.search.encoder import NullEncoder, QueryEncoder
 from rushbase_server.services import backup, filing, inprocess, quarantine, queue, scanner
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter
@@ -38,6 +39,7 @@ class Runtime:
     binding: LibraryBinding
     limiter: LoginRateLimiter
     pg_tools: backup.PgTools
+    encoder: QueryEncoder = field(default_factory=NullEncoder)
     tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @property

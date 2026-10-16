@@ -152,6 +152,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/eval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Eval
+         * @description Evaluate the latest AI results against the golden labels and store the run.
+         */
+        post: operations["run_eval_api_v1_admin_eval_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/library-settings": {
         parameters: {
             query?: never;
@@ -230,6 +250,26 @@ export interface paths {
          * @description Hand out jobs again.
          */
         post: operations["resume_queue_api_v1_admin_queue_resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reembed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reembed All
+         * @description Queue `embed` + `classify` for assets whose vectors do not match the server's encoder.
+         */
+        post: operations["reembed_all_api_v1_admin_reembed_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -364,6 +404,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk edit assets
+         * @description Add/remove tags, set the lock or change collection membership for up to 500 assets.
+         */
+        post: operations["bulk_edit_api_v1_assets_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/{asset_id}": {
         parameters: {
             query?: never;
@@ -376,6 +436,52 @@ export interface paths {
          * @description Files (with per-OS paths), metadata, shots, derived links and history of one asset.
          */
         get: operations["get_asset_api_v1_assets__asset_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit an asset (human)
+         * @description Change descriptions, attributes, rating, lock, consent or tags; source is `human`.
+         *
+         *     Edited AI fields are protected from reprocessing; core corrections feed the golden set.
+         */
+        patch: operations["edit_asset_api_v1_assets__asset_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Similar Assets
+         * @description Assets that look like this one (stored SigLIP vectors, no encoder needed).
+         */
+        get: operations["similar_assets_api_v1_assets__asset_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}/transcript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Transcript
+         * @description Transcript segments (with word timings) and audio events; `q` filters segments.
+         */
+        get: operations["transcript_api_v1_assets__asset_id__transcript_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -464,6 +570,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Collections
+         * @description Collections with their asset counts.
+         */
+        get: operations["list_collections_api_v1_collections_get"];
+        put?: never;
+        /**
+         * Create Collection
+         * @description Create a collection (names are unique, case-insensitive).
+         */
+        post: operations["create_collection_api_v1_collections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/collections/{collection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Collection
+         * @description Delete a collection (its assets stay).
+         */
+        delete: operations["delete_collection_api_v1_collections__collection_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/derived/{asset_id}/{path}": {
         parameters: {
             query?: never;
@@ -478,6 +628,26 @@ export interface paths {
          *     Only files below ``.rushbase/derived/<asset-id>/`` are reachable; originals never are.
          */
         get: operations["get_derived_api_v1_derived__asset_id___path__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Runs
+         * @description The latest 50 evaluation runs, newest first.
+         */
+        get: operations["list_runs_api_v1_eval_runs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -570,6 +740,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golden/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Golden Fields
+         * @description Labelable fields: the core attributes and every taxonomy field with approved values.
+         */
+        get: operations["golden_fields_api_v1_golden_fields_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golden/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assets to label
+         * @description Filed assets in a stable pseudo-random order (so labelling samples the whole library).
+         */
+        get: operations["golden_items_api_v1_golden_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golden/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Label
+         * @description Store the expected value of a field (replaces an earlier label).
+         */
+        put: operations["put_label_api_v1_golden_labels_put"];
+        post?: never;
+        /**
+         * Delete Label
+         * @description Remove a label.
+         */
+        delete: operations["delete_label_api_v1_golden_labels_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golden/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Golden Stats
+         * @description How many labels exist, per field, and how many came from human corrections.
+         */
+        get: operations["golden_stats_api_v1_golden_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quarantine": {
         parameters: {
             query?: never;
@@ -604,6 +858,89 @@ export interface paths {
          * @description Move the files back to their original `Input/` location (if free) and requeue the jobs.
          */
         post: operations["retry_quarantine_api_v1_quarantine__asset_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assets waiting for review
+         * @description Pending assets, oldest first, with the reasons the AI gave. Filters narrow the queue.
+         */
+        get: operations["review_queue_api_v1_review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Hybrid search
+         * @description Full-text, text-vector (e5) and image-vector (SigLIP) channels fused by RRF (k = 60).
+         *
+         *     Filters apply before ranking. Without models on the server only the full-text channel runs
+         *     (see `/search/capabilities`). `level=shot` returns scenes with timecodes and keyframes.
+         */
+        get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/by-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search By Image
+         * @description Not available: encoding an uploaded image needs the vision tower, which only workers run.
+         */
+        post: operations["search_by_image_api_v1_search_by_image_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Capabilities
+         * @description Which channels are active, and whether stored vectors match the server's encoder.
+         */
+        get: operations["capabilities_api_v1_search_capabilities_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -654,6 +991,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/shots/{shot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a shot (human)
+         * @description Change a shot's description, attributes or tags; source is `human`.
+         */
+        patch: operations["edit_shot_api_v1_shots__shot_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/shots/{shot_id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Similar Shots
+         * @description Shots that look like this one.
+         */
+        get: operations["similar_shots_api_v1_shots__shot_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stats": {
         parameters: {
             query?: never;
@@ -688,6 +1065,234 @@ export interface paths {
         get: operations["system_status_api_v1_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vocabulary with all values
+         * @description Fields and values of every status, with the number of tagged assets.
+         */
+        get: operations["get_taxonomy_api_v1_taxonomy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Field
+         * @description Create a field.
+         */
+        post: operations["create_field_api_v1_taxonomy_fields_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/fields/{field_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Field
+         * @description Delete an empty field.
+         */
+        delete: operations["delete_field_api_v1_taxonomy_fields__field_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Field
+         * @description Change labels, kind, description or order of a field.
+         */
+        patch: operations["patch_field_api_v1_taxonomy_fields__field_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/taxonomy/fields/{field_id}/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Value
+         * @description Add a value: approved when an admin adds it, a proposal when an editor does.
+         */
+        post: operations["create_value_api_v1_taxonomy_fields__field_id__values_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Flags
+         * @description Review flags the VLM checks for every shot.
+         */
+        get: operations["get_flags_api_v1_taxonomy_flags_get"];
+        /**
+         * Put Flags
+         * @description Replace the flag list (bumps the taxonomy version so workers refetch it).
+         */
+        put: operations["put_flags_api_v1_taxonomy_flags_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Proposals
+         * @description Values the AI proposed, most frequent first, with example assets.
+         */
+        get: operations["list_proposals_api_v1_taxonomy_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/values/{value_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Value
+         * @description Rename, relabel, describe or re-parent a value.
+         */
+        patch: operations["patch_value_api_v1_taxonomy_values__value_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/taxonomy/values/{value_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve Value
+         * @description Approve a proposal (bumps the taxonomy version, queues `classify`).
+         */
+        post: operations["approve_value_api_v1_taxonomy_values__value_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/values/{value_id}/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deprecate Value
+         * @description Retire a value; existing tags stay but it leaves the snapshot and the facets.
+         */
+        post: operations["deprecate_value_api_v1_taxonomy_values__value_id__deprecate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/values/{value_id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Merge Value
+         * @description Merge a value into another value of the same field.
+         */
+        post: operations["merge_value_api_v1_taxonomy_values__value_id__merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/taxonomy/values/{value_id}/synonyms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Synonym
+         * @description Add a synonym to a value.
+         */
+        post: operations["add_synonym_api_v1_taxonomy_values__value_id__synonyms_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -878,6 +1483,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/worker/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Approved vocabulary and review flags
+         * @description Snapshot for `vision` and `classify`: approved values only, with the version number.
+         */
+        get: operations["worker_taxonomy_api_v1_worker_taxonomy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -903,10 +1528,65 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * AiOut
+         * @description AI and review state of the asset.
+         */
+        AiOut: {
+            /** Audio */
+            audio: {
+                [key: string]: unknown;
+            } | null;
+            /** Audio Events */
+            audio_events: number;
+            /** Camera Angle */
+            camera_angle: string | null;
+            /** Consent */
+            consent: string;
+            /** Consent Ref */
+            consent_ref: string | null;
+            /** Human Fields */
+            human_fields: string[];
+            /** Interior Exterior */
+            interior_exterior: string | null;
+            /** Locked */
+            locked: boolean;
+            /** Models */
+            models: {
+                [key: string]: unknown;
+            };
+            /** People Count */
+            people_count: number | null;
+            /** Person Identifiable */
+            person_identifiable: string;
+            /** Rating */
+            rating: number | null;
+            /** Review Reasons */
+            review_reasons: string[];
+            /** Review State */
+            review_state: string;
+            /** Shot Size */
+            shot_size: string | null;
+            /** Summary Long De */
+            summary_long_de: string | null;
+            /** Summary Long En */
+            summary_long_en: string | null;
+            /** Summary Short De */
+            summary_short_de: string | null;
+            /** Summary Short En */
+            summary_short_en: string | null;
+            /** Tags */
+            tags: components["schemas"]["TagOut"][];
+            /** Time Of Day */
+            time_of_day: string | null;
+            /** Transcript Segments */
+            transcript_segments: number;
+        };
+        /**
          * AssetDetail
          * @description Everything the detail view shows.
          */
         AssetDetail: {
+            ai: components["schemas"]["AiOut"];
             /** Batch Label */
             batch_label: string | null;
             /** Camera Model */
@@ -940,6 +1620,11 @@ export interface components {
             id: string;
             /** Lens Model */
             lens_model: string | null;
+            /**
+             * Locked
+             * @default false
+             */
+            locked: boolean;
             /** Log Profile */
             log_profile: string | null;
             /** Media Type */
@@ -951,6 +1636,11 @@ export interface components {
             poster_url: string | null;
             /** Proxy Url */
             proxy_url: string | null;
+            /**
+             * Review State
+             * @default none
+             */
+            review_state: string;
             /** Shots */
             shots: components["schemas"]["ShotOut"][];
             /** Size Total */
@@ -961,6 +1651,8 @@ export interface components {
             sprite_url: string | null;
             /** Status */
             status: string;
+            /** Summary */
+            summary?: string | null;
             /** Tech Summary De */
             tech_summary_de: string | null;
             /** Tech Summary En */
@@ -971,6 +1663,51 @@ export interface components {
             waveform_url: string | null;
             /** Width */
             width: number | null;
+        };
+        /**
+         * AssetEditIn
+         * @description Human edit of an asset. Only the fields that are sent change.
+         */
+        AssetEditIn: {
+            /** Add Tags */
+            add_tags?: components["schemas"]["TagIn"][];
+            /** Camera Angle */
+            camera_angle?: string | null;
+            /** Consent */
+            consent?: ("yes" | "no" | "unknown") | null;
+            /** Consent Ref */
+            consent_ref?: string | null;
+            /** Interior Exterior */
+            interior_exterior?: string | null;
+            /** Locked */
+            locked?: boolean | null;
+            /** People Count */
+            people_count?: number | null;
+            /** Person Identifiable */
+            person_identifiable?: ("yes" | "no" | "unknown") | null;
+            /** Rating */
+            rating?: number | null;
+            /** Remove Tags */
+            remove_tags?: components["schemas"]["TagIn"][];
+            /**
+             * Review Done
+             * @default false
+             */
+            review_done: boolean;
+            /** Shot Size */
+            shot_size?: string | null;
+            /** Summary Long De */
+            summary_long_de?: string | null;
+            /** Summary Long En */
+            summary_long_en?: string | null;
+            /** Summary Short */
+            summary_short?: string | null;
+            /** Summary Short En */
+            summary_short_en?: string | null;
+            /** Time Of Day */
+            time_of_day?: string | null;
+            /** Title */
+            title?: string | null;
         };
         /**
          * AssetPage
@@ -1012,6 +1749,11 @@ export interface components {
             id: string;
             /** Lens Model */
             lens_model: string | null;
+            /**
+             * Locked
+             * @default false
+             */
+            locked: boolean;
             /** Log Profile */
             log_profile: string | null;
             /** Media Type */
@@ -1020,6 +1762,11 @@ export interface components {
             orientation: string | null;
             /** Poster Url */
             poster_url: string | null;
+            /**
+             * Review State
+             * @default none
+             */
+            review_state: string;
             /** Size Total */
             size_total: number;
             /** Sprite Tiles */
@@ -1028,10 +1775,26 @@ export interface components {
             sprite_url: string | null;
             /** Status */
             status: string;
+            /** Summary */
+            summary?: string | null;
             /** Title */
             title: string | null;
             /** Width */
             width: number | null;
+        };
+        /**
+         * AudioEventOut
+         * @description A detected audio event.
+         */
+        AudioEventOut: {
+            /** Confidence */
+            confidence: number;
+            /** End Ms */
+            end_ms: number;
+            /** Start Ms */
+            start_ms: number;
+            /** Tag */
+            tag: string;
         };
         /**
          * BackupInfoOut
@@ -1136,6 +1899,46 @@ export interface components {
             status: string;
         };
         /**
+         * BulkIn
+         * @description Bulk edit of many assets.
+         */
+        BulkIn: {
+            /** Add Tags */
+            add_tags?: components["schemas"]["TagIn"][];
+            /** Add To Collection */
+            add_to_collection?: string | null;
+            /** Asset Ids */
+            asset_ids: string[];
+            /** Locked */
+            locked?: boolean | null;
+            /** Remove From Collection */
+            remove_from_collection?: string | null;
+            /** Remove Tags */
+            remove_tags?: components["schemas"]["TagIn"][];
+        };
+        /**
+         * BulkOut
+         * @description Number of assets that were processed.
+         */
+        BulkOut: {
+            /** Updated */
+            updated: number;
+        };
+        /**
+         * CapabilitiesOut
+         * @description What search can do right now (it never fails; it degrades).
+         */
+        CapabilitiesOut: {
+            /** Fulltext */
+            fulltext: boolean;
+            image_semantic: components["schemas"]["SpaceStatus"];
+            /** Reembed Needed */
+            reembed_needed: boolean;
+            /** Search By Image */
+            search_by_image: boolean;
+            text_semantic: components["schemas"]["SpaceStatus"];
+        };
+        /**
          * ClaimIn
          * @description Claim request.
          */
@@ -1159,6 +1962,34 @@ export interface components {
             jobs: components["schemas"]["JobOut"][];
             /** Lease Seconds */
             lease_seconds: number;
+        };
+        /**
+         * CollectionIn
+         * @description New collection.
+         */
+        CollectionIn: {
+            /** Name */
+            name: string;
+        };
+        /**
+         * CollectionOut
+         * @description A collection with its size.
+         */
+        CollectionOut: {
+            /** Assets */
+            assets: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /**
          * DryRunIn
@@ -1221,6 +2052,20 @@ export interface components {
             count: number;
             /** Wasted Bytes */
             wasted_bytes: number;
+        };
+        /**
+         * EditOut
+         * @description What changed.
+         */
+        EditOut: {
+            /** Changed */
+            changed: {
+                [key: string]: unknown;
+            };
+            /** Tags Added */
+            tags_added: string[];
+            /** Tags Removed */
+            tags_removed: string[];
         };
         /**
          * EnrollIn
@@ -1315,6 +2160,57 @@ export interface components {
             used_at: string | null;
         };
         /**
+         * EvalIn
+         * @description Optional label for the run.
+         */
+        EvalIn: {
+            /** Label */
+            label?: string | null;
+        };
+        /**
+         * EvalRunOut
+         * @description A stored evaluation run.
+         */
+        EvalRunOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Golden Count */
+            golden_count: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string | null;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Model Refs */
+            model_refs: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ExampleOut
+         * @description An asset that triggered a proposal.
+         */
+        ExampleOut: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Filename */
+            filename: string;
+            /** Poster Url */
+            poster_url: string | null;
+        };
+        /**
          * Facet
          * @description A filter dimension. Enum facets list values; range and date facets give min/max.
          */
@@ -1353,6 +2249,75 @@ export interface components {
             facets: components["schemas"]["Facet"][];
         };
         /**
+         * FieldIn
+         * @description New field.
+         */
+        FieldIn: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @default multi
+             * @enum {string}
+             */
+            kind: "single" | "multi";
+            /** Label De */
+            label_de: string;
+            /** Label En */
+            label_en: string;
+            /**
+             * Sort
+             * @default 0
+             */
+            sort: number;
+        };
+        /**
+         * FieldOut
+         * @description A taxonomy field with its values.
+         */
+        FieldOut: {
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label De */
+            label_de: string;
+            /** Label En */
+            label_en: string;
+            /** Sort */
+            sort: number;
+            /** Values */
+            values: components["schemas"]["ValueOut"][];
+        };
+        /**
+         * FieldPatch
+         * @description Field changes (the key is immutable).
+         */
+        FieldPatch: {
+            /** Description */
+            description?: string | null;
+            /** Kind */
+            kind?: ("single" | "multi") | null;
+            /** Label De */
+            label_de?: string | null;
+            /** Label En */
+            label_en?: string | null;
+            /** Sort */
+            sort?: number | null;
+        };
+        /**
          * FileOut
          * @description A file of an asset with its path on every configured operating system.
          */
@@ -1369,6 +2334,104 @@ export interface components {
             role: string;
             /** Size */
             size: number;
+        };
+        /**
+         * FlagOut
+         * @description A review flag the VLM checks.
+         */
+        FlagOut: {
+            /**
+             * Description De
+             * @default
+             */
+            description_de: string;
+            /**
+             * Description En
+             * @default
+             */
+            description_en: string;
+            /** Key */
+            key: string;
+        };
+        /**
+         * GoldenFieldOut
+         * @description A field that can be labelled, with its allowed values.
+         */
+        GoldenFieldOut: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label De */
+            label_de: string;
+            /** Label En */
+            label_en: string;
+            /**
+             * Multi
+             * @default false
+             */
+            multi: boolean;
+            /** Values */
+            values: string[];
+        };
+        /**
+         * GoldenItem
+         * @description An asset with its label targets.
+         */
+        GoldenItem: {
+            asset: components["schemas"]["AssetSummary"];
+            /** Targets */
+            targets: components["schemas"]["GoldenTarget"][];
+        };
+        /**
+         * GoldenPage
+         * @description Page of items to label.
+         */
+        GoldenPage: {
+            /** Items */
+            items: components["schemas"]["GoldenItem"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * GoldenStats
+         * @description Label counts.
+         */
+        GoldenStats: {
+            /** Assets */
+            assets: number;
+            /** By Field */
+            by_field: {
+                [key: string]: number;
+            };
+            /** Corrections */
+            corrections: number;
+            /** Labels */
+            labels: number;
+        };
+        /**
+         * GoldenTarget
+         * @description What gets labelled: the asset (photos) or one shot (videos).
+         */
+        GoldenTarget: {
+            /** Ai */
+            ai: {
+                [key: string]: string | null;
+            };
+            /** End Ms */
+            end_ms: number | null;
+            /** Idx */
+            idx: number | null;
+            /** Keyframe Urls */
+            keyframe_urls: string[];
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Shot Id */
+            shot_id: string | null;
+            /** Start Ms */
+            start_ms: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1503,6 +2566,38 @@ export interface components {
             url: string | null;
         };
         /**
+         * LabelIn
+         * @description Set the expected value of a field.
+         */
+        LabelIn: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Expected */
+            expected: string;
+            /** Field */
+            field: string;
+            /** Shot Id */
+            shot_id?: string | null;
+        };
+        /**
+         * LabelRef
+         * @description Identify a label.
+         */
+        LabelRef: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Field */
+            field: string;
+            /** Shot Id */
+            shot_id?: string | null;
+        };
+        /**
          * LibraryOut
          * @description Identifies the library so a worker can verify its mount (``library.json``).
          */
@@ -1551,6 +2646,17 @@ export interface components {
             user: components["schemas"]["UserOut"];
         };
         /**
+         * MergeIn
+         * @description Merge target.
+         */
+        MergeIn: {
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /**
          * MetadataOut
          * @description Normalized probe fields (the raw tool output stays in the sidecar and database).
          */
@@ -1579,6 +2685,48 @@ export interface components {
             priority: number;
         };
         /**
+         * ProposalOut
+         * @description A proposed value with the field label and example assets.
+         */
+        ProposalOut: {
+            /** Asset Count */
+            asset_count: number;
+            /** Description */
+            description: string;
+            /** Examples */
+            examples: components["schemas"]["ExampleOut"][];
+            /**
+             * Field Id
+             * Format: uuid
+             */
+            field_id: string;
+            /** Field Key */
+            field_key: string;
+            /** Field Label De */
+            field_label_de: string;
+            /** Field Label En */
+            field_label_en: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label De */
+            label_de: string | null;
+            /** Label En */
+            label_en: string | null;
+            /** Parent Id */
+            parent_id: string | null;
+            /** Proposal Count */
+            proposal_count: number;
+            /** Status */
+            status: string;
+            /** Synonyms */
+            synonyms: string[];
+            /** Value */
+            value: string;
+        };
+        /**
          * QuarantineItem
          * @description A quarantined asset.
          */
@@ -1602,6 +2750,14 @@ export interface components {
             size_total: number;
             /** Stage */
             stage: string | null;
+        };
+        /**
+         * ReembedOut
+         * @description Number of assets queued for re-indexing.
+         */
+        ReembedOut: {
+            /** Assets */
+            assets: number;
         };
         /**
          * ReprocessIn
@@ -1682,6 +2838,27 @@ export interface components {
             job_state: string;
         };
         /**
+         * ReviewItem
+         * @description An asset waiting for review.
+         */
+        ReviewItem: {
+            asset: components["schemas"]["AssetSummary"];
+            /** Reasons */
+            reasons: string[];
+        };
+        /**
+         * ReviewPage
+         * @description Keyset-paginated review queue.
+         */
+        ReviewPage: {
+            /** Items */
+            items: components["schemas"]["ReviewItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number | null;
+        };
+        /**
          * RuleIn
          * @description A new rule version (created inactive).
          */
@@ -1727,6 +2904,69 @@ export interface components {
             version: number;
         };
         /**
+         * SearchHit
+         * @description An asset (or one of its shots) with the fused score and per-channel ranks.
+         */
+        SearchHit: {
+            asset: components["schemas"]["AssetSummary"];
+            /** Ranks */
+            ranks: {
+                [key: string]: number;
+            };
+            /** Score */
+            score: number;
+            shot: components["schemas"]["ShotHit"] | null;
+        };
+        /**
+         * SearchOut
+         * @description One page of fused hits.
+         */
+        SearchOut: {
+            /** Candidates */
+            candidates: number;
+            /** Channels Ms */
+            channels_ms: {
+                [key: string]: number;
+            };
+            /** Items */
+            items: components["schemas"]["SearchHit"][];
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "asset" | "shot";
+            /** Next Offset */
+            next_offset: number | null;
+            /** Offset */
+            offset: number;
+            /** Skipped */
+            skipped: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * SegmentOut
+         * @description A transcript segment.
+         */
+        SegmentOut: {
+            /** End Ms */
+            end_ms: number;
+            /** Idx */
+            idx: number;
+            /** Language */
+            language: string | null;
+            /** Speaker */
+            speaker: string | null;
+            /** Start Ms */
+            start_ms: number;
+            /** Text */
+            text: string;
+            /** Words */
+            words: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
          * SetupIn
          * @description First-run request: creates the admin and initialises or adopts the library.
          */
@@ -1769,14 +3009,101 @@ export interface components {
             restore_available: boolean;
         };
         /**
+         * ShotAiOut
+         * @description AI description and attributes of a shot.
+         */
+        ShotAiOut: {
+            /** Camera Angle */
+            camera_angle: string | null;
+            /** Description Long De */
+            description_long_de: string | null;
+            /** Description Long En */
+            description_long_en: string | null;
+            /** Description Short De */
+            description_short_de: string | null;
+            /** Description Short En */
+            description_short_en: string | null;
+            /** Human Fields */
+            human_fields: string[];
+            /** Interior Exterior */
+            interior_exterior: string | null;
+            /** People Count */
+            people_count: number | null;
+            /** Person Identifiable */
+            person_identifiable: string;
+            /** Shot Size */
+            shot_size: string | null;
+            /** Time Of Day */
+            time_of_day: string | null;
+        };
+        /**
+         * ShotEditIn
+         * @description Human edit of a shot.
+         */
+        ShotEditIn: {
+            /** Add Tags */
+            add_tags?: components["schemas"]["TagIn"][];
+            /** Camera Angle */
+            camera_angle?: string | null;
+            /** Description Long De */
+            description_long_de?: string | null;
+            /** Description Long En */
+            description_long_en?: string | null;
+            /** Description Short De */
+            description_short_de?: string | null;
+            /** Description Short En */
+            description_short_en?: string | null;
+            /** Interior Exterior */
+            interior_exterior?: string | null;
+            /** People Count */
+            people_count?: number | null;
+            /** Person Identifiable */
+            person_identifiable?: ("yes" | "no" | "unknown") | null;
+            /** Remove Tags */
+            remove_tags?: components["schemas"]["TagIn"][];
+            /** Shot Size */
+            shot_size?: string | null;
+            /** Time Of Day */
+            time_of_day?: string | null;
+        };
+        /**
+         * ShotHit
+         * @description A scene hit: timecodes, keyframe and descriptions.
+         */
+        ShotHit: {
+            /** Description De */
+            description_de: string | null;
+            /** Description En */
+            description_en: string | null;
+            /** End Ms */
+            end_ms: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idx */
+            idx: number;
+            /** Keyframe Url */
+            keyframe_url: string | null;
+            /** Start Ms */
+            start_ms: number;
+        };
+        /**
          * ShotOut
          * @description A detected shot.
          */
         ShotOut: {
+            ai?: components["schemas"]["ShotAiOut"] | null;
             /** Camera Motion */
             camera_motion: string | null;
             /** End Ms */
             end_ms: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /** Idx */
             idx: number;
             /** Keyframes */
@@ -1787,6 +3114,24 @@ export interface components {
             sharpness: number | null;
             /** Start Ms */
             start_ms: number;
+        };
+        /**
+         * SpaceStatus
+         * @description State of one semantic channel.
+         */
+        SpaceStatus: {
+            /** Available */
+            available: boolean;
+            /** Model Id */
+            model_id: string;
+            /** Reason */
+            reason: string | null;
+            /** Revision */
+            revision: string | null;
+            /** Vectors Compatible */
+            vectors_compatible: number;
+            /** Vectors Mismatched */
+            vectors_mismatched: number;
         };
         /**
          * Stage
@@ -1877,6 +3222,63 @@ export interface components {
             total_bytes: number;
         };
         /**
+         * SynonymIn
+         * @description A synonym to add.
+         */
+        SynonymIn: {
+            /** Synonym */
+            synonym: string;
+        };
+        /**
+         * TagIn
+         * @description A tag by field key and value.
+         */
+        TagIn: {
+            /** Field */
+            field: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * TagOut
+         * @description A taxonomy tag with provenance.
+         */
+        TagOut: {
+            /** Confidence */
+            confidence: number | null;
+            /** Field Key */
+            field_key: string;
+            /** Field Label De */
+            field_label_de: string;
+            /** Field Label En */
+            field_label_en: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label De */
+            label_de: string | null;
+            /** Label En */
+            label_en: string | null;
+            /** Shot Idx */
+            shot_idx: number | null;
+            /** Source */
+            source: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * TaxonomyOut
+         * @description The whole vocabulary.
+         */
+        TaxonomyOut: {
+            /** Fields */
+            fields: components["schemas"]["FieldOut"][];
+            /** Version */
+            version: number;
+        };
+        /**
          * TokenCreated
          * @description A newly created token including its plaintext, shown exactly once.
          */
@@ -1939,6 +3341,18 @@ export interface components {
             revoked_at: string | null;
             /** Scopes */
             scopes: string[];
+        };
+        /**
+         * TranscriptOut
+         * @description Transcript segments (optionally filtered) and audio events of an asset.
+         */
+        TranscriptOut: {
+            /** Events */
+            events: components["schemas"]["AudioEventOut"][];
+            /** Segments */
+            segments: components["schemas"]["SegmentOut"][];
+            /** Total Segments */
+            total_segments: number;
         };
         /**
          * UserCreate
@@ -2024,6 +3438,79 @@ export interface components {
             type: string;
         };
         /**
+         * ValueIn
+         * @description New value; editors create proposals, admins approved values.
+         */
+        ValueIn: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Label De */
+            label_de?: string | null;
+            /** Label En */
+            label_en?: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /** Synonyms */
+            synonyms?: string[];
+            /** Value */
+            value: string;
+        };
+        /**
+         * ValueOut
+         * @description A taxonomy value.
+         */
+        ValueOut: {
+            /** Asset Count */
+            asset_count: number;
+            /** Description */
+            description: string;
+            /**
+             * Field Id
+             * Format: uuid
+             */
+            field_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label De */
+            label_de: string | null;
+            /** Label En */
+            label_en: string | null;
+            /** Parent Id */
+            parent_id: string | null;
+            /** Proposal Count */
+            proposal_count: number;
+            /** Status */
+            status: string;
+            /** Synonyms */
+            synonyms: string[];
+            /** Value */
+            value: string;
+        };
+        /**
+         * ValuePatch
+         * @description Value changes; renaming keeps the old name as a synonym.
+         */
+        ValuePatch: {
+            /** Description */
+            description?: string | null;
+            /** Label De */
+            label_de?: string | null;
+            /** Label En */
+            label_en?: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /** Synonyms */
+            synonyms?: string[] | null;
+            /** Value */
+            value?: string | null;
+        };
+        /**
          * WorkerCapabilities
          * @description Capabilities a worker reports at enrollment and with every claim.
          */
@@ -2051,6 +3538,22 @@ export interface components {
             stages?: components["schemas"]["Stage"][];
             /** Vram Mb */
             vram_mb?: number | null;
+        };
+        /**
+         * WorkerField
+         * @description Field in the worker snapshot.
+         */
+        WorkerField: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label De */
+            label_de: string;
+            /** Label En */
+            label_en: string;
+            /** Values */
+            values: components["schemas"]["WorkerValue"][];
         };
         /**
          * WorkerOut
@@ -2084,6 +3587,30 @@ export interface components {
             status: string;
             /** Version */
             version: string | null;
+        };
+        /**
+         * WorkerTaxonomy
+         * @description What a worker needs for ``vision`` and ``classify``.
+         */
+        WorkerTaxonomy: {
+            /** Fields */
+            fields: components["schemas"]["WorkerField"][];
+            /** Flags */
+            flags: components["schemas"]["FlagOut"][];
+            /** Version */
+            version: number;
+        };
+        /**
+         * WorkerValue
+         * @description Approved value in the worker snapshot.
+         */
+        WorkerValue: {
+            /** Description */
+            description: string;
+            /** Synonyms */
+            synonyms: string[];
+            /** Value */
+            value: string;
         };
         /**
          * YearCount
@@ -2339,6 +3866,39 @@ export interface operations {
             };
         };
     };
+    run_eval_api_v1_admin_eval_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_library_settings_api_v1_admin_library_settings_get: {
         parameters: {
             query?: never;
@@ -2456,6 +4016,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    reembed_all_api_v1_admin_reembed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReembedOut"];
+                };
             };
         };
     };
@@ -2645,6 +4225,16 @@ export interface operations {
                 date_from?: string | null;
                 date_to?: string | null;
                 q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2659,6 +4249,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssetPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_edit_api_v1_assets_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkOut"];
                 };
             };
             /** @description Validation Error */
@@ -2690,6 +4313,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssetDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_asset_api_v1_assets__asset_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetEditIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    similar_assets_api_v1_assets__asset_id__similar_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
+            };
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transcript_api_v1_assets__asset_id__transcript_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptOut"];
                 };
             };
             /** @description Validation Error */
@@ -2794,6 +4539,88 @@ export interface operations {
             };
         };
     };
+    list_collections_api_v1_collections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"][];
+                };
+            };
+        };
+    };
+    create_collection_api_v1_collections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CollectionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_collection_api_v1_collections__collection_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_derived_api_v1_derived__asset_id___path__get: {
         parameters: {
             query?: never;
@@ -2824,6 +4651,26 @@ export interface operations {
             };
         };
     };
+    list_runs_api_v1_eval_runs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunOut"][];
+                };
+            };
+        };
+    };
     get_facets_api_v1_facets_get: {
         parameters: {
             query?: {
@@ -2837,6 +4684,16 @@ export interface operations {
                 date_from?: string | null;
                 date_to?: string | null;
                 q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2981,6 +4838,161 @@ export interface operations {
             };
         };
     };
+    golden_fields_api_v1_golden_fields_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoldenFieldOut"][];
+                };
+            };
+        };
+    };
+    golden_items_api_v1_golden_items_get: {
+        parameters: {
+            query?: {
+                unlabeled?: boolean;
+                offset?: number;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoldenPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_label_api_v1_golden_labels_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_label_api_v1_golden_labels_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelRef"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    golden_stats_api_v1_golden_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoldenStats"];
+                };
+            };
+        };
+    };
     list_quarantine_api_v1_quarantine_get: {
         parameters: {
             query?: never;
@@ -3026,6 +5038,151 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_queue_api_v1_review_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_search_get: {
+        parameters: {
+            query?: {
+                level?: "asset" | "shot";
+                offset?: number;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_by_image_api_v1_search_by_image_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    capabilities_api_v1_search_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilitiesOut"];
                 };
             };
         };
@@ -3116,6 +5273,95 @@ export interface operations {
             };
         };
     };
+    edit_shot_api_v1_shots__shot_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShotEditIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    similar_shots_api_v1_shots__shot_id__similar_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                shot_size?: string | null;
+                camera_angle?: string | null;
+                interior_exterior?: string | null;
+                time_of_day?: string | null;
+                person_identifiable?: string | null;
+                review_state?: string | null;
+                consent?: string | null;
+                review_reason?: string | null;
+                collection_id?: string | null;
+                tag?: string[] | null;
+            };
+            header?: never;
+            path: {
+                shot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_stats_api_v1_stats_get: {
         parameters: {
             query?: never;
@@ -3152,6 +5398,398 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+        };
+    };
+    get_taxonomy_api_v1_taxonomy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxonomyOut"];
+                };
+            };
+        };
+    };
+    create_field_api_v1_taxonomy_fields_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_field_api_v1_taxonomy_fields__field_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                field_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_field_api_v1_taxonomy_fields__field_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                field_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_value_api_v1_taxonomy_fields__field_id__values_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                field_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValueIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_flags_api_v1_taxonomy_flags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlagOut"][];
+                };
+            };
+        };
+    };
+    put_flags_api_v1_taxonomy_flags_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlagOut"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlagOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_api_v1_taxonomy_proposals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"][];
+                };
+            };
+        };
+    };
+    patch_value_api_v1_taxonomy_values__value_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValuePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_value_api_v1_taxonomy_values__value_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deprecate_value_api_v1_taxonomy_values__value_id__deprecate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    merge_value_api_v1_taxonomy_values__value_id__merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_synonym_api_v1_taxonomy_values__value_id__synonyms_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SynonymIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3435,6 +6073,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+        };
+    };
+    worker_taxonomy_api_v1_worker_taxonomy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerTaxonomy"];
                 };
             };
         };

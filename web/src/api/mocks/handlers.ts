@@ -14,7 +14,6 @@ import {
   batchIdForLabel,
   buildAssets,
   buildBatches,
-  buildDetail,
   buildFacets,
   buildStatus,
   buildUsers,
@@ -23,6 +22,7 @@ import {
   defaultPathRoots,
   SPRITE_TILES,
 } from "./data";
+import { aiHandlers, detailFor, extraFacets, resetAiState } from "./aiHandlers";
 import { keyframeSvg, posterSvg, spriteSvg } from "./svg";
 
 /** Password every mock account accepts. */
@@ -112,6 +112,7 @@ let state = freshState();
 /** Reset the in-memory mock server (tests call this between cases). */
 export function resetMockState(): void {
   state = freshState();
+  resetAiState();
 }
 
 function unauthorized() {
@@ -262,7 +263,14 @@ function storageStats(): StatsResponse {
   };
 }
 
+const aiDeps = {
+  guarded,
+  assets: () => state.assets,
+  roots: () => state.settings.path_roots ?? {},
+};
+
 export const handlers = [
+  ...aiHandlers(aiDeps),
   http.get("/api/health", () =>
     HttpResponse.json({
       status: "ok",
@@ -360,7 +368,7 @@ export const handlers = [
     guarded("viewer", ({ params }) => {
       const asset = state.assets.find((candidate) => candidate.id === params.id);
       if (!asset) return HttpResponse.json({ detail: "asset not found" }, { status: 404 });
-      return HttpResponse.json(buildDetail(asset, state.settings.path_roots ?? {}));
+      return HttpResponse.json(detailFor(asset, aiDeps));
     }),
   ),
   http.get(
@@ -368,7 +376,7 @@ export const handlers = [
     guarded("viewer", ({ request }) => {
       const query = Object.fromEntries(new URL(request.url).searchParams) as Record<string, string>;
       const narrowed = state.assets.filter((asset) => matches(asset, query));
-      return HttpResponse.json({ facets: buildFacets(narrowed) });
+      return HttpResponse.json({ facets: [...buildFacets(narrowed), ...extraFacets(narrowed)] });
     }),
   ),
   http.get(

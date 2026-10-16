@@ -8,10 +8,22 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_server.api.deps import DbDep, RuntimeDep, ViewerDep
 from rushbase_server.api.system import StageBacklogOut
-from rushbase_server.models import Asset, AssetFile, AssetMetadata, Batch, Shot
+from rushbase_server.models import (
+    Asset,
+    AssetFile,
+    AssetMetadata,
+    AssetTag,
+    AudioEvent,
+    Batch,
+    Shot,
+    TaxField,
+    TaxValue,
+    TranscriptSegment,
+)
 from rushbase_server.services import catalog, derived, stats
 from rushbase_server.services.settings_store import PATH_ROOTS_KEY, get_setting
 
@@ -41,6 +53,9 @@ class AssetSummary(BaseModel):
     sprite_url: str | None
     sprite_tiles: int | None
     batch_label: str | None
+    review_state: str = "none"
+    locked: bool = False
+    summary: str | None = None
 
 
 class AssetPage(BaseModel):
@@ -75,9 +90,41 @@ class KeyframeOut(BaseModel):
     position: str
 
 
+class TagOut(BaseModel):
+    """A taxonomy tag with provenance."""
+
+    id: UUID
+    field_key: str
+    field_label_de: str
+    field_label_en: str
+    value: str
+    label_de: str | None
+    label_en: str | None
+    source: str
+    confidence: float | None
+    shot_idx: int | None
+
+
+class ShotAiOut(BaseModel):
+    """AI description and attributes of a shot."""
+
+    description_short_de: str | None
+    description_short_en: str | None
+    description_long_de: str | None
+    description_long_en: str | None
+    shot_size: str | None
+    camera_angle: str | None
+    interior_exterior: str | None
+    time_of_day: str | None
+    people_count: int | None
+    person_identifiable: str
+    human_fields: list[str]
+
+
 class ShotOut(BaseModel):
     """A detected shot."""
 
+    id: UUID
     idx: int
     start_ms: int
     end_ms: int
@@ -85,6 +132,34 @@ class ShotOut(BaseModel):
     camera_motion: str | None
     sharpness: float | None
     shake: float | None
+    ai: ShotAiOut | None = None
+
+
+class AiOut(BaseModel):
+    """AI and review state of the asset."""
+
+    summary_short_de: str | None
+    summary_short_en: str | None
+    summary_long_de: str | None
+    summary_long_en: str | None
+    shot_size: str | None
+    camera_angle: str | None
+    interior_exterior: str | None
+    time_of_day: str | None
+    people_count: int | None
+    person_identifiable: str
+    consent: str
+    consent_ref: str | None
+    rating: int | None
+    locked: bool
+    review_state: str
+    review_reasons: list[str]
+    human_fields: list[str]
+    audio: dict[str, Any] | None
+    models: dict[str, Any]
+    tags: list[TagOut]
+    transcript_segments: int
+    audio_events: int
 
 
 class HistoryOut(BaseModel):
@@ -109,6 +184,67 @@ class AssetDetail(AssetSummary):
     tech_summary_en: str | None
     decode_status: str
     history: list[HistoryOut]
+    ai: AiOut
+
+
+async def ai_out(db: AsyncSession, asset: Asset) -> AiOut:
+    """The AI/review part of an asset detail (tags with provenance, counts)."""
+    tags = (
+        await db.execute(
+            select(AssetTag, TaxField, TaxValue, Shot.idx)
+            .join(TaxField, TaxField.id == AssetTag.field_id)
+            .join(TaxValue, TaxValue.id == AssetTag.value_id)
+            .outerjoin(Shot, Shot.id == AssetTag.shot_id)
+            .where(AssetTag.asset_id == asset.id)
+            .order_by(TaxField.sort, TaxField.key, TaxValue.value)
+        )
+    ).all()
+    segments = await db.scalar(
+        select(func.count())
+        .select_from(TranscriptSegment)
+        .where(TranscriptSegment.asset_id == asset.id)
+    )
+    events = await db.scalar(
+        select(func.count()).select_from(AudioEvent).where(AudioEvent.asset_id == asset.id)
+    )
+    return AiOut(
+        summary_short_de=asset.summary_short,
+        summary_short_en=asset.summary_short_en,
+        summary_long_de=asset.summary_long_de,
+        summary_long_en=asset.summary_long_en,
+        shot_size=asset.shot_size,
+        camera_angle=asset.camera_angle,
+        interior_exterior=asset.interior_exterior,
+        time_of_day=asset.time_of_day,
+        people_count=asset.people_count,
+        person_identifiable=asset.person_identifiable,
+        consent=asset.consent,
+        consent_ref=asset.consent_ref,
+        rating=asset.rating,
+        locked=asset.locked,
+        review_state=asset.review_state,
+        review_reasons=list(asset.review_reasons),
+        human_fields=list(asset.human_fields),
+        audio=asset.audio_info,
+        models=asset.ai_details.get("models", {}),
+        tags=[
+            TagOut(
+                id=tag.id,
+                field_key=field.key,
+                field_label_de=field.label_de,
+                field_label_en=field.label_en,
+                value=value.value,
+                label_de=value.label_de,
+                label_en=value.label_en,
+                source=tag.source,
+                confidence=tag.confidence,
+                shot_idx=idx,
+            )
+            for tag, field, value, idx in tags
+        ],
+        transcript_segments=int(segments or 0),
+        audio_events=int(events or 0),
+    )
 
 
 def _summary(asset: Asset, primary: str | None, label: str | None) -> dict[str, Any]:
@@ -134,6 +270,9 @@ def _summary(asset: Asset, primary: str | None, label: str | None) -> dict[str, 
         "sprite_url": links["sprite_url"],
         "sprite_tiles": links["sprite_tiles"],
         "batch_label": label,
+        "review_state": asset.review_state,
+        "locked": asset.locked,
+        "summary": asset.summary_short,
     }
 
 
@@ -148,11 +287,26 @@ def _filters(
     date_from: date | None = None,
     date_to: date | None = None,
     q: Annotated[str | None, Query(max_length=200)] = None,
+    shot_size: str | None = None,
+    camera_angle: str | None = None,
+    interior_exterior: str | None = None,
+    time_of_day: str | None = None,
+    person_identifiable: str | None = None,
+    review_state: str | None = None,
+    consent: str | None = None,
+    review_reason: str | None = None,
+    collection_id: UUID | None = None,
+    tag: Annotated[list[str] | None, Query(max_length=50)] = None,
 ) -> catalog.AssetFilters:
-    """Filter and search parameters shared by the asset list and the facets."""
+    """Filter and search parameters shared by the asset list and the facets.
+
+    `tag` is repeatable (`tag=location:harbour`): values of one field are alternatives, different
+    fields combine with AND.
+    """
     return catalog.AssetFilters(
         media_type, status_, batch_id, camera_model, lens_model, log_profile, orientation,
-        date_from, date_to, q,
+        date_from, date_to, q, shot_size, camera_angle, interior_exterior, time_of_day,
+        person_identifiable, review_state, consent, review_reason, collection_id, tuple(tag or ()),
     )  # fmt: skip
 
 
@@ -231,6 +385,7 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
         metadata=MetadataOut(normalized=metadata.normalized if metadata else {}),
         shots=[
             ShotOut(
+                id=s.id,
                 idx=s.idx,
                 start_ms=s.start_ms,
                 end_ms=s.end_ms,
@@ -245,6 +400,19 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
                 camera_motion=s.camera_motion,
                 sharpness=s.sharpness,
                 shake=s.shake,
+                ai=ShotAiOut(
+                    description_short_de=s.description_short_de or s.description_short,
+                    description_short_en=s.description_short_en,
+                    description_long_de=s.description_long_de,
+                    description_long_en=s.description_long_en,
+                    shot_size=s.shot_size,
+                    camera_angle=s.angle,
+                    interior_exterior=s.interior_exterior,
+                    time_of_day=s.time_of_day,
+                    people_count=s.people_count,
+                    person_identifiable=s.person_identifiable,
+                    human_fields=list(s.human_fields),
+                ),
             )
             for s in shots
         ],
@@ -259,6 +427,7 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
             HistoryOut(at=e.at, action=e.action, details=e.details)
             for e in await catalog.history(db, asset_id)
         ],
+        ai=await ai_out(db, asset),
     )
 
 

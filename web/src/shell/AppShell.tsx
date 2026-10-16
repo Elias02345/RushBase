@@ -3,6 +3,9 @@ import {
   Command as CommandIcon,
   Keyboard,
   Languages,
+  ListChecks,
+  SearchCheck,
+  Tags,
   LayoutDashboard,
   Library,
   LogOut,
@@ -31,21 +34,29 @@ import { hasRole, useLogout, useMe, useQueuePaused, useStatus } from "../api/que
 import { setLanguage, type Language } from "../i18n";
 import { isApple } from "../lib/platform";
 import { Logo } from "./Logo";
-import { useGlobalShortcuts } from "./shortcuts";
+import { useGlobalShortcuts, type GoTarget } from "./shortcuts";
 
 interface NavItem {
-  to: "/" | "/library" | "/processing" | "/admin";
+  to: "/" | "/library" | "/processing" | "/admin" | "/review" | "/golden" | "/admin/taxonomy";
   icon: LucideIcon;
   label: string;
   admin?: boolean;
+  editor?: boolean;
 }
 
 const NAV: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "nav.dashboard" },
   { to: "/library", icon: Library, label: "nav.library" },
+  { to: "/review", icon: SearchCheck, label: "nav.review", editor: true },
+  { to: "/golden", icon: ListChecks, label: "nav.golden", editor: true },
   { to: "/processing", icon: Activity, label: "nav.processing" },
+  { to: "/admin/taxonomy", icon: Tags, label: "nav.taxonomy", editor: true },
   { to: "/admin", icon: Settings2, label: "nav.admin", admin: true },
 ];
+
+function isVisible(item: NavItem, isAdmin: boolean, isEditor: boolean): boolean {
+  return (!item.admin || isAdmin) && (!item.editor || isEditor);
+}
 
 const THEME_CYCLE = { system: "light", light: "dark", dark: "system" } as const;
 
@@ -77,6 +88,7 @@ export function AppShell() {
   const [topSearch, setTopSearch] = useState("");
 
   const isAdmin = hasRole(me?.role, "admin");
+  const isEditor = hasRole(me?.role, "editor");
   const mod = isApple() ? "⌘" : "Ctrl";
   const language: Language = i18n.language === "en" ? "en" : "de";
   const nextLanguage: Language = language === "de" ? "en" : "de";
@@ -85,17 +97,21 @@ export function AppShell() {
     : 0;
 
   const go = useCallback(
-    (target: "dashboard" | "library" | "processing" | "admin") => {
+    (target: GoTarget) => {
       const to = {
         dashboard: "/",
         library: "/library",
         processing: "/processing",
         admin: "/admin",
+        review: "/review",
+        golden: "/golden",
+        taxonomy: "/admin/taxonomy",
       } as const;
       if (target === "admin" && !isAdmin) return;
+      if (["review", "golden", "taxonomy"].includes(target) && !isEditor) return;
       void navigate({ to: to[target] });
     },
-    [navigate, isAdmin],
+    [navigate, isAdmin, isEditor],
   );
 
   const focusSearch = useCallback(() => {
@@ -118,7 +134,7 @@ export function AppShell() {
   const onLibrary = location.pathname.startsWith("/library");
 
   const groups = useMemo<CommandGroup[]>(() => {
-    const navItems = NAV.filter((item) => !item.admin || isAdmin).map((item) => ({
+    const navItems = NAV.filter((item) => isVisible(item, isAdmin, isEditor)).map((item) => ({
       id: item.to,
       label: t(item.label),
       icon: <item.icon size={18} />,
@@ -167,7 +183,18 @@ export function AppShell() {
       { heading: t("palette.goTo"), items: navItems },
       { heading: t("palette.actions"), items: actions },
     ];
-  }, [t, isAdmin, navigate, setPreference, preference, nextLanguage, status, queue, logout]);
+  }, [
+    t,
+    isAdmin,
+    isEditor,
+    navigate,
+    setPreference,
+    preference,
+    nextLanguage,
+    status,
+    queue,
+    logout,
+  ]);
 
   const ThemeIcon = preference === "system" ? Monitor : preference === "dark" ? Moon : Sun;
 
@@ -182,12 +209,12 @@ export function AppShell() {
           <span className="sidebar__brand-name">Rushbase</span>
         </Link>
         <nav aria-label={t("nav.main")} className="sidebar__nav">
-          {NAV.filter((item) => !item.admin || isAdmin).map((item) => (
+          {NAV.filter((item) => isVisible(item, isAdmin, isEditor)).map((item) => (
             <Link
               key={item.to}
               to={item.to}
               className="navlink"
-              activeOptions={{ exact: item.to === "/" }}
+              activeOptions={{ exact: item.to === "/" || item.to === "/admin" }}
             >
               <item.icon size={20} aria-hidden="true" />
               <span className="navlink__label">{t(item.label)}</span>

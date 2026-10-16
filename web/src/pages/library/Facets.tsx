@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Facet } from "../../api/contracts";
 import { formatNumber } from "../../lib/format";
-import { isEnumKey, valueLabel } from "../../lib/facets";
+import { isEnumKey, isTagKey, valueLabel } from "../../lib/facets";
 import type { LibrarySearch } from "../../routes/search";
 
 const VISIBLE = 6;
@@ -14,12 +14,12 @@ function EnumFacet({
   facet,
   label,
   active,
-  onChange,
+  onToggle,
 }: {
   facet: Facet;
   label: string;
-  active: string | undefined;
-  onChange: (value: string | undefined) => void;
+  active: readonly string[];
+  onToggle: (value: string, selected: boolean) => void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(true);
@@ -44,14 +44,14 @@ function EnumFacet({
       {open ? (
         <ul id={panelId} className="facet__list">
           {shown.map((v) => {
-            const selected = active === v.value;
+            const selected = active.includes(v.value);
             return (
               <li key={v.value}>
                 <button
                   type="button"
                   className="facet__value"
                   aria-pressed={selected}
-                  onClick={() => onChange(selected ? undefined : v.value)}
+                  onClick={() => onToggle(v.value, selected)}
                 >
                   <span className="facet__name">{valueLabel(t, facet.key, v.value)}</span>
                   <span className="facet__count">{formatNumber(v.count)}</span>
@@ -96,8 +96,25 @@ export function FacetSidebar({
               key={facet.key}
               facet={facet}
               label={label}
-              active={search[facet.key]}
-              onChange={(value) => onChange({ [facet.key]: value } as Partial<LibrarySearch>)}
+              active={search[facet.key] ? [String(search[facet.key])] : []}
+              onToggle={(value, selected) =>
+                onChange({ [facet.key]: selected ? undefined : value } as Partial<LibrarySearch>)
+              }
+            />
+          );
+        }
+        if (facet.kind === "enum" && isTagKey(facet.key)) {
+          const current = search.tag ?? [];
+          return (
+            <EnumFacet
+              key={facet.key}
+              facet={facet}
+              label={label}
+              active={current}
+              onToggle={(value, selected) => {
+                const next = selected ? current.filter((v) => v !== value) : [...current, value];
+                onChange({ tag: next.length > 0 ? next : undefined });
+              }}
             />
           );
         }

@@ -15,7 +15,7 @@ from rushbase_core import LibraryError
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.logging import configure_logging
 from rushbase_server.main import load_settings, serve
-from rushbase_server.services import backup, rebuild
+from rushbase_server.services import backup, evaluation, rebuild
 from rushbase_server.settings import Settings
 
 app = typer.Typer(
@@ -180,3 +180,58 @@ def rebuild_from_sidecars(
         typer.echo(f"[WARN] missing file: {path}", err=True)
     if report.invalid or report.conflicts:
         raise typer.Exit(1)
+
+
+@app.command("eval")
+def eval_command(
+    as_json: Annotated[bool, typer.Option("--json", help="Print the metrics as JSON.")] = False,
+    out: Annotated[
+        Path | None,
+        typer.Option("--out", help="Write the Markdown report here (a directory or a .md file)."),
+    ] = None,
+    label: Annotated[str | None, typer.Option(help="Label stored with the run.")] = None,
+) -> None:
+    """Evaluate the latest AI results against the golden labels and store an ``eval_run``."""
+    settings = load_settings()
+    configure_logging(settings.log_level)
+
+    async def run() -> dict[str, object]:
+        engine = create_engine(settings)
+        try:
+            async with create_session_factory(engine)() as session:
+                result = await evaluation.run_evaluation(session, label)
+                await session.commit()
+                await session.refresh(result)
+                return {
+                    "id": str(result.id),
+                    "created_at": result.created_at,
+                    "golden_count": result.golden_count,
+                    "model_refs": result.model_refs,
+                    "metrics": result.metrics,
+                }
+        finally:
+            await engine.dispose()
+
+    data = asyncio.run(run())
+    created = data["created_at"]
+    assert isinstance(created, datetime)
+    metrics = data["metrics"]
+    assert isinstance(metrics, dict)
+    refs = data["model_refs"]
+    assert isinstance(refs, dict)
+    count = data["golden_count"]
+    assert isinstance(count, int)
+    report = evaluation.render_markdown(metrics, refs, created, count)
+    if out is not None:
+        target = out / f"{created:%Y-%m-%d-%H%M}.md" if out.suffix != ".md" else out
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(report, encoding="utf-8")
+    if as_json:
+        import json
+
+        typer.echo(json.dumps({**data, "created_at": created.isoformat()}, indent=2))
+    else:
+        overall = metrics["overall"]
+        typer.echo(f"[OK] eval run {data['id']}: {count} labels, accuracy {overall['accuracy']}")
+        if out is not None:
+            typer.echo(f"[OK] report written to {target}")
