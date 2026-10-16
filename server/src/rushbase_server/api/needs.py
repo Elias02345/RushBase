@@ -158,7 +158,10 @@ async def list_needs(
 
 
 @router.post(
-    "", response_model=NeedDetail, status_code=status.HTTP_201_CREATED, summary="Create a needs list"
+    "",
+    response_model=NeedDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a needs list",
 )
 async def create_need(body: NeedIn, editor: EditorDep, db: DbDep) -> dict[str, Any]:
     """Create a list with optional items."""
@@ -169,9 +172,7 @@ async def create_need(body: NeedIn, editor: EditorDep, db: DbDep) -> dict[str, A
     return await needs.detail(db, need.id)
 
 
-@router.get(
-    "/{need_id}", response_model=NeedDetail, summary="Needs list with items and candidates"
-)
+@router.get("/{need_id}", response_model=NeedDetail, summary="Needs list with items and candidates")
 async def get_need(need_id: UUID, _: ViewerDep, db: DbDep) -> dict[str, Any]:
     """Items with candidates, each with file name and poster for display."""
     try:

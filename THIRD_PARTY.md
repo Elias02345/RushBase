@@ -23,7 +23,9 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | pytest-asyncio | async tests | Apache-2.0 |
 | Ruff | lint/format | MIT |
 | mypy | type checking | MIT |
-| Pillow | test media (EXIF images) | MIT-CMU (HPND) |
+| Pillow | test media (EXIF images), MCP thumbnail and keyframe downscaling | MIT-CMU (HPND) |
+| mcp (Model Context Protocol Python SDK, pinned 2.3.0; brings mcp-types, httpx2, sse-starlette, PyJWT) | MCP server at `/mcp` | MIT |
+| python-multipart | OAuth form-encoded token requests | Apache-2.0 |
 | NumPy | test media | BSD-3-Clause |
 | tifffile | test media (DNG-style TIFF) | BSD-3-Clause |
 | pydantic-settings, platformdirs | worker configuration and data directories | MIT |

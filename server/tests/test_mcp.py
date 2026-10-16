@@ -1,6 +1,8 @@
 import base64
 import io
 import json
+import subprocess
+import sys
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass
@@ -179,6 +181,14 @@ async def test_tool_list_contract(env: Fixture) -> None:
         }
         overview = await client.read_resource("rushbase://library/overview")
         assert "assets_by_status" in overview.contents[0].text  # type: ignore[union-attr]
+
+
+def test_generated_tool_reference_is_current() -> None:
+    script = Path(__file__).resolve().parents[2] / "scripts" / "gen-mcp-docs.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--check"], capture_output=True, text=True, check=False
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_no_destructive_tools() -> None:
