@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | M0 Foundation | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media | **done** (pending review) |
 | M1 Server core | Schema and migrations, library init, input scanner, queue with leasing, worker API, auth, backups, server lease | **done** (pending review) |
-| M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | planned |
+| M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | server side **done** (pending review); worker engine and UI in separate branches |
 | M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | planned |
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
@@ -104,3 +104,17 @@ The OpenAPI schema (`/openapi.json`, client in `packages/api-client`) documents 
 - `scripts/kill-test.sh` starts a private server with short timings when nothing listens on 18080;
   against a running dev server set `KILL_TEST_USER`/`KILL_TEST_PASSWORD` (it then needs minutes
   because of the default 120 s lease).
+
+## M2 server (filing)
+
+Everything below runs on the server; the stage outputs arrive through the worker API.
+
+- Ingestion, duplicates, filing rules, `finalize` (rename, sidecars, XMP, journal), quarantine and
+  `rebuild-from-sidecars` are described in `docs/filing.md` and `docs/architecture/data-model.md`.
+- Try it without a worker: put files in `Input/`, post fake results to `/api/v1/worker/jobs/{id}/result`
+  (see `server/tests/pipeline.py`), the maintenance loop (15 s) files the asset.
+- `rushbase-server rebuild-from-sidecars --dry-run` reports what a rebuild would restore.
+- Decisions: a camera card is filed once every member asset left the pipeline (analysed, duplicate
+  or quarantined); if foreign files share the card directory its members move file by file below a
+  new root with the structure kept. Quarantine moves only the asset's own files unless it is the sole
+  member of its card directory. `review` means "analysed, waiting for the rest of its card".

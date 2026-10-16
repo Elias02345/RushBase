@@ -1,15 +1,16 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from uuid import UUID
 
 import pytest
 from sqlalchemy import func, select, update
 
-from rushbase_core import Stage, uuid7
+from rushbase_core import Stage, init_library, uuid7
 from rushbase_server.capabilities import WorkerCapabilities
 from rushbase_server.db import SessionFactory
-from rushbase_server.models import Asset, AuditLog, Batch, Job, StageResult, Worker
-from rushbase_server.services import queue
+from rushbase_server.models import Asset, AssetFile, AuditLog, Batch, Job, StageResult, Worker
+from rushbase_server.services import filing, queue
 from support import seed_asset
 
 pytestmark = pytest.mark.postgres
@@ -331,19 +332,29 @@ async def test_pause_global_and_per_batch(session_factory: SessionFactory) -> No
 
 
 async def test_server_stage_finalize_completes_after_everything_else(
-    session_factory: SessionFactory,
+    session_factory: SessionFactory, tmp_path: Path
 ) -> None:
+    root = tmp_path / "library"
+    init_library(root)
     asset, batch = await seed_asset(session_factory, stages=("probe", "finalize"))
-    worker = await new_worker(session_factory)
     async with session_factory() as session:
-        assert await queue.run_server_stages(session, T0) == 0  # blocked behind probe
+        rel = (await session.execute(select(AssetFile.rel_path))).scalar_one()
+        asset_row = await session.get_one(Asset, asset.id)
+        asset_row.primary_file_id = (await session.execute(select(AssetFile.id))).scalar_one()
+        await session.commit()
+    (root / rel).parent.mkdir(parents=True, exist_ok=True)
+    (root / rel).write_bytes(b"x" * 1000)
+    env = filing.FilingEnv(root, None, 180, False, CONFIG)
+    worker = await new_worker(session_factory)
+    assert await filing.run_finalize(session_factory, env, lambda: T0) == 0  # blocked behind probe
     (job,) = await claim(session_factory, worker, T0)
     await finish(session_factory, worker, job.job.id, T0)
+    assert await filing.run_finalize(session_factory, env, lambda: T0) == 1
     async with session_factory() as session:
-        assert await queue.run_server_stages(session, T0) == 1
-        await session.commit()
-    async with session_factory() as session:
-        assert (await session.get_one(Asset, asset.id)).status == "review"
+        stored = await session.get_one(Asset, asset.id)
+        assert stored.status == "filed"
+        assert stored.content_rel_dir is not None
+        assert (root / stored.content_rel_dir).is_dir()
         assert (await session.get_one(Batch, batch.id)).status == "done"
 
 

@@ -9,6 +9,8 @@ from rushbase_server.models import AppSetting
 
 QUEUE_PAUSED_KEY = "queue.paused"
 PIPELINE_STAGES_KEY = "pipeline.stages"
+PATH_ROOTS_KEY = "library.path_roots"
+CENTRAL_META_KEY = "filing.central_meta"
 
 
 async def get_setting(session: AsyncSession, key: str, default: Any = None) -> Any:

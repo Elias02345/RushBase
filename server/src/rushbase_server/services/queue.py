@@ -10,7 +10,7 @@ be tested without sleeping. They never commit; the caller owns the transaction.
 
 import logging
 from collections.abc import Collection
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
@@ -30,7 +30,7 @@ from rushbase_server.models import (
     StageResult,
     Worker,
 )
-from rushbase_server.services import audit
+from rushbase_server.services import audit, duplicates, ingest_results
 from rushbase_server.services.settings_store import QUEUE_PAUSED_KEY, get_setting, set_setting
 from rushbase_server.settings import Settings
 
@@ -385,14 +385,18 @@ async def submit_result(
     if worker is not None:
         worker.last_seen_at = now
         worker.current_job_id = None
+    if data.ok:
+        data = await _validated(session, job, data)
     _append_result(session, job, worker.id if worker else None, data, now)
     if data.ok:
-        await _apply_output(session, job, data.output)
         job.state = "done"
         job.lease_owner = None
         job.lease_expires_at = None
         job.last_error = None
         await session.flush()
+        if job.stage == Stage.HASH.value:
+            asset = await session.get_one(Asset, job.asset_id)
+            await duplicates.detect(session, asset)
         await _unblock_dependents(session, job.asset_id)
         await _refresh_batch_of_asset(session, job.asset_id, now)
         return ResultOutcome(accepted=True, duplicate=False, job_state="done")
@@ -447,8 +451,9 @@ async def _register_failure(
 async def _fail_job(session: AsyncSession, job: Job, reason: str, now: datetime) -> None:
     """Fail ``job`` permanently and record the intent to quarantine its asset.
 
-    The physical move into ``.rushbase/quarantine/`` is performed by the filing service
-    (milestone M2); here the asset status and the audit trail carry the decision.
+    The physical move into ``.rushbase/quarantine/`` is performed by
+    :mod:`rushbase_server.services.quarantine` on the next maintenance pass; here the asset
+    status and the audit trail carry the decision.
     """
     job.state = "failed"
     asset = await session.get_one(Asset, job.asset_id)
@@ -469,22 +474,25 @@ async def _fail_job(session: AsyncSession, job: Job, reason: str, now: datetime)
             "stage": job.stage,
             "attempts": job.attempts,
             "reason": reason[:500],
-            "move_to": ".rushbase/quarantine/ (performed by the filing service, M2)",
         },
     )
     await session.flush()
     await _refresh_batch_of_asset(session, job.asset_id, now)
 
 
-async def _apply_output(session: AsyncSession, job: Job, output: dict[str, Any]) -> None:
-    """Copy facts that live on their own columns out of a stage output."""
-    if job.stage == Stage.HASH.value and isinstance(output.get("files"), dict):
-        for rel_path, digest in output["files"].items():
-            await session.execute(
-                update(AssetFile)
-                .where(AssetFile.asset_id == job.asset_id, AssetFile.rel_path == rel_path)
-                .values(blake3=str(digest))
-            )
+async def _validated(session: AsyncSession, job: Job, data: ResultData) -> ResultData:
+    """Validate and store a successful output; an invalid one becomes a permanent failure.
+
+    Storing happens in a savepoint so a half-applied invalid output leaves no trace.
+    """
+    try:
+        parsed = ingest_results.parse_output(Stage(job.stage), data.output)
+        async with session.begin_nested():
+            await ingest_results.apply_output(session, job, parsed)
+    except ingest_results.InvalidResultError as exc:
+        logger.warning("invalid stage output", extra={"job": str(job.id), "error": str(exc)})
+        return replace(data, ok=False, output={}, error=str(exc)[:5000], retryable=False)
+    return data
 
 
 async def _unblock_dependents(session: AsyncSession, asset_id: UUID) -> int:
@@ -548,44 +556,6 @@ async def claim_server_job(
         job.lease_owner = None
         job.lease_expires_at = now + timedelta(seconds=config.lease_seconds)
     return job
-
-
-# --- server-side stage -------------------------------------------------------------------
-
-
-async def run_server_stages(session: AsyncSession, now: datetime, limit: int = 100) -> int:
-    """Complete ``finalize`` jobs, which the server executes itself.
-
-    Milestone M1 has no filing yet: the job records that analysis is complete and moves the
-    asset to ``review`` ("analysis done, awaiting filing"). M2 replaces this with the real
-    filing step (rule evaluation, rename, sidecars, journal).
-    """
-    if await is_paused(session):
-        return 0
-    done = 0
-    for _ in range(limit):
-        job = (
-            (await session.execute(_next_job_statement(None, [Stage.FINALIZE.value], None, now)))
-            .scalars()
-            .first()
-        )
-        if job is None:
-            break
-        _append_result(
-            session,
-            job,
-            None,
-            ResultData(ok=True, output={"filed": False, "reason": "filing arrives with M2"}),
-            now,
-        )
-        job.state = "done"
-        asset = await session.get_one(Asset, job.asset_id)
-        if asset.status == "processing":
-            asset.status = "review"
-        await session.flush()
-        await _refresh_batch_of_asset(session, job.asset_id, now)
-        done += 1
-    return done
 
 
 # --- batch status ------------------------------------------------------------------------

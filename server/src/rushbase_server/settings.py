@@ -16,6 +16,7 @@ from rushbase_core import (
     Stage,
     parse_stages,
 )
+from rushbase_core.filing import DEFAULT_PATH_BUDGET
 
 
 def default_holder_id() -> str:
@@ -75,6 +76,14 @@ class Settings(BaseSettings):
     inprocess_stages: str = Field(
         default="",
         description="Stages the server runs itself for worker-less setups (supported: hash).",
+    )
+
+    # --- filing ---
+    filing_path_budget: int = Field(
+        default=DEFAULT_PATH_BUDGET,
+        ge=60,
+        le=240,
+        description="Characters available for the library-relative path of the longest file.",
     )
 
     # --- auth ---

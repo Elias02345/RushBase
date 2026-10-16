@@ -1,8 +1,8 @@
-# Data model (milestone M1)
+# Data model (milestones M1 and M2)
 
 The PostgreSQL schema is defined by the SQLAlchemy models in
-`server/src/rushbase_server/models/` and created by the additive Alembic migration
-`0002_m1_schema.py`. A test (`test_models_match_the_migrations`) fails when the two drift apart.
+`server/src/rushbase_server/models/` and created by the additive Alembic migrations
+`0002_m1_schema.py` and `0003_m2_filing.py`. A test (`test_models_match_the_migrations`) fails when the two drift apart.
 
 ## Conventions
 
@@ -56,6 +56,24 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 | `asset_file` | `role` in `primary|raw|jpeg|sidecar|proxy_camera|telemetry|audio_sync|member`, `rel_path` (unique; the current location, Input before filing, Content after), `original_rel_path` (immutable Input path), `size`, `mtime`, `blake3`, `quick_fp`, `card_structure_root` (a directory that must move as a unit). |
 | `asset_metadata` | `normalized` and `raw` JSONB plus a `version` per asset. |
 | `shot` | `(asset_id, idx)` unique; time range, keyframes, quality measures, descriptions, `search_tsv`. |
+
+### Added in M2 (migration 0003)
+
+- `asset.decode_status` (ADR-0003: `ok|proxy_only|metadata_only|decoder_missing|decoder_error`),
+  `asset.derived` (JSONB: `files` of the preview stage and `normalization`), `asset.perceptual_hash`,
+  `asset.tech_summary_de/en` (deterministic technical summary), `asset.quarantine` (JSONB while the
+  files rest in `.rushbase/quarantine/`: reason, stage, moved paths).
+- Indexes for facets and search: `capture_at`, `lens_model`, `log_profile`, `orientation`, `codec`,
+  `duplicate_of`; `asset_file.card_structure_root` (partial) and a trigram index on
+  `asset_file.rel_path` (file name search).
+- Status meaning: `review` is "analysed, waiting for the rest of its camera card"; `filed` assets have
+  `content_rel_dir`, `filed_at`, `rule_version_id`; `duplicate` assets keep their `Input/` paths and
+  count as wasted bytes (`sum(size_total)`); `quarantined` assets have `asset.quarantine` once moved.
+- `asset_file.rel_path` always follows the file (Input, Content or quarantine); `original_rel_path`
+  stays. `input_file.asset_id` is cleared when the file leaves `Input/`.
+- `asset_metadata.normalized` is the `ProbeOutput` without `raw`; `raw` holds the tool output.
+- `shot` rows are upserted by `(asset_id, idx)`; `keyframes` keep library-relative derived paths.
+- Result ingestion contract: `docs/filing.md` and `rushbase_core.results`.
 
 M4 adds `transcript_segment`, embedding tables (one per dimension, by ADR), taxonomy tables, M5 the
 need lists, and collections arrive with the web UI.

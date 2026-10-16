@@ -1,6 +1,585 @@
 {
   "components": {
     "schemas": {
+      "AssetDetail": {
+        "description": "Everything the detail view shows.",
+        "properties": {
+          "batch_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Label"
+          },
+          "camera_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Model"
+          },
+          "capture_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture At"
+          },
+          "codec": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codec"
+          },
+          "content_rel_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Rel Dir"
+          },
+          "decode_status": {
+            "title": "Decode Status",
+            "type": "string"
+          },
+          "duplicate_of": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Of"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileOut"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "fps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fps"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryOut"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lens_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lens Model"
+          },
+          "log_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Log Profile"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/MetadataOut"
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orientation"
+          },
+          "poster_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster Url"
+          },
+          "proxy_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Url"
+          },
+          "shots": {
+            "items": {
+              "$ref": "#/components/schemas/ShotOut"
+            },
+            "title": "Shots",
+            "type": "array"
+          },
+          "size_total": {
+            "title": "Size Total",
+            "type": "integer"
+          },
+          "sprite_tiles": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sprite Tiles"
+          },
+          "sprite_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sprite Url"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tech_summary_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tech Summary De"
+          },
+          "tech_summary_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tech Summary En"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "waveform_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waveform Url"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          }
+        },
+        "required": [
+          "id",
+          "media_type",
+          "status",
+          "title",
+          "filename",
+          "capture_at",
+          "duration_ms",
+          "width",
+          "height",
+          "fps",
+          "codec",
+          "camera_model",
+          "lens_model",
+          "log_profile",
+          "orientation",
+          "size_total",
+          "poster_url",
+          "sprite_url",
+          "sprite_tiles",
+          "batch_label",
+          "files",
+          "metadata",
+          "shots",
+          "proxy_url",
+          "waveform_url",
+          "content_rel_dir",
+          "duplicate_of",
+          "tech_summary_de",
+          "tech_summary_en",
+          "decode_status",
+          "history"
+        ],
+        "title": "AssetDetail",
+        "type": "object"
+      },
+      "AssetPage": {
+        "description": "Keyset-paginated list; ``total`` is only set on the first page.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssetSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "AssetPage",
+        "type": "object"
+      },
+      "AssetSummary": {
+        "description": "Compact asset representation for lists and grids.",
+        "properties": {
+          "batch_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Label"
+          },
+          "camera_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Model"
+          },
+          "capture_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture At"
+          },
+          "codec": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codec"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "fps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fps"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lens_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lens Model"
+          },
+          "log_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Log Profile"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orientation"
+          },
+          "poster_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster Url"
+          },
+          "size_total": {
+            "title": "Size Total",
+            "type": "integer"
+          },
+          "sprite_tiles": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sprite Tiles"
+          },
+          "sprite_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sprite Url"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          }
+        },
+        "required": [
+          "id",
+          "media_type",
+          "status",
+          "title",
+          "filename",
+          "capture_at",
+          "duration_ms",
+          "width",
+          "height",
+          "fps",
+          "codec",
+          "camera_model",
+          "lens_model",
+          "log_profile",
+          "orientation",
+          "size_total",
+          "poster_url",
+          "sprite_url",
+          "sprite_tiles",
+          "batch_label"
+        ],
+        "title": "AssetSummary",
+        "type": "object"
+      },
       "BackupInfoOut": {
         "description": "A backup file.",
         "properties": {
@@ -132,6 +711,96 @@
         "title": "BatchOut",
         "type": "object"
       },
+      "BatchSummary": {
+        "description": "An ingest batch with its asset counts.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Status",
+            "type": "object"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "first_seen_at": {
+            "format": "date-time",
+            "title": "First Seen At",
+            "type": "string"
+          },
+          "hint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_path": {
+            "title": "Input Path",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "paused": {
+            "title": "Paused",
+            "type": "boolean"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "size_total": {
+            "title": "Size Total",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "input_path",
+          "label",
+          "hint_date",
+          "status",
+          "priority",
+          "paused",
+          "first_seen_at",
+          "completed_at",
+          "assets",
+          "size_total",
+          "by_status"
+        ],
+        "title": "BatchSummary",
+        "type": "object"
+      },
       "ClaimIn": {
         "description": "Claim request.",
         "properties": {
@@ -182,6 +851,143 @@
           "lease_seconds"
         ],
         "title": "ClaimOut",
+        "type": "object"
+      },
+      "DryRunIn": {
+        "description": "Evaluate a candidate template for the newest ``limit`` assets.",
+        "properties": {
+          "fallbacks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Fallbacks",
+            "type": "object"
+          },
+          "limit": {
+            "default": 200,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "template": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Template",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "title": "DryRunIn",
+        "type": "object"
+      },
+      "DryRunItemOut": {
+        "description": "Computed location of one asset.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "conflict": {
+            "title": "Conflict",
+            "type": "boolean"
+          },
+          "current_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Dir"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_id",
+          "filename",
+          "current_dir",
+          "path",
+          "warnings",
+          "conflict"
+        ],
+        "title": "DryRunItemOut",
+        "type": "object"
+      },
+      "DryRunOut": {
+        "description": "Dry-run result: every asset, plus the conflicts and distinct warnings.",
+        "properties": {
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/DryRunItemOut"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "directories": {
+            "title": "Directories",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DryRunItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "conflicts",
+          "warnings",
+          "directories"
+        ],
+        "title": "DryRunOut",
+        "type": "object"
+      },
+      "DuplicatesOut": {
+        "description": "Duplicate assets and the space they waste.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "wasted_bytes": {
+            "title": "Wasted Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "wasted_bytes"
+        ],
+        "title": "DuplicatesOut",
         "type": "object"
       },
       "EnrollIn": {
@@ -341,6 +1147,158 @@
         "title": "EnrollmentOut",
         "type": "object"
       },
+      "Facet": {
+        "description": "A filter dimension. Enum facets list values; range and date facets give min/max.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "pattern": "^(enum|range|date)$",
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "values": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FacetValue"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Values"
+          }
+        },
+        "required": [
+          "key",
+          "label_de",
+          "label_en",
+          "kind"
+        ],
+        "title": "Facet",
+        "type": "object"
+      },
+      "FacetValue": {
+        "description": "One value of an enum facet with its asset count.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "count"
+        ],
+        "title": "FacetValue",
+        "type": "object"
+      },
+      "FacetsOut": {
+        "description": "All facets.",
+        "properties": {
+          "facets": {
+            "items": {
+              "$ref": "#/components/schemas/Facet"
+            },
+            "title": "Facets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "facets"
+        ],
+        "title": "FacetsOut",
+        "type": "object"
+      },
+      "FileOut": {
+        "description": "A file of an asset with its path on every configured operating system.",
+        "properties": {
+          "blake3": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blake3"
+          },
+          "paths": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Paths",
+            "type": "object"
+          },
+          "rel_path": {
+            "title": "Rel Path",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "rel_path",
+          "size",
+          "blake3",
+          "paths"
+        ],
+        "title": "FileOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -428,6 +1386,32 @@
           "lease_expires_at"
         ],
         "title": "HeartbeatOut",
+        "type": "object"
+      },
+      "HistoryOut": {
+        "description": "An audit trail entry about the asset.",
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          }
+        },
+        "required": [
+          "at",
+          "action",
+          "details"
+        ],
+        "title": "HistoryOut",
         "type": "object"
       },
       "JobFile": {
@@ -525,6 +1509,61 @@
         "title": "JobOut",
         "type": "object"
       },
+      "KeyCount": {
+        "description": "Bytes and asset count of a media type.",
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "bytes",
+          "count"
+        ],
+        "title": "KeyCount",
+        "type": "object"
+      },
+      "KeyframeOut": {
+        "description": "A shot keyframe with its URL.",
+        "properties": {
+          "position": {
+            "title": "Position",
+            "type": "string"
+          },
+          "t_ms": {
+            "title": "T Ms",
+            "type": "integer"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "t_ms",
+          "url",
+          "position"
+        ],
+        "title": "KeyframeOut",
+        "type": "object"
+      },
       "LibraryOut": {
         "description": "Identifies the library so a worker can verify its mount (``library.json``).",
         "properties": {
@@ -557,6 +1596,34 @@
           "name"
         ],
         "title": "LibraryOut",
+        "type": "object"
+      },
+      "LibrarySettings": {
+        "description": "Per-OS library roots (to build local paths) and sidecar options.",
+        "properties": {
+          "central_meta": {
+            "default": false,
+            "description": "Also write a copy of every sidecar to .rushbase/meta/.",
+            "title": "Central Meta",
+            "type": "boolean"
+          },
+          "path_roots": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "Keys: windows, macos, linux.",
+            "title": "Path Roots",
+            "type": "object"
+          }
+        },
+        "title": "LibrarySettings",
         "type": "object"
       },
       "LoginIn": {
@@ -600,6 +1667,21 @@
         "title": "LoginOut",
         "type": "object"
       },
+      "MetadataOut": {
+        "description": "Normalized probe fields (the raw tool output stays in the sidecar and database).",
+        "properties": {
+          "normalized": {
+            "additionalProperties": true,
+            "title": "Normalized",
+            "type": "object"
+          }
+        },
+        "required": [
+          "normalized"
+        ],
+        "title": "MetadataOut",
+        "type": "object"
+      },
       "ModelInfo": {
         "description": "An installed model for a stage.",
         "properties": {
@@ -633,6 +1715,77 @@
           "priority"
         ],
         "title": "PriorityIn",
+        "type": "object"
+      },
+      "QuarantineItem": {
+        "description": "A quarantined asset.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "moved": {
+            "title": "Moved",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "size_total": {
+            "title": "Size Total",
+            "type": "integer"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          }
+        },
+        "required": [
+          "asset_id",
+          "filename",
+          "media_type",
+          "size_total",
+          "stage",
+          "reason",
+          "at",
+          "moved"
+        ],
+        "title": "QuarantineItem",
         "type": "object"
       },
       "ReprocessIn": {
@@ -807,6 +1960,82 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "RuleIn": {
+        "description": "A new rule version (created inactive).",
+        "properties": {
+          "fallbacks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Fallbacks",
+            "type": "object"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Note",
+            "type": "string"
+          },
+          "template": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Template",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "title": "RuleIn",
+        "type": "object"
+      },
+      "RuleOut": {
+        "description": "A filing rule version.",
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fallbacks": {
+            "additionalProperties": true,
+            "title": "Fallbacks",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "template": {
+            "title": "Template",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "template",
+          "fallbacks",
+          "active",
+          "note",
+          "created_at"
+        ],
+        "title": "RuleOut",
+        "type": "object"
+      },
       "SetupIn": {
         "description": "First-run request: creates the admin and initialises or adopts the library.",
         "properties": {
@@ -889,6 +2118,74 @@
         "title": "SetupStatus",
         "type": "object"
       },
+      "ShotOut": {
+        "description": "A detected shot.",
+        "properties": {
+          "camera_motion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Motion"
+          },
+          "end_ms": {
+            "title": "End Ms",
+            "type": "integer"
+          },
+          "idx": {
+            "title": "Idx",
+            "type": "integer"
+          },
+          "keyframes": {
+            "items": {
+              "$ref": "#/components/schemas/KeyframeOut"
+            },
+            "title": "Keyframes",
+            "type": "array"
+          },
+          "shake": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shake"
+          },
+          "sharpness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sharpness"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "idx",
+          "start_ms",
+          "end_ms",
+          "keyframes",
+          "camera_motion",
+          "sharpness",
+          "shake"
+        ],
+        "title": "ShotOut",
+        "type": "object"
+      },
       "Stage": {
         "description": "Processing stages (``job.stage``).",
         "enum": [
@@ -964,6 +2261,31 @@
         "title": "StagesIn",
         "type": "object"
       },
+      "StatsOut": {
+        "description": "Library statistics.",
+        "properties": {
+          "backlog": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StageBacklogOut"
+            },
+            "title": "Backlog",
+            "type": "object"
+          },
+          "duplicates": {
+            "$ref": "#/components/schemas/DuplicatesOut"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageOut"
+          }
+        },
+        "required": [
+          "storage",
+          "duplicates",
+          "backlog"
+        ],
+        "title": "StatsOut",
+        "type": "object"
+      },
       "StatusOut": {
         "description": "Backlog and system counters. Available with or without workers online.",
         "properties": {
@@ -1023,6 +2345,36 @@
           "workers_total"
         ],
         "title": "StatusOut",
+        "type": "object"
+      },
+      "StorageOut": {
+        "description": "Storage breakdown.",
+        "properties": {
+          "by_media_type": {
+            "items": {
+              "$ref": "#/components/schemas/KeyCount"
+            },
+            "title": "By Media Type",
+            "type": "array"
+          },
+          "by_year": {
+            "items": {
+              "$ref": "#/components/schemas/YearCount"
+            },
+            "title": "By Year",
+            "type": "array"
+          },
+          "total_bytes": {
+            "title": "Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_bytes",
+          "by_media_type",
+          "by_year"
+        ],
+        "title": "StorageOut",
         "type": "object"
       },
       "TokenCreated": {
@@ -1567,6 +2919,30 @@
         ],
         "title": "WorkerOut",
         "type": "object"
+      },
+      "YearCount": {
+        "description": "Bytes and asset count of a capture year.",
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "bytes",
+          "count"
+        ],
+        "title": "YearCount",
+        "type": "object"
       }
     }
   },
@@ -1813,6 +3189,70 @@
         },
         "summary": "Create a one-time worker enrollment token",
         "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/library-settings": {
+      "get": {
+        "description": "Current path mapping and sidecar options.",
+        "operationId": "get_library_settings_api_v1_admin_library_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Library Settings",
+        "tags": [
+          "filing",
+          "admin"
+        ]
+      },
+      "put": {
+        "description": "Store the path mapping and sidecar options.",
+        "operationId": "put_library_settings_api_v1_admin_library_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibrarySettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Library Settings",
+        "tags": [
+          "filing",
           "admin"
         ]
       }
@@ -2114,6 +3554,292 @@
         ]
       }
     },
+    "/api/v1/assets": {
+      "get": {
+        "description": "Filter, search by file name (`q`, case-insensitive substring) and page through assets.",
+        "operationId": "list_assets_api_v1_assets_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List assets",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/assets/{asset_id}": {
+      "get": {
+        "description": "Files (with per-OS paths), metadata, shots, derived links and history of one asset.",
+        "operationId": "get_asset_api_v1_assets__asset_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Asset details",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "description": "Verify credentials, rate-limited per client address and per user name.",
@@ -2193,6 +3919,315 @@
         ]
       }
     },
+    "/api/v1/batches": {
+      "get": {
+        "description": "Batches (newest first) with the number of assets per status.",
+        "operationId": "list_batches_api_v1_batches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BatchSummary"
+                  },
+                  "title": "Response List Batches Api V1 Batches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List batches",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/derived/{asset_id}/{path}": {
+      "get": {
+        "description": "Serve a preview (poster, proxy, waveform, keyframe) with HTTP Range support.\n\nOnly files below ``.rushbase/derived/<asset-id>/`` are reachable; originals never are.",
+        "operationId": "get_derived_api_v1_derived__asset_id___path__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "title": "Path",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Derived preview files",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/facets": {
+      "get": {
+        "description": "Facets for the filter sidebar, computed from the data.",
+        "operationId": "get_facets_api_v1_facets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Filter facets with counts",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/filing-rules": {
+      "get": {
+        "description": "All versions, newest first; the default rule is seeded on first use.",
+        "operationId": "list_rules_api_v1_filing_rules_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RuleOut"
+                  },
+                  "title": "Response List Rules Api V1 Filing Rules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List filing rule versions",
+        "tags": [
+          "filing"
+        ]
+      },
+      "post": {
+        "description": "Validate and store a new, inactive version. Activate it after a dry-run.",
+        "operationId": "create_rule_api_v1_filing_rules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a rule version",
+        "tags": [
+          "filing"
+        ]
+      }
+    },
+    "/api/v1/filing-rules/dry-run": {
+      "post": {
+        "description": "Show where the latest assets would be filed, with conflicts and warnings.",
+        "operationId": "dry_run_api_v1_filing_rules_dry_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DryRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DryRunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dry-run a template",
+        "tags": [
+          "filing"
+        ]
+      }
+    },
+    "/api/v1/filing-rules/{rule_id}/activate": {
+      "post": {
+        "description": "Make the version active. Only assets filed afterwards are affected.",
+        "operationId": "activate_rule_api_v1_filing_rules__rule_id__activate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activate a rule",
+        "tags": [
+          "filing"
+        ]
+      }
+    },
+    "/api/v1/quarantine": {
+      "get": {
+        "description": "Assets whose processing failed permanently, newest first.",
+        "operationId": "list_quarantine_api_v1_quarantine_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QuarantineItem"
+                  },
+                  "title": "Response List Quarantine Api V1 Quarantine Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List quarantined assets",
+        "tags": [
+          "filing"
+        ]
+      }
+    },
+    "/api/v1/quarantine/{asset_id}/retry": {
+      "post": {
+        "description": "Move the files back to their original `Input/` location (if free) and requeue the jobs.",
+        "operationId": "retry_quarantine_api_v1_quarantine__asset_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Move back to Input and reprocess",
+        "tags": [
+          "filing"
+        ]
+      }
+    },
     "/api/v1/setup": {
       "get": {
         "description": "Report whether setup is needed and whether a backup can be restored instead.",
@@ -2252,6 +4287,28 @@
         "summary": "Create the first admin and initialise (or adopt) the library",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/v1/stats": {
+      "get": {
+        "description": "Storage by media type and year, duplicate waste and the processing backlog.",
+        "operationId": "get_stats_api_v1_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Library statistics",
+        "tags": [
+          "catalog"
         ]
       }
     },

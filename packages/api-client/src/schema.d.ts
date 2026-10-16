@@ -128,6 +128,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/library-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Library Settings
+         * @description Current path mapping and sidecar options.
+         */
+        get: operations["get_library_settings_api_v1_admin_library_settings_get"];
+        /**
+         * Put Library Settings
+         * @description Store the path mapping and sidecar options.
+         */
+        put: operations["put_library_settings_api_v1_admin_library_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/pipeline/stages": {
         parameters: {
             query?: never;
@@ -292,6 +316,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List assets
+         * @description Filter, search by file name (`q`, case-insensitive substring) and page through assets.
+         */
+        get: operations["list_assets_api_v1_assets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Asset details
+         * @description Files (with per-OS paths), metadata, shots, derived links and history of one asset.
+         */
+        get: operations["get_asset_api_v1_assets__asset_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -352,6 +416,172 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List batches
+         * @description Batches (newest first) with the number of assets per status.
+         */
+        get: operations["list_batches_api_v1_batches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/derived/{asset_id}/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Derived preview files
+         * @description Serve a preview (poster, proxy, waveform, keyframe) with HTTP Range support.
+         *
+         *     Only files below ``.rushbase/derived/<asset-id>/`` are reachable; originals never are.
+         */
+        get: operations["get_derived_api_v1_derived__asset_id___path__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Filter facets with counts
+         * @description Facets for the filter sidebar, computed from the data.
+         */
+        get: operations["get_facets_api_v1_facets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/filing-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List filing rule versions
+         * @description All versions, newest first; the default rule is seeded on first use.
+         */
+        get: operations["list_rules_api_v1_filing_rules_get"];
+        put?: never;
+        /**
+         * Create a rule version
+         * @description Validate and store a new, inactive version. Activate it after a dry-run.
+         */
+        post: operations["create_rule_api_v1_filing_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/filing-rules/dry-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dry-run a template
+         * @description Show where the latest assets would be filed, with conflicts and warnings.
+         */
+        post: operations["dry_run_api_v1_filing_rules_dry_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/filing-rules/{rule_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate a rule
+         * @description Make the version active. Only assets filed afterwards are affected.
+         */
+        post: operations["activate_rule_api_v1_filing_rules__rule_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List quarantined assets
+         * @description Assets whose processing failed permanently, newest first.
+         */
+        get: operations["list_quarantine_api_v1_quarantine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quarantine/{asset_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move back to Input and reprocess
+         * @description Move the files back to their original `Input/` location (if free) and requeue the jobs.
+         */
+        post: operations["retry_quarantine_api_v1_quarantine__asset_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/setup": {
         parameters: {
             query?: never;
@@ -370,6 +600,26 @@ export interface paths {
          * @description Only works while no user exists. Logs the new admin in.
          */
         post: operations["setup_api_v1_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Library statistics
+         * @description Storage by media type and year, duplicate waste and the processing backlog.
+         */
+        get: operations["get_stats_api_v1_stats_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -585,6 +835,137 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * AssetDetail
+         * @description Everything the detail view shows.
+         */
+        AssetDetail: {
+            /** Batch Label */
+            batch_label: string | null;
+            /** Camera Model */
+            camera_model: string | null;
+            /** Capture At */
+            capture_at: string | null;
+            /** Codec */
+            codec: string | null;
+            /** Content Rel Dir */
+            content_rel_dir: string | null;
+            /** Decode Status */
+            decode_status: string;
+            /** Duplicate Of */
+            duplicate_of: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Filename */
+            filename: string;
+            /** Files */
+            files: components["schemas"]["FileOut"][];
+            /** Fps */
+            fps: number | null;
+            /** Height */
+            height: number | null;
+            /** History */
+            history: components["schemas"]["HistoryOut"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lens Model */
+            lens_model: string | null;
+            /** Log Profile */
+            log_profile: string | null;
+            /** Media Type */
+            media_type: string;
+            metadata: components["schemas"]["MetadataOut"];
+            /** Orientation */
+            orientation: string | null;
+            /** Poster Url */
+            poster_url: string | null;
+            /** Proxy Url */
+            proxy_url: string | null;
+            /** Shots */
+            shots: components["schemas"]["ShotOut"][];
+            /** Size Total */
+            size_total: number;
+            /** Sprite Tiles */
+            sprite_tiles: number | null;
+            /** Sprite Url */
+            sprite_url: string | null;
+            /** Status */
+            status: string;
+            /** Tech Summary De */
+            tech_summary_de: string | null;
+            /** Tech Summary En */
+            tech_summary_en: string | null;
+            /** Title */
+            title: string | null;
+            /** Waveform Url */
+            waveform_url: string | null;
+            /** Width */
+            width: number | null;
+        };
+        /**
+         * AssetPage
+         * @description Keyset-paginated list; ``total`` is only set on the first page.
+         */
+        AssetPage: {
+            /** Items */
+            items: components["schemas"]["AssetSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number | null;
+        };
+        /**
+         * AssetSummary
+         * @description Compact asset representation for lists and grids.
+         */
+        AssetSummary: {
+            /** Batch Label */
+            batch_label: string | null;
+            /** Camera Model */
+            camera_model: string | null;
+            /** Capture At */
+            capture_at: string | null;
+            /** Codec */
+            codec: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Filename */
+            filename: string;
+            /** Fps */
+            fps: number | null;
+            /** Height */
+            height: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lens Model */
+            lens_model: string | null;
+            /** Log Profile */
+            log_profile: string | null;
+            /** Media Type */
+            media_type: string;
+            /** Orientation */
+            orientation: string | null;
+            /** Poster Url */
+            poster_url: string | null;
+            /** Size Total */
+            size_total: number;
+            /** Sprite Tiles */
+            sprite_tiles: number | null;
+            /** Sprite Url */
+            sprite_url: string | null;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string | null;
+            /** Width */
+            width: number | null;
+        };
+        /**
          * BackupInfoOut
          * @description A backup file.
          */
@@ -649,6 +1030,44 @@ export interface components {
             status: string;
         };
         /**
+         * BatchSummary
+         * @description An ingest batch with its asset counts.
+         */
+        BatchSummary: {
+            /** Assets */
+            assets: number;
+            /** By Status */
+            by_status: {
+                [key: string]: number;
+            };
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /** Hint Date */
+            hint_date: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Path */
+            input_path: string;
+            /** Label */
+            label: string;
+            /** Paused */
+            paused: boolean;
+            /** Priority */
+            priority: number;
+            /** Size Total */
+            size_total: number;
+            /** Status */
+            status: string;
+        };
+        /**
          * ClaimIn
          * @description Claim request.
          */
@@ -672,6 +1091,68 @@ export interface components {
             jobs: components["schemas"]["JobOut"][];
             /** Lease Seconds */
             lease_seconds: number;
+        };
+        /**
+         * DryRunIn
+         * @description Evaluate a candidate template for the newest ``limit`` assets.
+         */
+        DryRunIn: {
+            /** Fallbacks */
+            fallbacks?: {
+                [key: string]: string;
+            };
+            /**
+             * Limit
+             * @default 200
+             */
+            limit: number;
+            /** Template */
+            template: string;
+        };
+        /**
+         * DryRunItemOut
+         * @description Computed location of one asset.
+         */
+        DryRunItemOut: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Conflict */
+            conflict: boolean;
+            /** Current Dir */
+            current_dir: string | null;
+            /** Filename */
+            filename: string;
+            /** Path */
+            path: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * DryRunOut
+         * @description Dry-run result: every asset, plus the conflicts and distinct warnings.
+         */
+        DryRunOut: {
+            /** Conflicts */
+            conflicts: components["schemas"]["DryRunItemOut"][];
+            /** Directories */
+            directories: number;
+            /** Items */
+            items: components["schemas"]["DryRunItemOut"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * DuplicatesOut
+         * @description Duplicate assets and the space they waste.
+         */
+        DuplicatesOut: {
+            /** Count */
+            count: number;
+            /** Wasted Bytes */
+            wasted_bytes: number;
         };
         /**
          * EnrollIn
@@ -740,6 +1221,62 @@ export interface components {
             /** Token */
             token: string;
         };
+        /**
+         * Facet
+         * @description A filter dimension. Enum facets list values; range and date facets give min/max.
+         */
+        Facet: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label De */
+            label_de: string;
+            /** Label En */
+            label_en: string;
+            /** Max */
+            max?: number | string | null;
+            /** Min */
+            min?: number | string | null;
+            /** Values */
+            values?: components["schemas"]["FacetValue"][] | null;
+        };
+        /**
+         * FacetValue
+         * @description One value of an enum facet with its asset count.
+         */
+        FacetValue: {
+            /** Count */
+            count: number;
+            /** Value */
+            value: string;
+        };
+        /**
+         * FacetsOut
+         * @description All facets.
+         */
+        FacetsOut: {
+            /** Facets */
+            facets: components["schemas"]["Facet"][];
+        };
+        /**
+         * FileOut
+         * @description A file of an asset with its path on every configured operating system.
+         */
+        FileOut: {
+            /** Blake3 */
+            blake3: string | null;
+            /** Paths */
+            paths: {
+                [key: string]: string;
+            };
+            /** Rel Path */
+            rel_path: string;
+            /** Role */
+            role: string;
+            /** Size */
+            size: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -779,6 +1316,23 @@ export interface components {
              * Format: date-time
              */
             lease_expires_at: string;
+        };
+        /**
+         * HistoryOut
+         * @description An audit trail entry about the asset.
+         */
+        HistoryOut: {
+            /** Action */
+            action: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
         };
         /**
          * JobFile
@@ -832,6 +1386,30 @@ export interface components {
             };
         };
         /**
+         * KeyCount
+         * @description Bytes and asset count of a media type.
+         */
+        KeyCount: {
+            /** Bytes */
+            bytes: number;
+            /** Count */
+            count: number;
+            /** Key */
+            key: string;
+        };
+        /**
+         * KeyframeOut
+         * @description A shot keyframe with its URL.
+         */
+        KeyframeOut: {
+            /** Position */
+            position: string;
+            /** T Ms */
+            t_ms: number;
+            /** Url */
+            url: string | null;
+        };
+        /**
          * LibraryOut
          * @description Identifies the library so a worker can verify its mount (``library.json``).
          */
@@ -840,6 +1418,25 @@ export interface components {
             library_id: string | null;
             /** Name */
             name: string | null;
+        };
+        /**
+         * LibrarySettings
+         * @description Per-OS library roots (to build local paths) and sidecar options.
+         */
+        LibrarySettings: {
+            /**
+             * Central Meta
+             * @description Also write a copy of every sidecar to .rushbase/meta/.
+             * @default false
+             */
+            central_meta: boolean;
+            /**
+             * Path Roots
+             * @description Keys: windows, macos, linux.
+             */
+            path_roots?: {
+                [key: string]: string | null;
+            };
         };
         /**
          * LoginIn
@@ -861,6 +1458,16 @@ export interface components {
             user: components["schemas"]["UserOut"];
         };
         /**
+         * MetadataOut
+         * @description Normalized probe fields (the raw tool output stays in the sidecar and database).
+         */
+        MetadataOut: {
+            /** Normalized */
+            normalized: {
+                [key: string]: unknown;
+            };
+        };
+        /**
          * ModelInfo
          * @description An installed model for a stage.
          */
@@ -877,6 +1484,31 @@ export interface components {
         PriorityIn: {
             /** Priority */
             priority: number;
+        };
+        /**
+         * QuarantineItem
+         * @description A quarantined asset.
+         */
+        QuarantineItem: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** At */
+            at: string | null;
+            /** Filename */
+            filename: string;
+            /** Media Type */
+            media_type: string;
+            /** Moved */
+            moved: boolean;
+            /** Reason */
+            reason: string | null;
+            /** Size Total */
+            size_total: number;
+            /** Stage */
+            stage: string | null;
         };
         /**
          * ReprocessIn
@@ -941,6 +1573,51 @@ export interface components {
             job_state: string;
         };
         /**
+         * RuleIn
+         * @description A new rule version (created inactive).
+         */
+        RuleIn: {
+            /** Fallbacks */
+            fallbacks?: {
+                [key: string]: string;
+            };
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Template */
+            template: string;
+        };
+        /**
+         * RuleOut
+         * @description A filing rule version.
+         */
+        RuleOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Fallbacks */
+            fallbacks: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string;
+            /** Template */
+            template: string;
+            /** Version */
+            version: number;
+        };
+        /**
          * SetupIn
          * @description First-run request: creates the admin and initialises or adopts the library.
          */
@@ -983,6 +1660,26 @@ export interface components {
             restore_available: boolean;
         };
         /**
+         * ShotOut
+         * @description A detected shot.
+         */
+        ShotOut: {
+            /** Camera Motion */
+            camera_motion: string | null;
+            /** End Ms */
+            end_ms: number;
+            /** Idx */
+            idx: number;
+            /** Keyframes */
+            keyframes: components["schemas"]["KeyframeOut"][];
+            /** Shake */
+            shake: number | null;
+            /** Sharpness */
+            sharpness: number | null;
+            /** Start Ms */
+            start_ms: number;
+        };
+        /**
          * Stage
          * @description Processing stages (``job.stage``).
          * @enum {string}
@@ -1017,6 +1714,18 @@ export interface components {
             stages: components["schemas"]["Stage"][];
         };
         /**
+         * StatsOut
+         * @description Library statistics.
+         */
+        StatsOut: {
+            /** Backlog */
+            backlog: {
+                [key: string]: components["schemas"]["StageBacklogOut"];
+            };
+            duplicates: components["schemas"]["DuplicatesOut"];
+            storage: components["schemas"]["StorageOut"];
+        };
+        /**
          * StatusOut
          * @description Backlog and system counters. Available with or without workers online.
          */
@@ -1045,6 +1754,18 @@ export interface components {
             workers_online: number;
             /** Workers Total */
             workers_total: number;
+        };
+        /**
+         * StorageOut
+         * @description Storage breakdown.
+         */
+        StorageOut: {
+            /** By Media Type */
+            by_media_type: components["schemas"]["KeyCount"][];
+            /** By Year */
+            by_year: components["schemas"]["YearCount"][];
+            /** Total Bytes */
+            total_bytes: number;
         };
         /**
          * TokenCreated
@@ -1255,6 +1976,18 @@ export interface components {
             /** Version */
             version: string | null;
         };
+        /**
+         * YearCount
+         * @description Bytes and asset count of a capture year.
+         */
+        YearCount: {
+            /** Bytes */
+            bytes: number;
+            /** Count */
+            count: number;
+            /** Year */
+            year: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -1435,6 +2168,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnrollmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_library_settings_api_v1_admin_library_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibrarySettings"];
+                };
+            };
+        };
+    };
+    put_library_settings_api_v1_admin_library_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibrarySettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibrarySettings"];
                 };
             };
             /** @description Validation Error */
@@ -1685,6 +2471,80 @@ export interface operations {
             };
         };
     };
+    list_assets_api_v1_assets_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_asset_api_v1_assets__asset_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_auth_login_post: {
         parameters: {
             query?: never;
@@ -1756,6 +2616,242 @@ export interface operations {
             };
         };
     };
+    list_batches_api_v1_batches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchSummary"][];
+                };
+            };
+        };
+    };
+    get_derived_api_v1_derived__asset_id___path__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_facets_api_v1_facets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FacetsOut"];
+                };
+            };
+        };
+    };
+    list_rules_api_v1_filing_rules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"][];
+                };
+            };
+        };
+    };
+    create_rule_api_v1_filing_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dry_run_api_v1_filing_rules_dry_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DryRunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DryRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_rule_api_v1_filing_rules__rule_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_quarantine_api_v1_quarantine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantineItem"][];
+                };
+            };
+        };
+    };
+    retry_quarantine_api_v1_quarantine__asset_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     setup_status_api_v1_setup_get: {
         parameters: {
             query?: never;
@@ -1805,6 +2901,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_stats_api_v1_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsOut"];
                 };
             };
         };
