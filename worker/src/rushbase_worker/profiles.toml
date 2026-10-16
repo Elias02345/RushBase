@@ -26,7 +26,8 @@ audio_events = "ced-small"
 embed_vision = "fp16"
 
 [profiles.gpu8]
-vlm = "gpu8-4b"
+# 9B Q4_K_M fits with 3 images (see the VLM benchmark in the docs); OOM falls back to gpu8-4b.
+vlm = "gpu8-9b"
 asr = "whisper-large-v3-turbo-q5_0"
 audio_events = "ced-small"
 embed_vision = "fp16"

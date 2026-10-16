@@ -183,7 +183,7 @@ def bench_vision_command(
     results = asyncio.run(
         bench_vision(
             runtimes, [v.strip() for v in profiles.split(",")], items, repeats=repeats, emit=emit
-        )  # fmt: skip
+        )
     )
     summaries = [r.summary() for r in results]
     document = {"hardware": runtimes.hardware.model_dump(mode="json"), "items": len(items),

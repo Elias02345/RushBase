@@ -68,5 +68,17 @@ Proprietary SDKs (for example Blackmagic RAW, RED) are never bundled.
 | uv | Python tooling | MIT / Apache-2.0 |
 | pnpm | package manager | MIT |
 
-Models (speech, vision, embeddings) arrive in milestone M4 and will be listed here with their
-licences before they are enabled.
+## AI models and inference engines (downloaded on demand, pinned in `worker/*.lock.json`)
+
+| Software / model | Use | Licence |
+| --- | --- | --- |
+| llama.cpp (prebuilt upstream releases) | VLM server | MIT |
+| whisper.cpp (built from tag v1.9.5) | speech recognition | MIT |
+| Whisper large-v3-turbo, small (ggml, `ggerganov/whisper.cpp`) | speech recognition | MIT |
+| Silero VAD (ggml, `ggml-org/whisper-vad`) | voice activity detection | MIT |
+| Qwen3.5 2B/4B/9B (GGUF by unsloth), Qwen3-VL-8B-Instruct | vision-language | Apache-2.0 |
+| MiniCPM-V 4.6 | vision-language (CPU option) | Apache-2.0 |
+| SigLIP 2 base patch16-256 (ONNX by onnx-community) | image/text embeddings | Apache-2.0 |
+| multilingual-e5-base (ONNX by Xenova) | text embeddings | MIT |
+| CED-mini / CED-small (mispeech) | audio events | Apache-2.0 |
+| ONNX Runtime, tokenizers | inference | MIT / Apache-2.0 |

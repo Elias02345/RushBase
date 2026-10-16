@@ -12,6 +12,22 @@
 | Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
 | M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
 
+## M4 worker (AI stages)
+
+Implemented on `feature/m4-worker-ai`: hardware detection, pinned model/binary manager, llama-server
+and whisper.cpp runtimes, stages `audio`, `embed`, `vision`, `classify`, `rushbase bench`.
+Details, profiles and measured numbers: `docs/worker-ai.md`, `docs/eval/2026-10-vlm-benchmark.md`.
+
+```sh
+uv run rushbase hardware --json
+uv run rushbase models pull --profile gpu8        # ~12 GB, resumable, SHA-256 verified
+uv run rushbase analyze clip.mp4 --stages probe,preview,shots,audio,embed,vision,classify
+```
+
+Open: server endpoint `GET /api/v1/worker/taxonomy` (the client falls back to an empty snapshot),
+CI run of `whisper-build.yml` (the CUDA binary in use was built locally in Docker), Parakeet and
+Granite-Speech pilots (ADR-0011), Harrier text-embedding benchmark, musical key detection.
+
 ## M2 worker (engine part)
 
 The CPU worker engine is implemented on `feature/m2-worker-engine` (server-side filing and
