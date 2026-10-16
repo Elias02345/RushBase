@@ -20,6 +20,7 @@ dependencies = [
   "scenedetect==0.6.6",
   "onnxruntime>=1.23",
   "tokenizers>=0.21",
+  "mcp==2.3.0",
 ]
 
 [project.optional-dependencies]

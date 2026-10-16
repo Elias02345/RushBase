@@ -17,7 +17,19 @@ import typer
 from rushbase_core import Stage, parse_stages
 from rushbase_worker import get_version
 from rushbase_worker.cli_ai import bench_app, hardware_command, models_app
+from rushbase_worker.cli_companion import (
+    asset_app,
+    export_app,
+    login,
+    mcp_app,
+    overview,
+    paths_app,
+    resolve_app,
+    search,
+    select_app,
+)
 from rushbase_worker.client import ApiError, AuthError, UnavailableError, WorkerClient
+from rushbase_worker.companion.throughput import record_jobs
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.doctor import run_checks
 from rushbase_worker.doctor_ai import check_ai
@@ -48,6 +60,15 @@ app.add_typer(worker_app, name="worker")
 app.add_typer(models_app, name="models")
 app.add_typer(bench_app, name="bench")
 app.command("hardware")(hardware_command)
+app.command("login")(login)
+app.command("search")(search)
+app.command("overview")(overview)
+app.add_typer(asset_app, name="asset")
+app.add_typer(select_app, name="select")
+app.add_typer(paths_app, name="paths")
+app.add_typer(resolve_app, name="resolve")
+app.add_typer(export_app, name="export")
+app.add_typer(mcp_app, name="mcp")
 
 JsonOption = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
 
@@ -163,6 +184,17 @@ def _emitter(command: str, as_json: bool) -> Any:
     return emit
 
 
+def _recording(emit: Any, durations: dict[str, list[int]]) -> Any:
+    """Wrap an event sink so finished jobs feed the per-stage throughput history."""
+
+    def sink(event: Event) -> None:
+        if event["event"] == "job_done" and isinstance(event.get("duration_ms"), int):
+            durations.setdefault(str(event["stage"]), []).append(event["duration_ms"])
+        emit(event)
+
+    return sink
+
+
 def _run_process(
     stages: str | None,
     until: str | None,
@@ -192,7 +224,8 @@ def _run_process(
             command, "not enrolled: run `rushbase enroll` first", EXIT_NOT_ENROLLED, as_json
         )
     toolbox = Toolbox(settings)
-    emit = _emitter(command, as_json)
+    durations: dict[str, list[int]] = {}
+    emit = _recording(_emitter(command, as_json), durations)
     runtimes = Runtimes(settings, emit)
     handlers = runnable_stages(wanted, toolbox, runtimes)
     problems = {
@@ -248,6 +281,7 @@ def _run_process(
             return EXIT_OK, vars(summary)
 
     code, summary = asyncio.run(main())
+    record_jobs(settings, durations)
     save_last_run(
         settings,
         {
