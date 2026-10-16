@@ -82,8 +82,15 @@ rushbase doctor
 rushbase process [--stages probe,hash] [--until 07:00] [--exit-when-empty] [--concurrency 4]
 rushbase worker run          # alias of process, used by deploy/systemd/rushbase-worker.service.in
 rushbase status
-rushbase analyze clip.mp4 [--stages probe,preview,shots] [--output-dir DIR] [--raw]
+rushbase analyze clip.mp4 [--stages probe,preview,shots,audio,embed,vision,classify] [--output-dir DIR] [--raw]
+rushbase hardware [--json]   # GPUs, free VRAM, backend and profile
+rushbase models list|pull|verify|remove [--profile gpu8] [--variant gpu8-9b] [--auto-download]
+rushbase bench vision|whisper|embed
 ```
+
+The AI stages (`audio`, `embed`, `vision`, `classify`) are described in `docs/worker-ai.md`. They are
+advertised only when their backends and models are installed; the server enables them with
+`RUSHBASE_PIPELINE_STAGES`.
 
 ## Configuration
 
@@ -103,6 +110,7 @@ Environment variables (prefix `RUSHBASE_`), `.env` in the working directory, or
 | `ffmpeg`, `ffprobe`, `exiftool`, `toolchain_dir` | PATH / `$TOOLCHAIN_DIR/bin` | Tool locations. |
 | `tool_timeout_seconds`, `long_tool_timeout_seconds` | 300 / 21600 | Timeouts (long: proxy, analysis). |
 | `ffmpeg_hwaccel` | false | Add `-hwaccel auto` when decoding. |
+| AI keys | see `docs/worker-ai.md` | `auto_download`, `profile`, `backend`, `vision_variant`, event thresholds, review thresholds. |
 | `poster_width`, `sprite_tiles`, `sprite_tile_width`, `proxy_enabled`, `proxy_height`, `proxy_crf`, `proxy_preset`, `photo_preview_width`, `waveform_*` | see `config.py` | Preview parameters. |
 | `luts` | none | `{ slog3 = "/path/slog3.cube" }`. |
 | `min_shot_seconds`, `analysis_width`, `analysis_max_fps`, `keyframe_width` | 0.6 / 320 / 25 / 960 | Shot analysis. |

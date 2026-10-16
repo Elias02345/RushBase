@@ -24,7 +24,12 @@ class ToolResult:
 
 
 async def run_tool(
-    tool: str, args: list[str], *, timeout: float, ok_codes: tuple[int, ...] = (0,)
+    tool: str,
+    args: list[str],
+    *,
+    timeout: float,
+    ok_codes: tuple[int, ...] = (0,),
+    env: dict[str, str] | None = None,
 ) -> ToolResult:
     """Run ``args`` (``args[0]`` is the executable) and return its output.
 
@@ -37,6 +42,7 @@ async def run_tool(
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
     except OSError as exc:
         raise ToolError(tool, f"cannot execute {args[0]}: {exc}") from exc

@@ -16,14 +16,17 @@ import typer
 
 from rushbase_core import Stage, parse_stages
 from rushbase_worker import get_version
+from rushbase_worker.cli_ai import bench_app, hardware_command, models_app
 from rushbase_worker.client import ApiError, AuthError, UnavailableError, WorkerClient
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.doctor import run_checks
+from rushbase_worker.doctor_ai import check_ai
 from rushbase_worker.local import ANALYZE_STAGES, analyze_file
 from rushbase_worker.mount import MountError, verify_mount
 from rushbase_worker.output import emit_json, envelope
 from rushbase_worker.runner import Event, Runner, RunOptions, parse_until
-from rushbase_worker.stages import HANDLERS, StageContext, missing_tools, runnable_stages
+from rushbase_worker.runtimes.manager import Runtimes
+from rushbase_worker.stages import HANDLERS, StageContext, missing_requirements, runnable_stages
 from rushbase_worker.state import (
     load_api_key,
     load_identity,
@@ -31,6 +34,7 @@ from rushbase_worker.state import (
     save_enrollment,
     save_last_run,
 )
+from rushbase_worker.taxonomy import TaxonomySnapshot, TaxonomySource
 from rushbase_worker.tools.toolbox import Toolbox
 
 app = typer.Typer(
@@ -41,8 +45,13 @@ app = typer.Typer(
 )
 worker_app = typer.Typer(help="Run the headless worker (`worker run` = `process`).")
 app.add_typer(worker_app, name="worker")
+app.add_typer(models_app, name="models")
+app.add_typer(bench_app, name="bench")
+app.command("hardware")(hardware_command)
 
 JsonOption = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
+
+AI_STAGES = (Stage.AUDIO, Stage.EMBED, Stage.VISION, Stage.CLASSIFY)
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -98,6 +107,7 @@ def doctor(
         server_url or settings.server_url,
         settings,
     )
+    checks.extend(check_ai(settings))
     ok = all(check.status != "error" for check in checks)
     if as_json:
         emit_json(envelope("doctor", ok=ok, data={"checks": [c.to_dict() for c in checks]}))
@@ -160,17 +170,20 @@ def _run_process(
     concurrency: int | None,
     as_json: bool,
     command: str = "process",
+    auto_download: bool = False,
 ) -> None:
     logging.basicConfig(
         level=logging.WARNING, stream=sys.stderr, format="%(levelname)s %(message)s"
     )
     settings = WorkerSettings()
     try:
-        wanted = parse_stages(stages.split(",")) if stages else settings.stages
+        wanted = parse_stages(stages.split(",")) if stages else _default_stages(settings)
         stop_at = parse_until(until) if until else None
     except ValueError as exc:
         raise _fail(command, str(exc), EXIT_USAGE, as_json) from exc
-    settings = settings.with_overrides(concurrency=concurrency)
+    settings = settings.with_overrides(
+        concurrency=concurrency, auto_download=True if auto_download else None
+    )
     identity = load_identity(settings)
     key = load_api_key(settings)
     server_url = settings.server_url or (identity.server_url if identity else None)
@@ -179,11 +192,25 @@ def _run_process(
             command, "not enrolled: run `rushbase enroll` first", EXIT_NOT_ENROLLED, as_json
         )
     toolbox = Toolbox(settings)
-    handlers = runnable_stages(wanted, toolbox)
-    if not handlers:
-        problems = {s.value: missing_tools(h, toolbox) for s, h in _wanted_handlers(wanted).items()}
-        raise _fail(command, f"no runnable stage; missing tools: {problems}", EXIT_FAILED, as_json)
     emit = _emitter(command, as_json)
+    runtimes = Runtimes(settings, emit)
+    handlers = runnable_stages(wanted, toolbox, runtimes)
+    problems = {
+        s.value: missing_requirements(h, toolbox, runtimes)
+        for s, h in _wanted_handlers(wanted).items()
+        if s not in handlers
+    }
+    asked_ai = stages is not None and any(
+        HANDLERS[s].requirements.ai for s in problems_stages(problems)
+    )
+    if not handlers or asked_ai:
+        raise _fail(
+            command,
+            f"cannot run: missing {problems}; `rushbase models pull` installs AI backends and "
+            "models (or pass --auto-download)",
+            EXIT_FAILED,
+            as_json,
+        )
     started = datetime.now(UTC)
 
     async def main() -> tuple[int, dict[str, Any]]:
@@ -199,7 +226,9 @@ def _run_process(
                 raise _fail(command, f"server error: {exc}", EXIT_SERVER, as_json) from exc
             root = settings.resolved_library_root
             assert root is not None
-            ctx = StageContext(settings, toolbox, root)
+            ctx = StageContext(
+                settings, toolbox, root, runtimes=runtimes, taxonomy=TaxonomySource(client.taxonomy)
+            )
             options = RunOptions(
                 concurrency=settings.effective_concurrency,
                 heartbeat_seconds=settings.heartbeat_seconds,
@@ -230,6 +259,17 @@ def _run_process(
     raise typer.Exit(code)
 
 
+def _default_stages(settings: WorkerSettings) -> tuple[Stage, ...]:
+    """Configured stages, or the technical stages plus every AI stage (offered when runnable)."""
+    if "stages" in settings.model_fields_set:
+        return settings.stages
+    return tuple(dict.fromkeys([*settings.stages, *AI_STAGES]))
+
+
+def problems_stages(problems: dict[str, list[str]]) -> list[Stage]:
+    return [Stage(name) for name in problems]
+
+
 def _wanted_handlers(wanted: tuple[Stage, ...]) -> dict[Stage, Any]:
     return {s: h for s, h in HANDLERS.items() if s in wanted}
 
@@ -243,6 +283,14 @@ UntilOption = Annotated[
 EmptyOption = Annotated[
     bool, typer.Option("--exit-when-empty", help="Exit when the queue has no claimable work.")
 ]
+AutoDownloadOption = Annotated[
+    bool,
+    typer.Option(
+        "--auto-download",
+        help="Download missing AI backends/models on demand (default: fail and name the "
+        "`rushbase models pull` command).",
+    ),
+]
 ConcurrencyOption = Annotated[
     int | None, typer.Option(min=1, help="Parallel jobs (default: CPU count / 2).")
 ]
@@ -254,10 +302,11 @@ def process(
     until: UntilOption = None,
     exit_when_empty: EmptyOption = False,
     concurrency: ConcurrencyOption = None,
+    auto_download: AutoDownloadOption = False,
     as_json: JsonOption = False,
 ) -> None:
     """Claim and process jobs until stopped (SIGINT/SIGTERM release in-flight jobs)."""
-    _run_process(stages, until, exit_when_empty, concurrency, as_json)
+    _run_process(stages, until, exit_when_empty, concurrency, as_json, auto_download=auto_download)
 
 
 @worker_app.command("run")
@@ -266,10 +315,11 @@ def worker_run(
     until: UntilOption = None,
     exit_when_empty: EmptyOption = False,
     concurrency: ConcurrencyOption = None,
+    auto_download: AutoDownloadOption = False,
     as_json: JsonOption = False,
 ) -> None:
     """Alias of `process` (used by the systemd unit)."""
-    _run_process(stages, until, exit_when_empty, concurrency, as_json, command="worker run")
+    _run_process(stages, until, exit_when_empty, concurrency, as_json, "worker run", auto_download)
 
 
 @app.command()
@@ -336,24 +386,34 @@ def status(as_json: JsonOption = False) -> None:
 @app.command()
 def analyze(
     file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, help="Media file.")],
-    stages: Annotated[str, typer.Option(help="Comma separated: probe,preview,shots,hash.")] = (
-        ",".join(s.value for s in ANALYZE_STAGES)
-    ),
+    stages: Annotated[
+        str,
+        typer.Option(
+            help="Comma separated stages (probe,hash,preview,shots,audio,embed,vision,classify)."
+        ),
+    ] = (",".join(s.value for s in ANALYZE_STAGES)),
     output_dir: Annotated[
         Path | None, typer.Option(help="Where `.rushbase/derived` is written (default: temp dir).")
     ] = None,
     raw: Annotated[bool, typer.Option("--raw", help="Include the raw tool output.")] = False,
+    taxonomy: Annotated[
+        Path | None, typer.Option(help="Taxonomy snapshot JSON for vision/classify.")
+    ] = None,
+    auto_download: AutoDownloadOption = False,
     as_json: JsonOption = False,
 ) -> None:
     """Probe, preview and analyse one file locally, without a server."""
-    settings = WorkerSettings()
+    settings = WorkerSettings().with_overrides(auto_download=True if auto_download else None)
     try:
         wanted = parse_stages(stages.split(","))
-    except ValueError as exc:
-        raise _fail("analyze", f"unknown stage: {exc}", EXIT_USAGE, as_json) from exc
+        snapshot = TaxonomySnapshot.model_validate_json(taxonomy.read_text()) if taxonomy else None
+    except (ValueError, OSError) as exc:
+        raise _fail("analyze", f"invalid option: {exc}", EXIT_USAGE, as_json) from exc
     target = output_dir or Path(tempfile.mkdtemp(prefix="rushbase-analyze-"))
     target.mkdir(parents=True, exist_ok=True)
-    report = asyncio.run(analyze_file(settings, file, target, wanted, include_raw=raw))
+    report = asyncio.run(
+        analyze_file(settings, file, target, wanted, include_raw=raw, taxonomy=snapshot)
+    )
     ok = all(entry["ok"] for entry in report["stages"].values())
     if as_json:
         emit_json(envelope("analyze", ok=ok, data=report))

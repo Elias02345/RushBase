@@ -9,10 +9,22 @@ from typing import Any
 from rushbase_core import MediaType, Stage, media_type_for
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.models import Job, JobFile
-from rushbase_worker.stages import HANDLERS, StageContext, StageError, missing_tools
+from rushbase_worker.runtimes.manager import Runtimes
+from rushbase_worker.stages import HANDLERS, StageContext, StageError, missing_requirements
+from rushbase_worker.taxonomy import EMPTY_SNAPSHOT, TaxonomySnapshot, TaxonomySource
 from rushbase_worker.tools.toolbox import Toolbox
 
 ANALYZE_STAGES = (Stage.PROBE, Stage.PREVIEW, Stage.SHOTS)
+VISUAL_STAGES = frozenset({Stage.EMBED, Stage.VISION})
+
+
+def applies(stage: Stage, media: MediaType) -> bool:
+    """Whether ``stage`` makes sense for ``media`` (no shots for photos, no pictures for audio)."""
+    if stage is Stage.SHOTS:
+        return media is MediaType.VIDEO
+    if stage in VISUAL_STAGES:
+        return media in {MediaType.VIDEO, MediaType.PHOTO}
+    return True
 
 
 async def analyze_file(
@@ -22,6 +34,7 @@ async def analyze_file(
     stages: tuple[Stage, ...] = ANALYZE_STAGES,
     *,
     include_raw: bool = False,
+    taxonomy: TaxonomySnapshot | None = None,
 ) -> dict[str, Any]:
     """Run ``stages`` in pipeline order on ``path``; derived files go below ``output_dir``.
 
@@ -30,7 +43,11 @@ async def analyze_file(
     """
     media = media_type_for(path.name)
     toolbox = Toolbox(settings)
-    ctx = StageContext(settings, toolbox, path.parent.resolve(), output_root=output_dir.resolve())
+    runtimes = Runtimes(settings)
+    ctx = StageContext(
+        settings, toolbox, path.parent.resolve(), output_root=output_dir.resolve(),
+        runtimes=runtimes, taxonomy=TaxonomySource(fixed=taxonomy or EMPTY_SNAPSHOT),
+    )  # fmt: skip
     job_files = [JobFile(role="primary", rel_path=path.name, size=path.stat().st_size)]
     asset_id = uuid.uuid4()
     upstream: dict[str, dict[str, Any]] = {}
@@ -39,10 +56,10 @@ async def analyze_file(
         handler = HANDLERS[stage]
         began = time.monotonic()
         entry: dict[str, Any]
-        absent = missing_tools(handler, toolbox)
+        absent = missing_requirements(handler, toolbox, runtimes)
         if absent:
             entry = {"ok": False, "error": f"missing tools: {', '.join(absent)}"}
-        elif stage is Stage.SHOTS and media is not MediaType.VIDEO:
+        elif not applies(stage, media):
             entry = {"ok": True, "skipped": f"not applicable to {media.value}"}
         else:
             job = Job(
@@ -65,6 +82,7 @@ async def analyze_file(
                 entry = {"ok": True, "output": shown}
         entry["duration_ms"] = round((time.monotonic() - began) * 1000)
         report[stage.value] = entry
+    await runtimes.close()
     return {
         "file": str(path),
         "media_type": media.value,

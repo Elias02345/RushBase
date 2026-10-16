@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M4, worker AI stages)
+
+- Hardware detection (NVIDIA, AMD, Intel, Apple, Vulkan, CPU features) with backend and profile
+  choice (`xl`/`gpu8`/`gpu4`/`cpu`); `rushbase hardware`.
+- Pinned, resumable, SHA-256 verified downloads of llama.cpp builds and models
+  (`binaries.lock.json`, `models.lock.json`, `worker/scripts/update-lock.py`); `rushbase models`.
+- Stages `audio` (Whisper, CED events, EBU R128, BPM), `embed` (SigLIP 2), `vision` (Qwen3.5 via
+  llama-server, schema-constrained, versioned prompts), `classify` (e5, taxonomy mapping,
+  proposals, review reasons); GPU lifecycle keeps VLM and Whisper apart; `rushbase bench`.
+- `whisper-build.yml` workflow and Docker build scripts for whisper.cpp.
+
 ### Added (milestone M2, CPU worker)
 
 - `rushbase-worker`: headless engine (config, retrying API client, claim loop with heartbeats,
