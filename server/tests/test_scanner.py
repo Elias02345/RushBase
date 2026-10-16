@@ -103,7 +103,7 @@ async def test_batches_hint_dates_and_loose_files(
         "Input/@auto/2026-10-12",
     }
     dated = batches["Input/2026-10-12_Drehtag_Standort-A"]
-    assert dated.label == "2026-10-12_Drehtag_Standort-A"
+    assert dated.label == "Drehtag_Standort-A"
     assert str(dated.hint_date) == "2026-10-12"
     assert batches["Input/Urlaub"].hint_date is None
     assert batches["Input/@auto/2026-10-12"].label == "Auto 2026-10-12"

@@ -159,7 +159,7 @@ def test_batch_label_and_hint_date() -> None:
     hint = batch_for("Input/2026-10-12_Drehtag_Standort-A/x/y.mp4", date(2026, 10, 13))
     assert hint is not None
     assert hint.input_path == "Input/2026-10-12_Drehtag_Standort-A"
-    assert hint.label == "2026-10-12_Drehtag_Standort-A"
+    assert hint.label == "Drehtag_Standort-A"
     assert hint.hint_date == date(2026, 10, 12)
     assert not hint.auto
 
@@ -244,3 +244,16 @@ def test_manifest_writes_leave_no_temp_files(tmp_path: Path) -> None:
     acquire_server_lease(tmp_path, "a", now=T0)
     leftovers = [p.name for p in (tmp_path / ".rushbase").iterdir() if p.name.endswith(".rbtmp")]
     assert leftovers == []
+
+
+def test_batch_label_drops_the_date_prefix_but_keeps_the_hint() -> None:
+    from datetime import date
+
+    from rushbase_core.batches import batch_for, label_from_folder
+
+    hint = batch_for("Input/2026-10-12_Drehtag_Standort-A/a.mp4", date(2026, 10, 16))
+    assert hint is not None
+    assert hint.label == "Drehtag_Standort-A"
+    assert hint.hint_date == date(2026, 10, 12)
+    assert label_from_folder("2026-10-12") == "2026-10-12"
+    assert label_from_folder("Messe Berlin") == "Messe Berlin"

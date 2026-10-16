@@ -35,6 +35,18 @@ def parse_hint_date(name: str) -> date | None:
         return None
 
 
+def label_from_folder(name: str) -> str:
+    """Folder name without its ``YYYY-MM-DD`` prefix (the date is kept as the hint date).
+
+    ``2026-10-12_Drehtag_Standort-A`` becomes ``Drehtag_Standort-A``; a name that is only a
+    date stays unchanged.
+    """
+    if parse_hint_date(name) is None:
+        return name
+    rest = name[10:].lstrip(" _-.")
+    return rest or name
+
+
 def batch_for(rel_path: str, today: date) -> BatchHint | None:
     """Return the batch of a library-relative file path below ``Input/``.
 
@@ -47,7 +59,10 @@ def batch_for(rel_path: str, today: date) -> BatchHint | None:
     if len(parts) == 2:
         day = today.isoformat()
         return BatchHint(f"{INPUT_DIR}/{AUTO_BATCH_SEGMENT}/{day}", f"Auto {day}", today, auto=True)
-    return BatchHint(f"{INPUT_DIR}/{parts[1]}", parts[1], parse_hint_date(parts[1]), auto=False)
+    folder = parts[1]
+    return BatchHint(
+        f"{INPUT_DIR}/{folder}", label_from_folder(folder), parse_hint_date(folder), auto=False
+    )
 
 
 def batch_root_of(input_path: str) -> str:

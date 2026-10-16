@@ -147,10 +147,15 @@ async def activate_rule(session: AsyncSession, rule_id: UUID, user_id: UUID | No
 def context_for(
     asset: Asset, batch: Batch | None, taxonomy: Mapping[str, str] | None = None
 ) -> FilingContext:
-    """Template values of an asset (``field.*`` stay empty until the taxonomy exists, M4)."""
+    """Template values of an asset (``field.*`` stay empty until the taxonomy exists, M4).
+
+    ``capture_date`` falls back to the batch folder's date hint when the files carry no
+    recording date (common for exported or synthetic material).
+    """
+    capture = local_capture_date(asset.capture_at, asset.capture_tz)
     return FilingContext(
         media_type=asset.media_type,
-        capture_date=local_capture_date(asset.capture_at, asset.capture_tz),
+        capture_date=capture or (batch.hint_date if batch else None),
         batch_label=batch.label if batch else None,
         batch_hint_date=batch.hint_date if batch else None,
         batch_hint_location=batch.hint_location if batch else None,
