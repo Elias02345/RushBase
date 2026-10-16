@@ -1,9 +1,226 @@
 {
   "components": {
     "schemas": {
+      "AiOut": {
+        "description": "AI and review state of the asset.",
+        "properties": {
+          "audio": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          },
+          "audio_events": {
+            "title": "Audio Events",
+            "type": "integer"
+          },
+          "camera_angle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Angle"
+          },
+          "consent": {
+            "title": "Consent",
+            "type": "string"
+          },
+          "consent_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Ref"
+          },
+          "human_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Human Fields",
+            "type": "array"
+          },
+          "interior_exterior": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interior Exterior"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "models": {
+            "additionalProperties": true,
+            "title": "Models",
+            "type": "object"
+          },
+          "people_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "People Count"
+          },
+          "person_identifiable": {
+            "title": "Person Identifiable",
+            "type": "string"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Reasons",
+            "type": "array"
+          },
+          "review_state": {
+            "title": "Review State",
+            "type": "string"
+          },
+          "shot_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Size"
+          },
+          "summary_long_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Long De"
+          },
+          "summary_long_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Long En"
+          },
+          "summary_short_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Short De"
+          },
+          "summary_short_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Short En"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagOut"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          },
+          "transcript_segments": {
+            "title": "Transcript Segments",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "summary_short_de",
+          "summary_short_en",
+          "summary_long_de",
+          "summary_long_en",
+          "shot_size",
+          "camera_angle",
+          "interior_exterior",
+          "time_of_day",
+          "people_count",
+          "person_identifiable",
+          "consent",
+          "consent_ref",
+          "rating",
+          "locked",
+          "review_state",
+          "review_reasons",
+          "human_fields",
+          "audio",
+          "models",
+          "tags",
+          "transcript_segments",
+          "audio_events"
+        ],
+        "title": "AiOut",
+        "type": "object"
+      },
       "AssetDetail": {
         "description": "Everything the detail view shows.",
         "properties": {
+          "ai": {
+            "$ref": "#/components/schemas/AiOut"
+          },
           "batch_label": {
             "anyOf": [
               {
@@ -143,6 +360,11 @@
             ],
             "title": "Lens Model"
           },
+          "locked": {
+            "default": false,
+            "title": "Locked",
+            "type": "boolean"
+          },
           "log_profile": {
             "anyOf": [
               {
@@ -194,6 +416,11 @@
             ],
             "title": "Proxy Url"
           },
+          "review_state": {
+            "default": "none",
+            "title": "Review State",
+            "type": "string"
+          },
           "shots": {
             "items": {
               "$ref": "#/components/schemas/ShotOut"
@@ -230,6 +457,17 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
           },
           "tech_summary_de": {
             "anyOf": [
@@ -318,9 +556,227 @@
           "tech_summary_de",
           "tech_summary_en",
           "decode_status",
-          "history"
+          "history",
+          "ai"
         ],
         "title": "AssetDetail",
+        "type": "object"
+      },
+      "AssetEditIn": {
+        "description": "Human edit of an asset. Only the fields that are sent change.",
+        "properties": {
+          "add_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 50,
+            "title": "Add Tags",
+            "type": "array"
+          },
+          "camera_angle": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Angle"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent"
+          },
+          "consent_ref": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Ref"
+          },
+          "interior_exterior": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interior Exterior"
+          },
+          "locked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked"
+          },
+          "people_count": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "People Count"
+          },
+          "person_identifiable": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Identifiable"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "remove_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 50,
+            "title": "Remove Tags",
+            "type": "array"
+          },
+          "review_done": {
+            "default": false,
+            "title": "Review Done",
+            "type": "boolean"
+          },
+          "shot_size": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Size"
+          },
+          "summary_long_de": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Long De"
+          },
+          "summary_long_en": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Long En"
+          },
+          "summary_short": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Short"
+          },
+          "summary_short_en": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Short En"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "AssetEditIn",
         "type": "object"
       },
       "AssetPage": {
@@ -465,6 +921,11 @@
             ],
             "title": "Lens Model"
           },
+          "locked": {
+            "default": false,
+            "title": "Locked",
+            "type": "boolean"
+          },
           "log_profile": {
             "anyOf": [
               {
@@ -502,6 +963,11 @@
             ],
             "title": "Poster Url"
           },
+          "review_state": {
+            "default": "none",
+            "title": "Review State",
+            "type": "string"
+          },
           "size_total": {
             "title": "Size Total",
             "type": "integer"
@@ -531,6 +997,17 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
           },
           "title": {
             "anyOf": [
@@ -578,6 +1055,35 @@
           "batch_label"
         ],
         "title": "AssetSummary",
+        "type": "object"
+      },
+      "AudioEventOut": {
+        "description": "A detected audio event.",
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "end_ms": {
+            "title": "End Ms",
+            "type": "integer"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          },
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag",
+          "start_ms",
+          "end_ms",
+          "confidence"
+        ],
+        "title": "AudioEventOut",
         "type": "object"
       },
       "BackupInfoOut": {
@@ -801,6 +1307,123 @@
         "title": "BatchSummary",
         "type": "object"
       },
+      "BulkIn": {
+        "description": "Bulk edit of many assets.",
+        "properties": {
+          "add_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 20,
+            "title": "Add Tags",
+            "type": "array"
+          },
+          "add_to_collection": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add To Collection"
+          },
+          "asset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "locked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked"
+          },
+          "remove_from_collection": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remove From Collection"
+          },
+          "remove_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 20,
+            "title": "Remove Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_ids"
+        ],
+        "title": "BulkIn",
+        "type": "object"
+      },
+      "BulkOut": {
+        "description": "Number of assets that were processed.",
+        "properties": {
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "updated"
+        ],
+        "title": "BulkOut",
+        "type": "object"
+      },
+      "CapabilitiesOut": {
+        "description": "What search can do right now (it never fails; it degrades).",
+        "properties": {
+          "fulltext": {
+            "title": "Fulltext",
+            "type": "boolean"
+          },
+          "image_semantic": {
+            "$ref": "#/components/schemas/SpaceStatus"
+          },
+          "reembed_needed": {
+            "title": "Reembed Needed",
+            "type": "boolean"
+          },
+          "search_by_image": {
+            "title": "Search By Image",
+            "type": "boolean"
+          },
+          "text_semantic": {
+            "$ref": "#/components/schemas/SpaceStatus"
+          }
+        },
+        "required": [
+          "fulltext",
+          "text_semantic",
+          "image_semantic",
+          "search_by_image",
+          "reembed_needed"
+        ],
+        "title": "CapabilitiesOut",
+        "type": "object"
+      },
       "ClaimIn": {
         "description": "Claim request.",
         "properties": {
@@ -851,6 +1474,53 @@
           "lease_seconds"
         ],
         "title": "ClaimOut",
+        "type": "object"
+      },
+      "CollectionIn": {
+        "description": "New collection.",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CollectionIn",
+        "type": "object"
+      },
+      "CollectionOut": {
+        "description": "A collection with its size.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "assets",
+          "created_at"
+        ],
+        "title": "CollectionOut",
         "type": "object"
       },
       "DryRunIn": {
@@ -988,6 +1658,37 @@
           "wasted_bytes"
         ],
         "title": "DuplicatesOut",
+        "type": "object"
+      },
+      "EditOut": {
+        "description": "What changed.",
+        "properties": {
+          "changed": {
+            "additionalProperties": true,
+            "title": "Changed",
+            "type": "object"
+          },
+          "tags_added": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags Added",
+            "type": "array"
+          },
+          "tags_removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags Removed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "changed",
+          "tags_added",
+          "tags_removed"
+        ],
+        "title": "EditOut",
         "type": "object"
       },
       "EnrollIn": {
@@ -1192,6 +1893,107 @@
         "title": "EnrollmentTokenOut",
         "type": "object"
       },
+      "EvalIn": {
+        "description": "Optional label for the run.",
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "title": "EvalIn",
+        "type": "object"
+      },
+      "EvalRunOut": {
+        "description": "A stored evaluation run.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "golden_count": {
+            "title": "Golden Count",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "model_refs": {
+            "additionalProperties": true,
+            "title": "Model Refs",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "label",
+          "golden_count",
+          "model_refs",
+          "metrics"
+        ],
+        "title": "EvalRunOut",
+        "type": "object"
+      },
+      "ExampleOut": {
+        "description": "An asset that triggered a proposal.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "poster_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster Url"
+          }
+        },
+        "required": [
+          "asset_id",
+          "filename",
+          "poster_url"
+        ],
+        "title": "ExampleOut",
+        "type": "object"
+      },
       "Facet": {
         "description": "A filter dimension. Enum facets list values; range and date facets give min/max.",
         "properties": {
@@ -1300,6 +2102,179 @@
         "title": "FacetsOut",
         "type": "object"
       },
+      "FieldIn": {
+        "description": "New field.",
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9_]{0,39}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "default": "multi",
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label En",
+            "type": "string"
+          },
+          "sort": {
+            "default": 0,
+            "title": "Sort",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "label_de",
+          "label_en"
+        ],
+        "title": "FieldIn",
+        "type": "object"
+      },
+      "FieldOut": {
+        "description": "A taxonomy field with its values.",
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "sort": {
+            "title": "Sort",
+            "type": "integer"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/ValueOut"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "label_de",
+          "label_en",
+          "kind",
+          "description",
+          "sort",
+          "values"
+        ],
+        "title": "FieldOut",
+        "type": "object"
+      },
+      "FieldPatch": {
+        "description": "Field changes (the key is immutable).",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "single",
+                  "multi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "sort": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort"
+          }
+        },
+        "title": "FieldPatch",
+        "type": "object"
+      },
       "FileOut": {
         "description": "A file of an asset with its path on every configured operating system.",
         "properties": {
@@ -1342,6 +2317,237 @@
           "paths"
         ],
         "title": "FileOut",
+        "type": "object"
+      },
+      "FlagOut": {
+        "description": "A review flag the VLM checks.",
+        "properties": {
+          "description_de": {
+            "default": "",
+            "title": "Description De",
+            "type": "string"
+          },
+          "description_en": {
+            "default": "",
+            "title": "Description En",
+            "type": "string"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9_]{0,39}$",
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "title": "FlagOut",
+        "type": "object"
+      },
+      "GoldenFieldOut": {
+        "description": "A field that can be labelled, with its allowed values.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "multi": {
+            "default": false,
+            "title": "Multi",
+            "type": "boolean"
+          },
+          "values": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label_de",
+          "label_en",
+          "kind",
+          "values"
+        ],
+        "title": "GoldenFieldOut",
+        "type": "object"
+      },
+      "GoldenItem": {
+        "description": "An asset with its label targets.",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/AssetSummary"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/GoldenTarget"
+            },
+            "title": "Targets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset",
+          "targets"
+        ],
+        "title": "GoldenItem",
+        "type": "object"
+      },
+      "GoldenPage": {
+        "description": "Page of items to label.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GoldenItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "GoldenPage",
+        "type": "object"
+      },
+      "GoldenStats": {
+        "description": "Label counts.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "by_field": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Field",
+            "type": "object"
+          },
+          "corrections": {
+            "title": "Corrections",
+            "type": "integer"
+          },
+          "labels": {
+            "title": "Labels",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "labels",
+          "assets",
+          "corrections",
+          "by_field"
+        ],
+        "title": "GoldenStats",
+        "type": "object"
+      },
+      "GoldenTarget": {
+        "description": "What gets labelled: the asset (photos) or one shot (videos).",
+        "properties": {
+          "ai": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ai",
+            "type": "object"
+          },
+          "end_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Ms"
+          },
+          "idx": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idx"
+          },
+          "keyframe_urls": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keyframe Urls",
+            "type": "array"
+          },
+          "labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "object"
+          },
+          "shot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Id"
+          },
+          "start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Ms"
+          }
+        },
+        "required": [
+          "shot_id",
+          "idx",
+          "start_ms",
+          "end_ms",
+          "keyframe_urls",
+          "ai",
+          "labels"
+        ],
+        "title": "GoldenTarget",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1609,6 +2815,79 @@
         "title": "KeyframeOut",
         "type": "object"
       },
+      "LabelIn": {
+        "description": "Set the expected value of a field.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "expected": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Expected",
+            "type": "string"
+          },
+          "field": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "shot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Id"
+          }
+        },
+        "required": [
+          "asset_id",
+          "field",
+          "expected"
+        ],
+        "title": "LabelIn",
+        "type": "object"
+      },
+      "LabelRef": {
+        "description": "Identify a label.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "shot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Id"
+          }
+        },
+        "required": [
+          "asset_id",
+          "field"
+        ],
+        "title": "LabelRef",
+        "type": "object"
+      },
       "LibraryOut": {
         "description": "Identifies the library so a worker can verify its mount (``library.json``).",
         "properties": {
@@ -1712,6 +2991,21 @@
         "title": "LoginOut",
         "type": "object"
       },
+      "MergeIn": {
+        "description": "Merge target.",
+        "properties": {
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_id"
+        ],
+        "title": "MergeIn",
+        "type": "object"
+      },
       "MetadataOut": {
         "description": "Normalized probe fields (the raw tool output stays in the sidecar and database).",
         "properties": {
@@ -1760,6 +3054,120 @@
           "priority"
         ],
         "title": "PriorityIn",
+        "type": "object"
+      },
+      "ProposalOut": {
+        "description": "A proposed value with the field label and example assets.",
+        "properties": {
+          "asset_count": {
+            "title": "Asset Count",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/ExampleOut"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "field_id": {
+            "format": "uuid",
+            "title": "Field Id",
+            "type": "string"
+          },
+          "field_key": {
+            "title": "Field Key",
+            "type": "string"
+          },
+          "field_label_de": {
+            "title": "Field Label De",
+            "type": "string"
+          },
+          "field_label_en": {
+            "title": "Field Label En",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "proposal_count": {
+            "title": "Proposal Count",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Synonyms",
+            "type": "array"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "field_id",
+          "value",
+          "label_de",
+          "label_en",
+          "synonyms",
+          "parent_id",
+          "status",
+          "description",
+          "proposal_count",
+          "asset_count",
+          "field_key",
+          "field_label_de",
+          "field_label_en",
+          "examples"
+        ],
+        "title": "ProposalOut",
         "type": "object"
       },
       "QuarantineItem": {
@@ -1831,6 +3239,20 @@
           "moved"
         ],
         "title": "QuarantineItem",
+        "type": "object"
+      },
+      "ReembedOut": {
+        "description": "Number of assets queued for re-indexing.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assets"
+        ],
+        "title": "ReembedOut",
         "type": "object"
       },
       "ReprocessIn": {
@@ -2035,6 +3457,68 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "ReviewItem": {
+        "description": "An asset waiting for review.",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/AssetSummary"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset",
+          "reasons"
+        ],
+        "title": "ReviewItem",
+        "type": "object"
+      },
+      "ReviewPage": {
+        "description": "Keyset-paginated review queue.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "ReviewPage",
+        "type": "object"
+      },
       "RuleIn": {
         "description": "A new rule version (created inactive).",
         "properties": {
@@ -2109,6 +3593,169 @@
           "created_at"
         ],
         "title": "RuleOut",
+        "type": "object"
+      },
+      "SearchHit": {
+        "description": "An asset (or one of its shots) with the fused score and per-channel ranks.",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/AssetSummary"
+          },
+          "ranks": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Ranks",
+            "type": "object"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "shot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShotHit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "asset",
+          "shot",
+          "score",
+          "ranks"
+        ],
+        "title": "SearchHit",
+        "type": "object"
+      },
+      "SearchOut": {
+        "description": "One page of fused hits.",
+        "properties": {
+          "candidates": {
+            "title": "Candidates",
+            "type": "integer"
+          },
+          "channels_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Channels Ms",
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "level": {
+            "enum": [
+              "asset",
+              "shot"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "skipped": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Skipped",
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "level",
+          "offset",
+          "next_offset",
+          "candidates",
+          "channels_ms",
+          "skipped"
+        ],
+        "title": "SearchOut",
+        "type": "object"
+      },
+      "SegmentOut": {
+        "description": "A transcript segment.",
+        "properties": {
+          "end_ms": {
+            "title": "End Ms",
+            "type": "integer"
+          },
+          "idx": {
+            "title": "Idx",
+            "type": "integer"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "speaker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "words": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Words",
+            "type": "array"
+          }
+        },
+        "required": [
+          "idx",
+          "start_ms",
+          "end_ms",
+          "text",
+          "language",
+          "speaker",
+          "words"
+        ],
+        "title": "SegmentOut",
         "type": "object"
       },
       "SetupIn": {
@@ -2193,9 +3840,363 @@
         "title": "SetupStatus",
         "type": "object"
       },
+      "ShotAiOut": {
+        "description": "AI description and attributes of a shot.",
+        "properties": {
+          "camera_angle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Angle"
+          },
+          "description_long_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Long De"
+          },
+          "description_long_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Long En"
+          },
+          "description_short_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Short De"
+          },
+          "description_short_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Short En"
+          },
+          "human_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Human Fields",
+            "type": "array"
+          },
+          "interior_exterior": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interior Exterior"
+          },
+          "people_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "People Count"
+          },
+          "person_identifiable": {
+            "title": "Person Identifiable",
+            "type": "string"
+          },
+          "shot_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Size"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          }
+        },
+        "required": [
+          "description_short_de",
+          "description_short_en",
+          "description_long_de",
+          "description_long_en",
+          "shot_size",
+          "camera_angle",
+          "interior_exterior",
+          "time_of_day",
+          "people_count",
+          "person_identifiable",
+          "human_fields"
+        ],
+        "title": "ShotAiOut",
+        "type": "object"
+      },
+      "ShotEditIn": {
+        "description": "Human edit of a shot.",
+        "properties": {
+          "add_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 50,
+            "title": "Add Tags",
+            "type": "array"
+          },
+          "camera_angle": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Camera Angle"
+          },
+          "description_long_de": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Long De"
+          },
+          "description_long_en": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Long En"
+          },
+          "description_short_de": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Short De"
+          },
+          "description_short_en": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Short En"
+          },
+          "interior_exterior": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interior Exterior"
+          },
+          "people_count": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "People Count"
+          },
+          "person_identifiable": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Identifiable"
+          },
+          "remove_tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagIn"
+            },
+            "maxItems": 50,
+            "title": "Remove Tags",
+            "type": "array"
+          },
+          "shot_size": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Size"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          }
+        },
+        "title": "ShotEditIn",
+        "type": "object"
+      },
+      "ShotHit": {
+        "description": "A scene hit: timecodes, keyframe and descriptions.",
+        "properties": {
+          "description_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description De"
+          },
+          "description_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description En"
+          },
+          "end_ms": {
+            "title": "End Ms",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "idx": {
+            "title": "Idx",
+            "type": "integer"
+          },
+          "keyframe_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keyframe Url"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "idx",
+          "start_ms",
+          "end_ms",
+          "keyframe_url",
+          "description_de",
+          "description_en"
+        ],
+        "title": "ShotHit",
+        "type": "object"
+      },
       "ShotOut": {
         "description": "A detected shot.",
         "properties": {
+          "ai": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShotAiOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "camera_motion": {
             "anyOf": [
               {
@@ -2210,6 +4211,11 @@
           "end_ms": {
             "title": "End Ms",
             "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
           },
           "idx": {
             "title": "Idx",
@@ -2250,6 +4256,7 @@
           }
         },
         "required": [
+          "id",
           "idx",
           "start_ms",
           "end_ms",
@@ -2259,6 +4266,59 @@
           "shake"
         ],
         "title": "ShotOut",
+        "type": "object"
+      },
+      "SpaceStatus": {
+        "description": "State of one semantic channel.",
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "vectors_compatible": {
+            "title": "Vectors Compatible",
+            "type": "integer"
+          },
+          "vectors_mismatched": {
+            "title": "Vectors Mismatched",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "available",
+          "model_id",
+          "revision",
+          "reason",
+          "vectors_compatible",
+          "vectors_mismatched"
+        ],
+        "title": "SpaceStatus",
         "type": "object"
       },
       "Stage": {
@@ -2452,6 +4512,155 @@
         "title": "StorageOut",
         "type": "object"
       },
+      "SynonymIn": {
+        "description": "A synonym to add.",
+        "properties": {
+          "synonym": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Synonym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "synonym"
+        ],
+        "title": "SynonymIn",
+        "type": "object"
+      },
+      "TagIn": {
+        "description": "A tag by field key and value.",
+        "properties": {
+          "field": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "value"
+        ],
+        "title": "TagIn",
+        "type": "object"
+      },
+      "TagOut": {
+        "description": "A taxonomy tag with provenance.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "field_key": {
+            "title": "Field Key",
+            "type": "string"
+          },
+          "field_label_de": {
+            "title": "Field Label De",
+            "type": "string"
+          },
+          "field_label_en": {
+            "title": "Field Label En",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "shot_idx": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Idx"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "field_key",
+          "field_label_de",
+          "field_label_en",
+          "value",
+          "label_de",
+          "label_en",
+          "source",
+          "confidence",
+          "shot_idx"
+        ],
+        "title": "TagOut",
+        "type": "object"
+      },
+      "TaxonomyOut": {
+        "description": "The whole vocabulary.",
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldOut"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "fields"
+        ],
+        "title": "TaxonomyOut",
+        "type": "object"
+      },
       "TokenCreated": {
         "description": "A newly created token including its plaintext, shown exactly once.",
         "properties": {
@@ -2608,6 +4817,36 @@
           "created_at"
         ],
         "title": "TokenOut",
+        "type": "object"
+      },
+      "TranscriptOut": {
+        "description": "Transcript segments (optionally filtered) and audio events of an asset.",
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AudioEventOut"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentOut"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "total_segments": {
+            "title": "Total Segments",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "segments",
+          "events",
+          "total_segments"
+        ],
+        "title": "TranscriptOut",
         "type": "object"
       },
       "UserCreate": {
@@ -2818,6 +5057,246 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "ValueIn": {
+        "description": "New value; editors create proposals, admins approved values.",
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Synonyms",
+            "type": "array"
+          },
+          "value": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "ValueIn",
+        "type": "object"
+      },
+      "ValueOut": {
+        "description": "A taxonomy value.",
+        "properties": {
+          "asset_count": {
+            "title": "Asset Count",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "field_id": {
+            "format": "uuid",
+            "title": "Field Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "proposal_count": {
+            "title": "Proposal Count",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Synonyms",
+            "type": "array"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "field_id",
+          "value",
+          "label_de",
+          "label_en",
+          "synonyms",
+          "parent_id",
+          "status",
+          "description",
+          "proposal_count",
+          "asset_count"
+        ],
+        "title": "ValueOut",
+        "type": "object"
+      },
+      "ValuePatch": {
+        "description": "Value changes; renaming keeps the old name as a synonym.",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label_de": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label De"
+          },
+          "label_en": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label En"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "synonyms": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synonyms"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "title": "ValuePatch",
+        "type": "object"
+      },
       "WorkerCapabilities": {
         "additionalProperties": false,
         "description": "Capabilities a worker reports at enrollment and with every claim.",
@@ -2883,6 +5362,43 @@
           }
         },
         "title": "WorkerCapabilities",
+        "type": "object"
+      },
+      "WorkerField": {
+        "description": "Field in the worker snapshot.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerValue"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label_de",
+          "label_en",
+          "kind",
+          "values"
+        ],
+        "title": "WorkerField",
         "type": "object"
       },
       "WorkerOut": {
@@ -2993,6 +5509,63 @@
           "capabilities"
         ],
         "title": "WorkerOut",
+        "type": "object"
+      },
+      "WorkerTaxonomy": {
+        "description": "What a worker needs for ``vision`` and ``classify``.",
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerField"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/FlagOut"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "fields",
+          "flags"
+        ],
+        "title": "WorkerTaxonomy",
+        "type": "object"
+      },
+      "WorkerValue": {
+        "description": "Approved value in the worker snapshot.",
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Synonyms",
+            "type": "array"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "synonyms",
+          "description"
+        ],
+        "title": "WorkerValue",
         "type": "object"
       },
       "YearCount": {
@@ -3329,6 +5902,49 @@
         ]
       }
     },
+    "/api/v1/admin/eval": {
+      "post": {
+        "description": "Evaluate the latest AI results against the golden labels and store the run.",
+        "operationId": "run_eval_api_v1_admin_eval_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Eval",
+        "tags": [
+          "golden",
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/library-settings": {
       "get": {
         "description": "Current path mapping and sidecar options.",
@@ -3458,6 +6074,29 @@
         "tags": [
           "admin",
           "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/reembed": {
+      "post": {
+        "description": "Queue `embed` + `classify` for assets whose vectors do not match the server's encoder.",
+        "operationId": "reembed_all_api_v1_admin_reembed_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReembedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reembed All",
+        "tags": [
+          "search",
+          "admin"
         ]
       }
     },
@@ -3902,6 +6541,171 @@
               ],
               "title": "Q"
             }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
           }
         ],
         "responses": {
@@ -3929,6 +6733,48 @@
         "summary": "List assets",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/assets/bulk": {
+      "post": {
+        "description": "Add/remove tags, set the lock or change collection membership for up to 500 assets.",
+        "operationId": "bulk_edit_api_v1_assets_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bulk edit assets",
+        "tags": [
+          "review"
         ]
       }
     },
@@ -3973,6 +6819,516 @@
         "summary": "Asset details",
         "tags": [
           "catalog"
+        ]
+      },
+      "patch": {
+        "description": "Change descriptions, attributes, rating, lock, consent or tags; source is `human`.\n\nEdited AI fields are protected from reprocessing; core corrections feed the golden set.",
+        "operationId": "edit_asset_api_v1_assets__asset_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetEditIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit an asset (human)",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/api/v1/assets/{asset_id}/similar": {
+      "get": {
+        "description": "Assets that look like this one (stored SigLIP vectors, no encoder needed).",
+        "operationId": "similar_assets_api_v1_assets__asset_id__similar_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar Assets",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/assets/{asset_id}/transcript": {
+      "get": {
+        "description": "Transcript segments (with word timings) and audio events; `q` filters segments.",
+        "operationId": "transcript_api_v1_assets__asset_id__transcript_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcript",
+        "tags": [
+          "review"
         ]
       }
     },
@@ -4081,6 +7437,109 @@
         ]
       }
     },
+    "/api/v1/collections": {
+      "get": {
+        "description": "Collections with their asset counts.",
+        "operationId": "list_collections_api_v1_collections_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CollectionOut"
+                  },
+                  "title": "Response List Collections Api V1 Collections Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Collections",
+        "tags": [
+          "review"
+        ]
+      },
+      "post": {
+        "description": "Create a collection (names are unique, case-insensitive).",
+        "operationId": "create_collection_api_v1_collections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Collection",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/api/v1/collections/{collection_id}": {
+      "delete": {
+        "description": "Delete a collection (its assets stay).",
+        "operationId": "delete_collection_api_v1_collections__collection_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "collection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Collection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Collection",
+        "tags": [
+          "review"
+        ]
+      }
+    },
     "/api/v1/derived/{asset_id}/{path}": {
       "get": {
         "description": "Serve a preview (poster, proxy, waveform, keyframe) with HTTP Range support.\n\nOnly files below ``.rushbase/derived/<asset-id>/`` are reachable; originals never are.",
@@ -4124,6 +7583,32 @@
         "summary": "Derived preview files",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/eval/runs": {
+      "get": {
+        "description": "The latest 50 evaluation runs, newest first.",
+        "operationId": "list_runs_api_v1_eval_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvalRunOut"
+                  },
+                  "title": "Response List Runs Api V1 Eval Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Runs",
+        "tags": [
+          "golden"
         ]
       }
     },
@@ -4294,6 +7779,171 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
             }
           }
         ],
@@ -4477,6 +8127,518 @@
         ]
       }
     },
+    "/api/v1/golden/fields": {
+      "get": {
+        "description": "Labelable fields: the core attributes and every taxonomy field with approved values.",
+        "operationId": "golden_fields_api_v1_golden_fields_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GoldenFieldOut"
+                  },
+                  "title": "Response Golden Fields Api V1 Golden Fields Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Golden Fields",
+        "tags": [
+          "golden"
+        ]
+      }
+    },
+    "/api/v1/golden/items": {
+      "get": {
+        "description": "Filed assets in a stable pseudo-random order (so labelling samples the whole library).",
+        "operationId": "golden_items_api_v1_golden_items_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "unlabeled",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Unlabeled",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoldenPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assets to label",
+        "tags": [
+          "golden"
+        ]
+      }
+    },
+    "/api/v1/golden/labels": {
+      "delete": {
+        "description": "Remove a label.",
+        "operationId": "delete_label_api_v1_golden_labels_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelRef"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Label",
+        "tags": [
+          "golden"
+        ]
+      },
+      "put": {
+        "description": "Store the expected value of a field (replaces an earlier label).",
+        "operationId": "put_label_api_v1_golden_labels_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Label",
+        "tags": [
+          "golden"
+        ]
+      }
+    },
+    "/api/v1/golden/stats": {
+      "get": {
+        "description": "How many labels exist, per field, and how many came from human corrections.",
+        "operationId": "golden_stats_api_v1_golden_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoldenStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Golden Stats",
+        "tags": [
+          "golden"
+        ]
+      }
+    },
     "/api/v1/quarantine": {
       "get": {
         "description": "Assets whose processing failed permanently, newest first.",
@@ -4537,6 +8699,840 @@
         "summary": "Move back to Input and reprocess",
         "tags": [
           "filing"
+        ]
+      }
+    },
+    "/api/v1/review": {
+      "get": {
+        "description": "Pending assets, oldest first, with the reasons the AI gave. Filters narrow the queue.",
+        "operationId": "review_queue_api_v1_review_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assets waiting for review",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "description": "Full-text, text-vector (e5) and image-vector (SigLIP) channels fused by RRF (k = 60).\n\nFilters apply before ranking. Without models on the server only the full-text channel runs\n(see `/search/capabilities`). `level=shot` returns scenes with timecodes and keyframes.",
+        "operationId": "search_api_v1_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "default": "asset",
+              "enum": [
+                "asset",
+                "shot"
+              ],
+              "title": "Level",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Hybrid search",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/by-image": {
+      "post": {
+        "description": "Not available: encoding an uploaded image needs the vision tower, which only workers run.",
+        "operationId": "search_by_image_api_v1_search_by_image_post",
+        "responses": {
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Search By Image",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/capabilities": {
+      "get": {
+        "description": "Which channels are active, and whether stored vectors match the server's encoder.",
+        "operationId": "capabilities_api_v1_search_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilitiesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Capabilities",
+        "tags": [
+          "search"
         ]
       }
     },
@@ -4644,6 +9640,457 @@
         ]
       }
     },
+    "/api/v1/shots/{shot_id}": {
+      "patch": {
+        "description": "Change a shot's description, attributes or tags; source is `human`.",
+        "operationId": "edit_shot_api_v1_shots__shot_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShotEditIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a shot (human)",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/api/v1/shots/{shot_id}/similar": {
+      "get": {
+        "description": "Shots that look like this one.",
+        "operationId": "similar_shots_api_v1_shots__shot_id__similar_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar Shots",
+        "tags": [
+          "search"
+        ]
+      }
+    },
     "/api/v1/stats": {
       "get": {
         "description": "Storage by media type and year, duplicate waste and the processing backlog.",
@@ -4685,6 +10132,563 @@
         "summary": "System Status",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/taxonomy": {
+      "get": {
+        "description": "Fields and values of every status, with the number of tagged assets.",
+        "operationId": "get_taxonomy_api_v1_taxonomy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Vocabulary with all values",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/fields": {
+      "post": {
+        "description": "Create a field.",
+        "operationId": "create_field_api_v1_taxonomy_fields_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Field",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/fields/{field_id}": {
+      "delete": {
+        "description": "Delete an empty field.",
+        "operationId": "delete_field_api_v1_taxonomy_fields__field_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "field_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Field Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Field",
+        "tags": [
+          "taxonomy"
+        ]
+      },
+      "patch": {
+        "description": "Change labels, kind, description or order of a field.",
+        "operationId": "patch_field_api_v1_taxonomy_fields__field_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "field_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Field Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Field",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/fields/{field_id}/values": {
+      "post": {
+        "description": "Add a value: approved when an admin adds it, a proposal when an editor does.",
+        "operationId": "create_value_api_v1_taxonomy_fields__field_id__values_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "field_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Field Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValueIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Value",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/flags": {
+      "get": {
+        "description": "Review flags the VLM checks for every shot.",
+        "operationId": "get_flags_api_v1_taxonomy_flags_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FlagOut"
+                  },
+                  "title": "Response Get Flags Api V1 Taxonomy Flags Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Flags",
+        "tags": [
+          "taxonomy"
+        ]
+      },
+      "put": {
+        "description": "Replace the flag list (bumps the taxonomy version so workers refetch it).",
+        "operationId": "put_flags_api_v1_taxonomy_flags_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/FlagOut"
+                },
+                "title": "Body",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FlagOut"
+                  },
+                  "title": "Response Put Flags Api V1 Taxonomy Flags Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Flags",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/proposals": {
+      "get": {
+        "description": "Values the AI proposed, most frequent first, with example assets.",
+        "operationId": "list_proposals_api_v1_taxonomy_proposals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalOut"
+                  },
+                  "title": "Response List Proposals Api V1 Taxonomy Proposals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Proposals",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/values/{value_id}": {
+      "patch": {
+        "description": "Rename, relabel, describe or re-parent a value.",
+        "operationId": "patch_value_api_v1_taxonomy_values__value_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Value Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValuePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Value",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/values/{value_id}/approve": {
+      "post": {
+        "description": "Approve a proposal (bumps the taxonomy version, queues `classify`).",
+        "operationId": "approve_value_api_v1_taxonomy_values__value_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Value Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Value",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/values/{value_id}/deprecate": {
+      "post": {
+        "description": "Retire a value; existing tags stay but it leaves the snapshot and the facets.",
+        "operationId": "deprecate_value_api_v1_taxonomy_values__value_id__deprecate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Value Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deprecate Value",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/values/{value_id}/merge": {
+      "post": {
+        "description": "Merge a value into another value of the same field.",
+        "operationId": "merge_value_api_v1_taxonomy_values__value_id__merge_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Value Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Merge Value",
+        "tags": [
+          "taxonomy"
+        ]
+      }
+    },
+    "/api/v1/taxonomy/values/{value_id}/synonyms": {
+      "post": {
+        "description": "Add a synonym to a value.",
+        "operationId": "add_synonym_api_v1_taxonomy_values__value_id__synonyms_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Value Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynonymIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Synonym",
+        "tags": [
+          "taxonomy"
         ]
       }
     },
@@ -5053,6 +11057,29 @@
         },
         "summary": "Worker Status",
         "tags": [
+          "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/taxonomy": {
+      "get": {
+        "description": "Snapshot for `vision` and `classify`: approved values only, with the version number.",
+        "operationId": "worker_taxonomy_api_v1_worker_taxonomy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerTaxonomy"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Approved vocabulary and review flags",
+        "tags": [
+          "taxonomy",
           "worker"
         ]
       }

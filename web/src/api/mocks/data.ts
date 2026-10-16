@@ -159,6 +159,9 @@ export function buildAssets(): AssetSummary[] {
       sprite_url: media === "video" && analysed ? `/mock/media/sprite/${id}.svg` : null,
       sprite_tiles: media === "video" && analysed ? SPRITE_TILES : null,
       batch_label: BATCH_LABELS[index % BATCH_LABELS.length] ?? null,
+      review_state: status === "filed" && index % 9 === 0 ? "pending" : "none",
+      locked: false,
+      summary: null,
     });
   }
   return assets;
@@ -173,7 +176,8 @@ const WINDOWS_ROOT = "\\\\nas\\media";
 const MACOS_ROOT = "/Volumes/media";
 const LINUX_ROOT = "/mnt/media";
 
-export function buildDetail(summary: AssetSummary, mapping: PathRoots): AssetDetail {
+/** The detail without its AI part (`withAi` in `ai.ts` completes it). */
+export function buildDetail(summary: AssetSummary, mapping: PathRoots): Omit<AssetDetail, "ai"> {
   const date = (summary.capture_at ?? new Date(NOW).toISOString()).slice(0, 10);
   const [year = "2026", month = "01"] = date.split("-");
   const dir = `Content/${year}/${month}/${summary.camera_model?.split(" ")[0] ?? "Misc"}`;
@@ -205,6 +209,7 @@ export function buildDetail(summary: AssetSummary, mapping: PathRoots): AssetDet
     const length = idx === shotCount - 1 ? durationMs - cursor : Math.round(durationMs / shotCount);
     const end = Math.min(durationMs, cursor + length);
     shots.push({
+      id: `s${summary.id.slice(1)}-${idx}`,
       idx,
       start_ms: cursor,
       end_ms: end,

@@ -1,17 +1,23 @@
 import { useEffect } from "react";
 
+export type GoTarget =
+  "dashboard" | "library" | "processing" | "admin" | "review" | "golden" | "taxonomy";
+
 export interface ShortcutHandlers {
   togglePalette: () => void;
   openHelp: () => void;
-  go: (target: "dashboard" | "library" | "processing" | "admin") => void;
+  go: (target: GoTarget) => void;
   focusSearch: () => void;
 }
 
-const GO_KEYS: Record<string, "dashboard" | "library" | "processing" | "admin"> = {
+const GO_KEYS: Record<string, GoTarget> = {
   d: "dashboard",
   l: "library",
   p: "processing",
   a: "admin",
+  r: "review",
+  o: "golden",
+  t: "taxonomy",
 };
 
 function isTyping(target: EventTarget | null): boolean {

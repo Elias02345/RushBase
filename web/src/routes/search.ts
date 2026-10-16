@@ -13,6 +13,18 @@ export interface LibrarySearch {
   date_from?: string;
   date_to?: string;
   batch_id?: string;
+  shot_size?: string;
+  camera_angle?: string;
+  interior_exterior?: string;
+  time_of_day?: string;
+  person_identifiable?: string;
+  review_state?: string;
+  consent?: string;
+  collection_id?: string;
+  /** Taxonomy filters as `field:value`. */
+  tag?: string[];
+  /** Search result granularity: whole assets or scenes (shots). */
+  level?: "asset" | "shot";
   sort?: SortKey;
   view?: "grid" | "list";
 }
@@ -40,6 +52,13 @@ function oneOf<T extends string>(value: unknown, allowed: readonly T[]): T | und
     : undefined;
 }
 
+function strings(value: unknown): string[] | undefined {
+  const list = (Array.isArray(value) ? value : [value]).filter(
+    (item): item is string => typeof item === "string" && item.includes(":"),
+  );
+  return list.length > 0 ? list : undefined;
+}
+
 function date(value: unknown): string | undefined {
   return typeof value === "string" && DATE.test(value) ? value : undefined;
 }
@@ -56,6 +75,16 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
     date_from: date(raw.date_from),
     date_to: date(raw.date_to),
     batch_id: text(raw.batch_id),
+    shot_size: text(raw.shot_size),
+    camera_angle: text(raw.camera_angle),
+    interior_exterior: text(raw.interior_exterior),
+    time_of_day: text(raw.time_of_day),
+    person_identifiable: text(raw.person_identifiable),
+    review_state: text(raw.review_state),
+    consent: text(raw.consent),
+    collection_id: text(raw.collection_id),
+    tag: strings(raw.tag),
+    level: oneOf(raw.level, ["asset", "shot"] as const),
     sort: oneOf<SortKey>(raw.sort, SORT_KEYS),
     view: oneOf(raw.view, ["grid", "list"] as const),
   };
@@ -64,7 +93,7 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
 }
 
 export type ProcessingTab = "queue" | "batches" | "workers" | "quarantine";
-export type AdminTab = "users" | "workers" | "rules" | "settings" | "backups";
+export type AdminTab = "users" | "workers" | "rules" | "settings" | "backups" | "search";
 
 export function validateProcessingSearch(raw: Record<string, unknown>): { tab?: ProcessingTab } {
   const tab = oneOf(raw.tab, ["queue", "batches", "workers", "quarantine"] as const);
@@ -72,7 +101,14 @@ export function validateProcessingSearch(raw: Record<string, unknown>): { tab?: 
 }
 
 export function validateAdminSearch(raw: Record<string, unknown>): { tab?: AdminTab } {
-  const tab = oneOf(raw.tab, ["users", "workers", "rules", "settings", "backups"] as const);
+  const tab = oneOf(raw.tab, [
+    "users",
+    "workers",
+    "rules",
+    "settings",
+    "backups",
+    "search",
+  ] as const);
   return tab ? { tab } : {};
 }
 
@@ -83,8 +119,13 @@ export function validateLoginSearch(raw: Record<string, unknown>): { redirect?: 
 }
 
 /** The filters and query that narrow facet counts: everything except order and view. */
-export function facetQuery(search: LibrarySearch): Omit<LibrarySearch, "sort" | "view"> {
+export function facetQuery(search: LibrarySearch): Omit<LibrarySearch, "sort" | "view" | "level"> {
   return Object.fromEntries(
-    Object.entries(search).filter(([key]) => key !== "sort" && key !== "view"),
+    Object.entries(search).filter(([key]) => !["sort", "view", "level"].includes(key)),
   );
+}
+
+export function validateAssetSearch(raw: Record<string, unknown>): { t?: number } {
+  const value = Number(raw.t);
+  return Number.isFinite(value) && value > 0 ? { t: Math.round(value) } : {};
 }

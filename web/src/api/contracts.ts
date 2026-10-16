@@ -43,5 +43,43 @@ export type FilingDryRunItem = Schemas["DryRunItemOut"];
 export type LibrarySettings = Schemas["LibrarySettings"];
 export type QuarantineItem = Schemas["QuarantineItem"];
 
+export type SearchOut = Schemas["SearchOut"];
+export type SearchHit = Schemas["SearchHit"];
+export type ShotHit = Schemas["ShotHit"];
+export type SearchCapabilities = Schemas["CapabilitiesOut"];
+export type AiInfo = Schemas["AiOut"];
+export type ShotAi = Schemas["ShotAiOut"];
+export type TagInfo = Schemas["TagOut"];
+export type Transcript = Schemas["TranscriptOut"];
+export type TranscriptSegment = Schemas["SegmentOut"];
+export type AudioEvent = Schemas["AudioEventOut"];
+export type Taxonomy = Schemas["TaxonomyOut"];
+export type TaxonomyField = Schemas["FieldOut"];
+export type TaxonomyValue = Schemas["ValueOut"];
+export type Proposal = Schemas["ProposalOut"];
+export type ReviewPage = Schemas["ReviewPage"];
+export type ReviewItem = Schemas["ReviewItem"];
+export type AssetEdit = Schemas["AssetEditIn"];
+export type ShotEdit = Schemas["ShotEditIn"];
+export type BulkEdit = Schemas["BulkIn"];
+export type Collection = Schemas["CollectionOut"];
+export type GoldenField = Schemas["GoldenFieldOut"];
+export type GoldenItem = Schemas["GoldenItem"];
+export type GoldenTarget = Schemas["GoldenTarget"];
+export type GoldenPage = Schemas["GoldenPage"];
+export type GoldenStats = Schemas["GoldenStats"];
+export type EvalRun = Schemas["EvalRunOut"];
+
+/** Enum facets on AI attributes (single-valued URL filters). */
+export const AI_ENUM_KEYS = [
+  "shot_size",
+  "camera_angle",
+  "interior_exterior",
+  "time_of_day",
+  "person_identifiable",
+  "review_state",
+  "consent",
+] as const;
+
 /** Query of `GET /api/v1/assets` (the cursor is owned by the paging hook). */
 export type AssetQuery = NonNullable<paths["/api/v1/assets"]["get"]["parameters"]["query"]>;

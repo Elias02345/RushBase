@@ -11,7 +11,10 @@
     "notifications": "Notifications",
     "retry": "Try again",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No"
   },
   "nav": {
     "skip": "Skip to content",
@@ -25,7 +28,10 @@
     "language": "Switch language to {{language}}",
     "shortcuts": "Keyboard shortcuts",
     "pending_one": "{{count}} open job",
-    "pending_other": "{{count}} open jobs"
+    "pending_other": "{{count}} open jobs",
+    "review": "Review",
+    "golden": "Golden set",
+    "taxonomy": "Taxonomy"
   },
   "theme": {
     "system": "Theme: system (click to change)",
@@ -104,6 +110,10 @@
     },
     "filing": {
       "moved": "Filed"
+    },
+    "asset": {
+      "edit": "Edited by hand",
+      "bulk_edit": "Bulk edit"
     }
   },
   "meta": {
@@ -114,7 +124,9 @@
       "video": "Video",
       "audio": "Audio",
       "location": "Location",
-      "other": "Other"
+      "other": "Other",
+      "photo": "Photo",
+      "attitude": "Attitude"
     },
     "fields": {
       "make": "Make",
@@ -136,7 +148,49 @@
       "sample_rate_hz": "Sample rate (Hz)",
       "latitude": "Latitude",
       "longitude": "Longitude",
-      "altitude_m": "Altitude (m)"
+      "altitude_m": "Altitude (m)",
+      "width": "Width",
+      "height": "Height",
+      "bitrate": "Bitrate",
+      "profile": "Profile",
+      "sample_rate": "Sample rate",
+      "track_names": "Track names",
+      "chroma_subsampling": "Chroma subsampling",
+      "capture_fps": "Capture frame rate",
+      "rotation": "Rotation",
+      "timecode": "Timecode",
+      "recorder": "Recorder",
+      "microphone": "Microphone",
+      "serial": "Serial number",
+      "firmware": "Firmware",
+      "recording_format": "Recording format",
+      "sensor_mode": "Sensor mode",
+      "focal_length_35mm": "Focal length (35 mm)",
+      "t_stop": "T-stop",
+      "focus_distance_m": "Focus distance",
+      "stabilization": "Stabilization",
+      "adapter": "Adapter",
+      "shutter_s": "Shutter",
+      "shutter_angle": "Shutter angle",
+      "tint": "Tint",
+      "nd_filter": "ND filter",
+      "gamma": "Gamma",
+      "embedded_lut": "Embedded LUT",
+      "hdr": "HDR",
+      "lat": "Latitude",
+      "lon": "Longitude",
+      "alt_m": "Altitude",
+      "heading_deg": "Heading",
+      "speed_mps": "Speed",
+      "container": "Container",
+      "reel": "Reel",
+      "clip_name": "Clip name",
+      "scene": "Scene",
+      "take": "Take",
+      "flash": "Flash",
+      "pitch_deg": "Pitch",
+      "roll_deg": "Roll",
+      "yaw_deg": "Yaw"
     }
   },
   "login": {
@@ -340,7 +394,8 @@
     "emptyFresh": "Once material is in the Input folder and analysed, it shows up here.",
     "resetSearch": "Reset search",
     "errorTitle": "Could not load",
-    "errorText": "The server did not respond. Try again in a moment."
+    "errorText": "The server did not respond. Try again in a moment.",
+    "lockSelected": "Lock"
   },
   "asset": {
     "back": "Back",
@@ -360,17 +415,22 @@
       "files": "Files",
       "history": "History",
       "transcript": "Transcript",
-      "tags": "Tags"
+      "tags": "Tags",
+      "ai": "Description",
+      "similar": "Similar"
     },
     "noMetadata": "No metadata yet",
     "noMetadataText": "Once the analysis has run, the data appears here.",
     "pathFor": "Path for operating system",
     "copyPath": "Copy path",
     "copyRelative": "Copy relative path",
-    "transcriptTitle": "Transcript coming",
-    "transcriptText": "Speech will be transcribed and made searchable automatically in a later step.",
-    "tagsTitle": "Tags coming",
-    "tagsText": "Automatic keywords and subjects arrive in a later step."
+    "transcriptTitle": "No transcript yet",
+    "transcriptText": "Once a worker has analysed the audio track, the spoken words appear here and become searchable.",
+    "tagsTitle": "No tags yet",
+    "tagsText": "Tags appear after analysis, or when you add them yourself.",
+    "transcriptSearch": "Search the transcript",
+    "transcriptCount": "{{shown}} of {{total}} segments",
+    "audioEvents": "Audio events"
   },
   "processing": {
     "title": "Processing",
@@ -421,7 +481,8 @@
       "workers": "Worker tokens",
       "rules": "Filing rules",
       "settings": "Settings",
-      "backups": "Backups"
+      "backups": "Backups",
+      "search": "Search"
     },
     "users": {
       "title": "Users",
@@ -479,5 +540,216 @@
       "empty": "No backups yet",
       "emptyText": "Make your first backup now."
     }
+  },
+  "audioEvent": {
+    "speech": "Speech",
+    "music": "Music",
+    "applause": "Applause",
+    "gunshot": "Gunshot",
+    "explosion": "Explosion",
+    "wind": "Wind",
+    "silence": "Silence"
+  },
+  "ai": {
+    "noDescriptionTitle": "No description yet",
+    "noDescriptionText": "Image analysis runs as soon as a worker is online. Search and filters work without it.",
+    "language": "Description language",
+    "editedByPerson": "Edited by hand",
+    "editDescription": "Edit description",
+    "shotDescriptions": "Description per scene",
+    "similarScenes": "Similar scenes",
+    "field": {
+      "shot_size": "Shot size",
+      "camera_angle": "Camera angle",
+      "interior_exterior": "Interior/exterior",
+      "time_of_day": "Time of day",
+      "person_identifiable": "Person identifiable",
+      "people_count": "People"
+    },
+    "reviewState": {
+      "none": "None",
+      "pending": "To review",
+      "done": "Reviewed"
+    },
+    "shotSize": {
+      "extreme_wide": "Extreme wide",
+      "wide": "Wide",
+      "full": "Full",
+      "medium": "Medium",
+      "medium_close": "Medium close-up",
+      "close_up": "Close-up",
+      "extreme_close_up": "Extreme close-up",
+      "detail": "Detail"
+    },
+    "cameraAngle": {
+      "eye_level": "Eye level",
+      "low": "Low angle",
+      "high": "High angle",
+      "birds_eye": "Bird's eye",
+      "top_down": "Top down",
+      "dutch": "Dutch angle",
+      "pov": "POV"
+    },
+    "interiorExterior": {
+      "interior": "Interior",
+      "exterior": "Exterior",
+      "mixed": "Mixed",
+      "unknown": "Unknown"
+    },
+    "timeOfDay": {
+      "dawn": "Dawn",
+      "day": "Day",
+      "golden_hour": "Golden hour",
+      "dusk": "Dusk",
+      "night": "Night",
+      "unknown": "Unknown"
+    },
+    "tri": {
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Unknown"
+    }
+  },
+  "tags": {
+    "source": {
+      "human": "Manual",
+      "claude": "Claude",
+      "ai": "AI"
+    },
+    "sourceHint": {
+      "human": "Set by a person",
+      "claude": "Set by Claude",
+      "ai": "Detected automatically"
+    },
+    "shot": "Scene {{n}}",
+    "confirm": "Confirm {{tag}}",
+    "remove": "Remove {{tag}}",
+    "lock": "Lock",
+    "lockHint": "Analysis never changes locked material automatically.",
+    "field": "Field",
+    "value": "Value",
+    "add": "Add"
+  },
+  "similar": {
+    "title": "Similar material",
+    "button": "Find similar",
+    "noVectorsTitle": "No image vectors yet",
+    "noVectorsText": "Finding similar material works once a worker has analysed the keyframes.",
+    "emptyTitle": "Nothing similar found",
+    "emptyText": "No hits with the current filters."
+  },
+  "search": {
+    "level": "Result type",
+    "levels": {
+      "asset": "Assets",
+      "shot": "Scenes"
+    },
+    "count_one": "{{count}} candidate",
+    "count_other": "{{count}} candidates",
+    "degraded": "Semantic search is not active right now (models or vectors are missing). You see full-text hits.",
+    "more": "Load more",
+    "agreement": "{{count}} search paths agree"
+  },
+  "review": {
+    "title": "Review",
+    "lead": "Material the analysis was unsure about.",
+    "count_one": "{{count}} item waiting for review",
+    "count_other": "{{count}} items waiting for review",
+    "queue": "Review queue",
+    "reasons": "Reasons",
+    "reasonCount_one": "{{count}} reason",
+    "reasonCount_other": "{{count}} reasons",
+    "reasonShot": "Scene {{n}}: {{reason}}",
+    "reason": {
+      "low_confidence": "unsure about {{field}}",
+      "flag": "Flag: {{flag}}",
+      "vlm_siglip_conflict": "image analysis and image search disagree",
+      "no_tags": "no tags assigned"
+    },
+    "approve": "Approve",
+    "approved": "Marked as reviewed.",
+    "lock": "Lock",
+    "correct": "Correct",
+    "filterReason": "Filter by reason",
+    "allReasons": "All reasons",
+    "emptyTitle": "Nothing to review",
+    "emptyText": "The analysis was confident about everything.",
+    "more": "Load more",
+    "keys": "Keys: J/K or arrows move, A approves, L locks, Correct opens the asset."
+  },
+  "taxonomy": {
+    "title": "Taxonomy",
+    "lead": "The vocabulary of tags. Version {{version}}. Changes restart the assignment.",
+    "sections": "Taxonomy sections",
+    "proposals": "Proposals",
+    "fields": "Fields and values",
+    "kind": {
+      "single": "single value",
+      "multi": "multiple values"
+    },
+    "status": {
+      "approved": "approved",
+      "proposed": "proposed",
+      "deprecated": "deprecated"
+    },
+    "assets_one": "{{count}} asset",
+    "assets_other": "{{count}} assets",
+    "noValues": "No values yet.",
+    "noProposalsTitle": "No open proposals",
+    "noProposalsText": "New terms from the analysis appear here for approval.",
+    "proposedTimes_one": "proposed {{count}} time",
+    "proposedTimes_other": "proposed {{count}} times",
+    "approve": "Approve",
+    "merge": "Merge",
+    "rename": "Rename",
+    "addSynonym": "Synonym",
+    "deprecate": "Deprecate",
+    "add": "Add",
+    "newValue": "New value for {{field}}",
+    "newField": "New field",
+    "fieldKey": "Key",
+    "fieldKeyHint": "Lowercase letters, digits and underscore",
+    "labelDe": "Name (German)",
+    "labelEn": "Name (English)",
+    "createField": "Create field",
+    "mergeInto": "Merge into",
+    "chooseTarget": "Choose a value",
+    "newName": "New name",
+    "synonym": "Synonym",
+    "dialog": {
+      "rename": "Rename {{value}}",
+      "synonym": "Synonym for {{value}}",
+      "merge": "Merge {{value}}",
+      "confirm": "Apply"
+    }
+  },
+  "golden": {
+    "title": "Golden set",
+    "lead": "{{labels}} labels for {{assets}} assets, {{corrections}} of them from corrections.",
+    "skip": "Skip",
+    "emptyTitle": "Everything labelled",
+    "emptyText": "There is no unlabelled material left.",
+    "restart": "Start over",
+    "frames": "Keyframes",
+    "shots": "Scenes",
+    "fields": "Fields",
+    "aiGuess": "AI",
+    "keys": "Keys: 1-9 picks the value, Enter accepts the AI guess, arrows change field and scene, N skips."
+  },
+  "searchAdmin": {
+    "channels": "Search paths",
+    "fulltext": "Full text",
+    "textChannel": "Text vectors (e5)",
+    "imageChannel": "Image vectors (SigLIP)",
+    "available": "active",
+    "unavailable": "unavailable",
+    "vectors": "{{ok}} matching, {{bad}} mismatched",
+    "reembedText": "Stored vectors come from a different model than the server's. Search ignores them.",
+    "reembed": "Re-embed",
+    "reembedQueued": "{{count}} assets queued",
+    "byImage": "Search by example image needs the image encoder and only runs on workers (ADR-0012).",
+    "eval": "Evaluation",
+    "runEval": "Run evaluation",
+    "runSummary": "{{labels}} labels, accuracy {{accuracy}}"
   }
 }

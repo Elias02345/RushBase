@@ -124,6 +124,7 @@ class ShotAiOut(BaseModel):
 class ShotOut(BaseModel):
     """A detected shot."""
 
+    id: UUID
     idx: int
     start_ms: int
     end_ms: int
@@ -384,6 +385,7 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
         metadata=MetadataOut(normalized=metadata.normalized if metadata else {}),
         shots=[
             ShotOut(
+                id=s.id,
                 idx=s.idx,
                 start_ms=s.start_ms,
                 end_ms=s.end_ms,
