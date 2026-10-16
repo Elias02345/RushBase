@@ -22,7 +22,7 @@ PIDS := dev/data/pids
 # `docker compose` plugin if present, else the pinned standalone binary from scripts/fetch-compose.sh.
 COMPOSE = $(RUN) bash -c 'if docker compose version >/dev/null 2>&1; then exec docker compose "$$@"; else exec docker-compose "$$@"; fi' _ -p $(COMPOSE_PROJECT) -f $(COMPOSE_FILE) --env-file $(DEV_ENV_FILE)
 
-.PHONY: help setup compose-bin dev dev-up dev-down lint typecheck test testmedia fmt gen-api build-web
+.PHONY: help setup compose-bin dev dev-up dev-down lint typecheck test testmedia fmt gen-api build-web e2e-real
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -82,3 +82,6 @@ gen-api: ## Regenerate packages/api-client from the server OpenAPI schema
 
 build-web: ## Production build of the web UI
 	$(RUN) pnpm --filter web build
+
+e2e-real: dev-up ## Browser test of the web UI against a real server, database and worker (:18083)
+	$(RUN) scripts/e2e-real.sh

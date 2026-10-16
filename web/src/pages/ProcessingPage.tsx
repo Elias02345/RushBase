@@ -17,15 +17,14 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Minus, Pause, Play, Plus, RotateCw, ShieldCheck, Unplug } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { AssetSummary } from "../api/contracts";
 import {
   hasRole,
-  useAssets,
+  useQuarantine,
   useBatchControl,
   useBatches,
   useMe,
   useQueuePaused,
-  useRetryAsset,
+  useRetryQuarantined,
   useRevokeWorker,
   useStatus,
   useWorkers,
@@ -264,10 +263,10 @@ function WorkersPanel({ isAdmin }: { isAdmin: boolean }) {
 function QuarantinePanel({ canEdit }: { canEdit: boolean }) {
   const { t } = useTranslation();
   const toast = useToast();
-  const assets = useAssets({ status: "quarantined" });
-  const retry = useRetryAsset();
-  const rows: AssetSummary[] = assets.data?.pages.flatMap((p) => p.items) ?? [];
-  if (assets.isLoading) return <Skeleton height={200} radius={22} />;
+  const quarantine = useQuarantine(true);
+  const retry = useRetryQuarantined();
+  const rows = quarantine.data ?? [];
+  if (quarantine.isLoading) return <Skeleton height={200} radius={22} />;
   if (rows.length === 0) {
     return (
       <EmptyState
@@ -281,21 +280,19 @@ function QuarantinePanel({ canEdit }: { canEdit: boolean }) {
     <Card flush>
       <ul className="quarantine-list">
         {rows.map((a) => (
-          <li key={a.id}>
+          <li key={a.asset_id}>
             <div>
-              <strong>{a.title ?? a.filename}</strong>
-              <div className="muted">
-                {a.batch_label ?? ""} · {a.filename}
-              </div>
+              <strong>{a.filename}</strong>
+              <div className="muted">{[a.stage, a.reason].filter(Boolean).join(" · ")}</div>
             </div>
             <Button
               size="sm"
               variant="secondary"
               icon={<RotateCw size={14} />}
               disabled={!canEdit}
-              loading={retry.isPending && retry.variables === a.id}
+              loading={retry.isPending && retry.variables === a.asset_id}
               onClick={() =>
-                retry.mutate(a.id, {
+                retry.mutate(a.asset_id, {
                   onSuccess: () =>
                     toast.push({ title: t("processing.retryQueued"), tone: "success" }),
                 })

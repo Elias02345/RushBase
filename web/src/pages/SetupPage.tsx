@@ -16,12 +16,12 @@ import { ApiError } from "../api/client";
 import {
   useCreateEnrollment,
   useRestore,
-  useSavePathMapping,
+  useSaveLibrarySettings,
   useSetup,
   useSetupStatus,
 } from "../api/queries";
 import { setLanguage, type Language } from "../i18n";
-import { copyText } from "../lib/platform";
+import { copyText, enrollCommand } from "../lib/platform";
 import { Logo } from "../shell/Logo";
 
 const MIN_PASSWORD = 10;
@@ -67,7 +67,7 @@ export function SetupPage() {
   const setupStatus = useSetupStatus();
   const setup = useSetup();
   const restore = useRestore();
-  const savePaths = useSavePathMapping();
+  const savePaths = useSaveLibrarySettings();
   const enrollment = useCreateEnrollment();
 
   const [step, setStep] = useState(0);
@@ -138,19 +138,17 @@ export function SetupPage() {
 
   const submitPaths = (event: FormEvent) => {
     event.preventDefault();
-    const body = {
+    const roots = {
       windows: paths.windows.trim() || null,
       macos: paths.macos.trim() || null,
       linux: paths.linux.trim() || null,
     };
-    if (!body.windows && !body.macos && !body.linux) return setStep(4);
-    savePaths.mutate(body, { onSuccess: () => setStep(4) });
+    if (!roots.windows && !roots.macos && !roots.linux) return setStep(4);
+    savePaths.mutate({ path_roots: roots, central_meta: false }, { onSuccess: () => setStep(4) });
   };
 
   const token = enrollment.data?.token;
-  const command = token
-    ? `rushbase enroll --server ${window.location.origin} --token ${token}`
-    : "";
+  const command = token ? enrollCommand(token) : "";
   const copy = async (text: string) => {
     const ok = await copyText(text);
     toast.push({

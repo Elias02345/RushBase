@@ -11,7 +11,8 @@ import {
 import { useTranslation } from "react-i18next";
 
 import type { AssetSummary } from "../../api/contracts";
-import { formatDate, formatDuration, formatResolution } from "../../lib/format";
+import { formatDate, formatDuration } from "../../lib/format";
+import { mediaTypeOf, spriteSheetOf, tileFacts } from "../../lib/assets";
 import { assetTone } from "../../lib/status";
 
 const MIN_TILE = 232;
@@ -30,14 +31,6 @@ interface AssetGridProps {
   onToggle: (index: number, modifiers: SelectModifiers) => void;
   onOpen: (asset: AssetSummary) => void;
   onNearEnd: () => void;
-}
-
-export function tileFacts(asset: AssetSummary): string[] {
-  const facts: string[] = [];
-  const resolution = formatResolution(asset.width, asset.height);
-  if (resolution) facts.push(resolution);
-  if (asset.media_type === "video" && asset.fps) facts.push(`${Math.round(asset.fps)} fps`);
-  return facts;
 }
 
 /** Virtualised, keyboard-navigable grid of asset tiles. */
@@ -143,13 +136,9 @@ export function AssetGrid({
               <div key={asset.id} data-index={index}>
                 <AssetTile
                   title={name}
-                  media={asset.media_type}
+                  media={mediaTypeOf(asset)}
                   poster={asset.poster_url}
-                  sprite={
-                    asset.sprite_url && asset.sprite_tiles
-                      ? { url: asset.sprite_url, ...asset.sprite_tiles }
-                      : null
-                  }
+                  sprite={spriteSheetOf(asset)}
                   durationLabel={asset.duration_ms ? formatDuration(asset.duration_ms) : null}
                   facts={tileFacts(asset)}
                   meta={asset.camera_model ?? formatDate(asset.capture_at)}

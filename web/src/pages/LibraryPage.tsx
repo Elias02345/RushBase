@@ -24,11 +24,14 @@ import {
   formatResolution,
 } from "../lib/format";
 import { assetTone } from "../lib/status";
-import type { LibrarySearch } from "../routes/search";
+import { facetQuery, type LibrarySearch } from "../routes/search";
 import { AssetGrid, type SelectModifiers } from "./library/AssetGrid";
-import { FacetSidebar, valueLabel } from "./library/Facets";
+import { valueLabel } from "../lib/facets";
+import { FacetSidebar } from "./library/Facets";
 
-const SORTS: SortKey[] = ["capture_desc", "capture_asc", "name_asc", "size_desc", "duration_desc"];
+const SORTS: SortKey[] = ["-date", "date", "filename", "-size", "-duration", "-created_at"];
+/** Search results rank by relevance until the user picks an explicit order. */
+const RELEVANCE = "relevance";
 const FILTER_KEYS = [
   "media_type",
   "status",
@@ -55,7 +58,7 @@ export function LibraryPage() {
   const view = search.view ?? "grid";
   const query = useMemo(() => ({ ...search, view: undefined }), [search]);
   const assets = useAssets(query);
-  const facets = useFacets();
+  const facets = useFacets(useMemo(() => facetQuery(search), [search]));
   const items = useMemo(
     () => assets.data?.pages.flatMap((page) => page.items) ?? [],
     [assets.data],
@@ -79,7 +82,6 @@ export function LibraryPage() {
   useEffect(() => {
     if (search.q === pushedQuery.current) return;
     pushedQuery.current = search.q;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from the URL, an external system
     setText(search.q ?? "");
   }, [search.q]);
   useEffect(() => {
@@ -233,9 +235,14 @@ export function LibraryPage() {
           />
           <Select
             aria-label={t("library.sort")}
-            value={search.sort ?? "capture_desc"}
-            onValueChange={(value) => update({ sort: value as SortKey })}
-            options={SORTS.map((key) => ({ value: key, label: t(`library.sorts.${key}`) }))}
+            value={search.sort ?? (search.q ? RELEVANCE : "-date")}
+            onValueChange={(value) =>
+              update({ sort: value === RELEVANCE ? undefined : (value as SortKey) })
+            }
+            options={[...(search.q ? [RELEVANCE] : []), ...SORTS].map((key) => ({
+              value: key,
+              label: t(`library.sorts.${key}`),
+            }))}
             className="library__sort"
           />
           <div className="segmented" role="group" aria-label={t("library.view")}>

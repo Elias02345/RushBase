@@ -1,9 +1,7 @@
 import type { StatusTone } from "@rushbase/ui";
 
-import type { AssetStatus } from "../api/contracts";
-
 /** Asset lifecycle status -> chip colour. */
-export function assetTone(status: AssetStatus): StatusTone {
+export function assetTone(status: string): StatusTone {
   switch (status) {
     case "ingesting":
       return "copying";

@@ -1,7 +1,11 @@
 """Database access (SQLAlchemy 2 async, psycopg 3)."""
 
+import asyncio
 import logging
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -36,3 +40,13 @@ async def database_reachable(engine: AsyncEngine) -> bool:
         logger.warning("database health check failed", exc_info=True)
         return False
     return True
+
+
+ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
+
+
+async def upgrade_to_head(settings: Settings) -> None:
+    """Apply all migrations (``alembic upgrade head``) to the configured database."""
+    config = Config(str(ALEMBIC_INI))
+    config.attributes["database_url"] = settings.database_url.get_secret_value()
+    await asyncio.to_thread(command.upgrade, config, "head")

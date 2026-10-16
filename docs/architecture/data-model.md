@@ -52,7 +52,7 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 
 | Table | Purpose |
 | --- | --- |
-| `asset` | `batch_id`, `media_type` (`video|photo|audio|other`), `status` (`ingesting|processing|review|filed|quarantined|trashed|duplicate`), `duplicate_of`, `primary_file_id` (no FK, the two tables reference each other), `content_rel_dir` (set once when filed, never changed afterwards except by an admin migration), technical columns (`capture_at`, `capture_tz`, `duration_ms`, `width`, `height`, `fps`, `codec`, camera/lens, `focal_length_*`, `iso`, `log_profile`, `orientation`, `gps_lat/lon/alt`, `size_total`), descriptive columns (`title`, summaries, `rating` 0-5), privacy (`person_identifiable`, `consent`, `consent_ref` with `yes|no|unknown`), `locked`, `analysis_profile`, `search_tsv` (`tsvector`, GIN index; the maintaining trigger arrives with the search in M3), `filed_at`, `rule_version_id`. |
+| `asset` | `batch_id`, `media_type` (`video|photo|audio|other`), `status` (`ingesting|processing|review|filed|quarantined|trashed|duplicate`), `duplicate_of`, `primary_file_id` (no FK, the two tables reference each other), `content_rel_dir` (set once when filed, never changed afterwards except by an admin migration), technical columns (`capture_at`, `capture_tz`, `duration_ms`, `width`, `height`, `fps`, `codec`, camera/lens, `focal_length_*`, `iso`, `log_profile`, `orientation`, `gps_lat/lon/alt`, `size_total`), descriptive columns (`title`, summaries, `rating` 0-5), privacy (`person_identifiable`, `consent`, `consent_ref` with `yes|no|unknown`), `locked`, `analysis_profile`, `search_tsv` (`tsvector`, GIN index, maintained by triggers, see "Full-text search"), `filed_at`, `rule_version_id`. |
 | `asset_file` | `role` in `primary|raw|jpeg|sidecar|proxy_camera|telemetry|audio_sync|member`, `rel_path` (unique; the current location, Input before filing, Content after), `original_rel_path` (immutable Input path), `size`, `mtime`, `blake3`, `quick_fp`, `card_structure_root` (a directory that must move as a unit). |
 | `asset_metadata` | `normalized` and `raw` JSONB plus a `version` per asset. |
 | `shot` | `(asset_id, idx)` unique; time range, keyframes, quality measures, descriptions, `search_tsv`. |
@@ -77,6 +77,31 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 
 M4 adds `transcript_segment`, embedding tables (one per dimension, by ADR), taxonomy tables, M5 the
 need lists, and collections arrive with the web UI.
+
+### Full-text search (M3, migration 0004)
+
+- Text search configuration `rushbase_simple` = `simple` with the `unaccent` dictionary on all word
+  token types: `Straße` and `strasse`, `Café` and `cafe` are the same lexeme; no stemming or stop
+  words (mixed German/English material).
+- `asset.search_tsv` and `shot.search_tsv` are written only by PL/pgSQL triggers, never by the ORM.
+  Weights for assets: **A** title, primary file name, batch label; **B** summaries (`summary_short`,
+  `summary_long_*`, `tech_summary_*`); **C** camera make/model, lens, log profile, codec; **D** all
+  file paths and `content_rel_dir`. Paths and file names are split at every non-alphanumeric
+  character, so `IMG_1234.mov` is searchable as `img` and `1234`. Shots: **A** `description_short`,
+  **B** long descriptions, **C** camera motion, shot size, angle.
+- Maintenance: `asset_search_trigger` (BEFORE INSERT/UPDATE OF the source columns on `asset`),
+  `asset_file_search_trigger` (AFTER insert/delete/`rel_path` change on `asset_file`, refreshes the
+  owning asset), `batch_search_trigger` (AFTER label change, refreshes the batch's assets),
+  `shot_search_trigger`. The migration backfills all existing rows.
+- Query (`q` on `/assets` and `/facets`): the text is split into words (no tsquery syntax can
+  survive), joined with `&`, the last word is a prefix (`wedd` finds `wedding`) and matched with
+  `search_tsv @@ to_tsquery('rushbase_simple', ...)`. Queries shorter than three characters keep the
+  case-insensitive substring match on file paths.
+- Order: without `sort`, a search is ordered by `ts_rank_cd` (weights D/C/B/A = 0.1/0.2/0.4/1.0)
+  rounded to four decimals, then id, descending. The rounded `numeric` rank is part of the keyset
+  cursor, so paging is exact. With `sort` the chosen order applies.
+- Facets honour the same filters and `q`; each enum facet ignores its own filter (so the other
+  values remain selectable), range/date facets apply every filter.
 
 ## Results and queue
 

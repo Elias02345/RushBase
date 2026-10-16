@@ -6,14 +6,16 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { api, ApiError, contract, unwrap } from "./client";
+import { api, ApiError, unwrap } from "./client";
 import type {
   AssetDetail,
-  AssetQuery,
   AssetPage,
+  AssetQuery,
   FacetsResponse,
-  FilingRulesDoc,
-  PathMapping,
+  FilingDryRun,
+  FilingRule,
+  LibrarySettings,
+  QuarantineItem,
   StatsResponse,
 } from "./contracts";
 import type { Health, Role, SetupStatus, SystemStatus } from "./types";
@@ -25,16 +27,20 @@ export const keys = {
   status: ["status"] as const,
   assets: (query: AssetQuery) => ["assets", query] as const,
   asset: (id: string) => ["asset", id] as const,
-  facets: ["facets"] as const,
+  facets: (query: FacetQuery) => ["facets", query] as const,
   stats: ["stats"] as const,
   batches: ["batches"] as const,
   workers: ["workers"] as const,
   users: ["users"] as const,
   tokens: ["enrollment-tokens"] as const,
   backups: ["backups"] as const,
-  pathMapping: ["path-mapping"] as const,
+  librarySettings: ["library-settings"] as const,
   filingRules: ["filing-rules"] as const,
+  quarantine: ["quarantine"] as const,
 };
+
+/** The filters and query that narrow the facet counts (same parameters as the asset list). */
+export type FacetQuery = Omit<AssetQuery, "cursor" | "limit" | "sort">;
 
 /** `/api/health` answers 503 with a valid body while degraded, so that still resolves. */
 export async function fetchHealth(): Promise<Health> {
@@ -78,7 +84,7 @@ export function useAssets(query: Omit<AssetQuery, "cursor">) {
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }): Promise<AssetPage> =>
       unwrap(
-        contract.GET("/api/v1/assets", {
+        api.GET("/api/v1/assets", {
           params: { query: { ...query, limit: 60, cursor: pageParam } },
         }),
       ),
@@ -91,22 +97,24 @@ export function useAsset(id: string) {
   return useQuery({
     queryKey: keys.asset(id),
     queryFn: (): Promise<AssetDetail> =>
-      unwrap(contract.GET("/api/v1/assets/{id}", { params: { path: { id } } })),
+      unwrap(api.GET("/api/v1/assets/{asset_id}", { params: { path: { asset_id: id } } })),
   });
 }
 
-export function useFacets() {
+export function useFacets(query: FacetQuery) {
   return useQuery({
-    queryKey: keys.facets,
-    queryFn: (): Promise<FacetsResponse> => unwrap(contract.GET("/api/v1/facets")),
+    queryKey: keys.facets(query),
+    queryFn: (): Promise<FacetsResponse> =>
+      unwrap(api.GET("/api/v1/facets", { params: { query } })),
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useStats() {
   return useQuery({
     queryKey: keys.stats,
-    queryFn: (): Promise<StatsResponse> => unwrap(contract.GET("/api/v1/stats")),
+    queryFn: (): Promise<StatsResponse> => unwrap(api.GET("/api/v1/stats")),
     staleTime: 30_000,
   });
 }
@@ -138,7 +146,7 @@ export function useUsers() {
 export function useEnrollmentTokens() {
   return useQuery({
     queryKey: keys.tokens,
-    queryFn: () => unwrap(contract.GET("/api/v1/admin/enrollment-tokens")),
+    queryFn: () => unwrap(api.GET("/api/v1/admin/enrollment-tokens")),
   });
 }
 
@@ -149,18 +157,26 @@ export function useBackups() {
   });
 }
 
-export function usePathMapping() {
+export function useLibrarySettings() {
   return useQuery({
-    queryKey: keys.pathMapping,
-    queryFn: (): Promise<PathMapping> =>
-      unwrap(contract.GET("/api/v1/admin/settings/path-mapping")),
+    queryKey: keys.librarySettings,
+    queryFn: (): Promise<LibrarySettings> => unwrap(api.GET("/api/v1/admin/library-settings")),
   });
 }
 
+/** Rule versions, newest first. */
 export function useFilingRules() {
   return useQuery({
     queryKey: keys.filingRules,
-    queryFn: (): Promise<FilingRulesDoc> => unwrap(contract.GET("/api/v1/admin/filing-rules")),
+    queryFn: (): Promise<FilingRule[]> => unwrap(api.GET("/api/v1/filing-rules")),
+  });
+}
+
+export function useQuarantine(enabled: boolean) {
+  return useQuery({
+    queryKey: keys.quarantine,
+    queryFn: (): Promise<QuarantineItem[]> => unwrap(api.GET("/api/v1/quarantine")),
+    enabled,
   });
 }
 
@@ -207,7 +223,7 @@ export function useSetup() {
 export function useRestore() {
   return useMutation({
     mutationFn: (backup_name: string) =>
-      unwrap(contract.POST("/api/v1/setup/restore", { body: { backup_name } })),
+      unwrap(api.POST("/api/v1/setup/restore", { body: { backup_name } })),
   });
 }
 
@@ -225,7 +241,9 @@ export function useRevokeEnrollment() {
   return useMutation({
     mutationFn: (id: string) =>
       unwrap(
-        contract.POST("/api/v1/admin/enrollment-tokens/{id}/revoke", { params: { path: { id } } }),
+        api.POST("/api/v1/admin/enrollment-tokens/{token_id}/revoke", {
+          params: { path: { token_id: id } },
+        }),
       ),
     onSuccess: () => void client.invalidateQueries({ queryKey: keys.tokens }),
   });
@@ -281,12 +299,18 @@ export function useBatchControl() {
   return { pause, priority };
 }
 
-export function useRetryAsset() {
+/** Move a quarantined asset back to `Input/` and requeue its jobs. */
+export function useRetryQuarantined() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      unwrap(contract.POST("/api/v1/assets/{id}/retry", { params: { path: { id } } })),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ["assets"] }),
+      unwrap(
+        api.POST("/api/v1/quarantine/{asset_id}/retry", { params: { path: { asset_id: id } } }),
+      ),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: keys.quarantine });
+      void client.invalidateQueries({ queryKey: ["assets"] });
+    },
   });
 }
 
@@ -331,28 +355,42 @@ export function useCreateBackup() {
   });
 }
 
-export function useSavePathMapping() {
+export function useSaveLibrarySettings() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: PathMapping) =>
-      unwrap(contract.PUT("/api/v1/admin/settings/path-mapping", { body })),
-    onSuccess: (data) => client.setQueryData(keys.pathMapping, data),
+    mutationFn: (body: LibrarySettings) =>
+      unwrap(api.PUT("/api/v1/admin/library-settings", { body })),
+    onSuccess: (data) => client.setQueryData(keys.librarySettings, data),
   });
 }
 
-export function useSaveFilingRules() {
+export function useCreateFilingRule() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: FilingRulesDoc) =>
-      unwrap(contract.PUT("/api/v1/admin/filing-rules", { body })),
-    onSuccess: (data) => client.setQueryData(keys.filingRules, data),
+    mutationFn: (body: { template: string; fallbacks?: Record<string, string>; note?: string }) =>
+      unwrap(api.POST("/api/v1/filing-rules", { body: { note: "", ...body } })),
+    onSuccess: () => void client.invalidateQueries({ queryKey: keys.filingRules }),
   });
 }
 
-export function usePreviewFilingRules() {
+export function useActivateFilingRule() {
+  const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: FilingRulesDoc) =>
-      unwrap(contract.POST("/api/v1/admin/filing-rules/preview", { body })),
+    mutationFn: (id: string) =>
+      unwrap(
+        api.POST("/api/v1/filing-rules/{rule_id}/activate", { params: { path: { rule_id: id } } }),
+      ),
+    onSuccess: () => void client.invalidateQueries({ queryKey: keys.filingRules }),
+  });
+}
+
+export function useDryRunFilingRule() {
+  return useMutation({
+    mutationFn: (body: {
+      template: string;
+      fallbacks?: Record<string, string>;
+    }): Promise<FilingDryRun> =>
+      unwrap(api.POST("/api/v1/filing-rules/dry-run", { body: { limit: 200, ...body } })),
   });
 }
 

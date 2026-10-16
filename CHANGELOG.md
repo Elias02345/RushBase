@@ -37,6 +37,25 @@ All notable changes to this project are documented here. The format follows
 - `rushbase-server rebuild-from-sidecars [--dry-run]`.
 - Read APIs: `/api/v1/assets`, `/assets/{id}`, `/facets`, `/stats`, `/batches`,
   `/derived/{asset_id}/{path}` (Range, cache headers) and library settings (per-OS path roots).
+### Added (milestone M3, integration)
+
+- Web UI wired to the real server: types come from the generated API client, MSW mocks are typed
+  from the same schema; sort values, sprite tiles, filing rule versions, library settings and
+  quarantine follow the server. Facet counts follow the active filters and query.
+- `GET /api/v1/admin/enrollment-tokens`, `POST /api/v1/admin/enrollment-tokens/{id}/revoke` and
+  `POST /api/v1/setup/restore` (restore a backup from the setup wizard).
+- `make e2e-real`: Playwright run against a real server, fresh database and the real worker.
+- `make dev` always serves this checkout's `dev/library`.
+
+### Added (milestone M3, search)
+
+- Full-text search over title, file name, batch, summaries, camera data and paths: accent-insensitive
+  configuration `rushbase_simple` (`Straße` = `strasse`), weighted `asset.search_tsv` and
+  `shot.search_tsv` kept current by triggers (migration `0004`, additive, with backfill), prefix
+  matching on the last word, relevance ordering with an exact keyset cursor, and a substring
+  fallback for queries under three characters. `/api/v1/facets` accepts the same filters and `q`
+  as `/api/v1/assets`.
+
 ### Added (milestone M3, web UI)
 
 - Web app: setup wizard, login, dashboard with a live "material flows" pipeline, library search with

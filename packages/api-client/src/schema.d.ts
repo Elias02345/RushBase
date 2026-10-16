@@ -115,13 +115,37 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List enrollment tokens
+         * @description Newest first; the token secrets are never returned again.
+         */
+        get: operations["list_enrollment_tokens_api_v1_admin_enrollment_tokens_get"];
         put?: never;
         /**
          * Create a one-time worker enrollment token
          * @description Create a token a new worker exchanges for its own API key.
          */
         post: operations["create_enrollment_token_api_v1_admin_enrollment_tokens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/enrollment-tokens/{token_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke an unused enrollment token
+         * @description Expire an unused token immediately (idempotent). Used tokens cannot be revoked.
+         */
+        post: operations["revoke_enrollment_token_api_v1_admin_enrollment_tokens__token_id__revoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -325,7 +349,11 @@ export interface paths {
         };
         /**
          * List assets
-         * @description Filter, search by file name (`q`, case-insensitive substring) and page through assets.
+         * @description Filter, full-text search (`q`) and page through assets.
+         *
+         *     `q` is accent-insensitive full-text search over title, file name, batch, summaries, camera
+         *     data and paths, with prefix matching on the last word; queries under three characters match
+         *     file paths by substring. Without `sort`, searches are ordered by relevance.
          */
         get: operations["list_assets_api_v1_assets_get"];
         put?: never;
@@ -466,7 +494,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Filter facets with counts
+         * Filter facets with counts for the current filters and query
          * @description Facets for the filter sidebar, computed from the data.
          */
         get: operations["get_facets_api_v1_facets_get"];
@@ -600,6 +628,26 @@ export interface paths {
          * @description Only works while no user exists. Logs the new admin in.
          */
         post: operations["setup_api_v1_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/setup/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore a backup from the share instead of running the setup wizard
+         * @description Only works while the database is empty; restores, migrates and re-binds the library.
+         */
+        post: operations["restore_setup_api_v1_setup_restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1242,6 +1290,31 @@ export interface components {
             token: string;
         };
         /**
+         * EnrollmentTokenOut
+         * @description An enrollment token without its secret (which is only shown at creation).
+         */
+        EnrollmentTokenOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string;
+            /** Used At */
+            used_at: string | null;
+        };
+        /**
          * Facet
          * @description A filter dimension. Enum facets list values; range and date facets give min/max.
          */
@@ -1550,6 +1623,22 @@ export interface components {
             asset_ids: string[];
             /** Enqueued */
             enqueued: number;
+        };
+        /**
+         * RestoreIn
+         * @description Which backup of the share to restore.
+         */
+        RestoreIn: {
+            /** Backup Name */
+            backup_name: string;
+        };
+        /**
+         * RestoreOut
+         * @description Result of a restore.
+         */
+        RestoreOut: {
+            /** Ok */
+            ok: boolean;
         };
         /**
          * ResultIn
@@ -2168,6 +2257,26 @@ export interface operations {
             };
         };
     };
+    list_enrollment_tokens_api_v1_admin_enrollment_tokens_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentTokenOut"][];
+                };
+            };
+        };
+    };
     create_enrollment_token_api_v1_admin_enrollment_tokens_post: {
         parameters: {
             query?: never;
@@ -2189,6 +2298,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["EnrollmentOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_enrollment_token_api_v1_admin_enrollment_tokens__token_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2496,6 +2634,7 @@ export interface operations {
             query?: {
                 cursor?: string | null;
                 limit?: number;
+                sort?: string | null;
                 media_type?: string | null;
                 status?: string | null;
                 batch_id?: string | null;
@@ -2506,7 +2645,6 @@ export interface operations {
                 date_from?: string | null;
                 date_to?: string | null;
                 q?: string | null;
-                sort?: string | null;
             };
             header?: never;
             path?: never;
@@ -2688,7 +2826,18 @@ export interface operations {
     };
     get_facets_api_v1_facets_get: {
         parameters: {
-            query?: never;
+            query?: {
+                media_type?: string | null;
+                status?: string | null;
+                batch_id?: string | null;
+                camera_model?: string | null;
+                lens_model?: string | null;
+                log_profile?: string | null;
+                orientation?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2702,6 +2851,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FacetsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2912,6 +3070,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_setup_api_v1_setup_restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreOut"];
                 };
             };
             /** @description Validation Error */

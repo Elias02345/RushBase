@@ -7,6 +7,7 @@ import {
   Field,
   Input,
   Select,
+  StatusChip,
   Switch,
   Tabs,
   TabsContent,
@@ -16,38 +17,37 @@ import {
   type DataColumn,
 } from "@rushbase/ui";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, Copy, DatabaseBackup, Eye, Plus, Trash2 } from "lucide-react";
+import { Copy, DatabaseBackup, Eye, Plus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ApiError } from "../api/client";
 import type {
   EnrollmentTokenInfo,
-  FilingPreview,
+  FilingDryRun,
   FilingRule,
-  FilingRulesDoc,
-  MediaType,
-  PathMapping,
+  LibrarySettings,
 } from "../api/contracts";
 import {
+  useActivateFilingRule,
   useBackups,
   useCreateBackup,
   useCreateEnrollment,
+  useCreateFilingRule,
   useCreateUser,
+  useDryRunFilingRule,
   useEnrollmentTokens,
   useFilingRules,
+  useLibrarySettings,
   useMe,
-  usePathMapping,
-  usePreviewFilingRules,
   useRevokeEnrollment,
-  useSaveFilingRules,
-  useSavePathMapping,
+  useSaveLibrarySettings,
   useUpdateUser,
   useUsers,
 } from "../api/queries";
 import type { Role, User } from "../api/types";
 import { formatBytes, formatDateTime } from "../lib/format";
-import { copyText } from "../lib/platform";
+import { copyText, enrollCommand } from "../lib/platform";
 import type { AdminTab } from "../routes/search";
 
 const ROLES: Role[] = ["admin", "editor", "viewer"];
@@ -250,13 +250,11 @@ function TokensPanel() {
       header: t("library.col.status"),
       width: "150px",
       cell: (x) =>
-        x.revoked_at
-          ? t("admin.tokens.revoked")
-          : x.used_at
-            ? t("admin.tokens.used")
-            : Date.parse(x.expires_at) < Date.now()
-              ? t("admin.tokens.expired")
-              : t("admin.tokens.open"),
+        x.used_at
+          ? t("admin.tokens.used")
+          : Date.parse(x.expires_at) <= Date.now()
+            ? t("admin.tokens.expired")
+            : t("admin.tokens.open"),
     },
     {
       key: "actions",
@@ -267,7 +265,7 @@ function TokensPanel() {
         <Button
           size="sm"
           variant="ghost"
-          disabled={Boolean(x.revoked_at || x.used_at)}
+          disabled={Boolean(x.used_at) || Date.parse(x.expires_at) <= Date.now()}
           onClick={() => revoke.mutate(x.id)}
         >
           {t("admin.tokens.revoke")}
@@ -275,9 +273,7 @@ function TokensPanel() {
       ),
     },
   ];
-  const command = created
-    ? `rushbase enroll --server ${window.location.origin} --token ${created}`
-    : "";
+  const command = created ? enrollCommand(created) : "";
 
   return (
     <>
@@ -336,228 +332,190 @@ function TokensPanel() {
   );
 }
 
-const MEDIA_OPTIONS: MediaType[] = ["video", "photo", "audio", "other"];
-const ANY = "__any__";
-
 function RulesPanel() {
-  const rules = useFilingRules();
-  return rules.data ? <RulesEditor initial={rules.data} /> : null;
-}
-
-function RulesEditor({ initial }: { initial: FilingRulesDoc }) {
   const { t } = useTranslation();
-  const save = useSaveFilingRules();
-  const preview = usePreviewFilingRules();
+  const rules = useFilingRules();
+  const activate = useActivateFilingRule();
   const toast = useToast();
-  const [doc, setDoc] = useState<FilingRulesDoc>(initial);
-  const [result, setResult] = useState<FilingPreview | null>(null);
-
-  const patch = (id: string, change: Partial<FilingRule>) =>
-    setDoc({ ...doc, rules: doc.rules.map((r) => (r.id === id ? { ...r, ...change } : r)) });
-  const move = (index: number, delta: number) => {
-    const next = [...doc.rules];
-    const [item] = next.splice(index, 1);
-    if (!item) return;
-    next.splice(index + delta, 0, item);
-    setDoc({ ...doc, rules: next });
-  };
-
-  return (
-    <>
-      <div className="panel-head">
-        <p className="muted">{t("admin.rules.lead")}</p>
-        <div className="inline-form">
+  const columns: DataColumn<FilingRule>[] = [
+    {
+      key: "version",
+      header: t("admin.rules.version"),
+      width: "90px",
+      cell: (r) => `v${r.version}`,
+    },
+    {
+      key: "template",
+      header: t("admin.rules.template"),
+      width: "minmax(0, 2fr)",
+      cell: (r) => <code>{r.template}</code>,
+    },
+    {
+      key: "note",
+      header: t("admin.tokens.note"),
+      width: "minmax(0, 1fr)",
+      cell: (r) => r.note || "–",
+    },
+    {
+      key: "created",
+      header: t("admin.tokens.created"),
+      width: "170px",
+      cell: (r) => formatDateTime(r.created_at),
+    },
+    {
+      key: "actions",
+      header: "",
+      width: "130px",
+      align: "end",
+      cell: (r) =>
+        r.active ? (
+          <StatusChip tone="filed">{t("admin.rules.active")}</StatusChip>
+        ) : (
           <Button
+            size="sm"
             variant="secondary"
-            icon={<Eye size={16} />}
-            loading={preview.isPending}
-            onClick={() => preview.mutate(doc, { onSuccess: setResult })}
-          >
-            {t("admin.rules.preview")}
-          </Button>
-          <Button
-            loading={save.isPending}
+            loading={activate.isPending && activate.variables === r.id}
             onClick={() =>
-              save.mutate(doc, {
-                onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }),
+              activate.mutate(r.id, {
+                onSuccess: () => toast.push({ title: t("admin.rules.activated"), tone: "success" }),
               })
             }
           >
-            {t("common.save")}
+            {t("admin.rules.activate")}
           </Button>
-        </div>
-      </div>
-      <p className="muted rule-tokens">{t("admin.rules.tokens")}</p>
-      <ol className="rule-list">
-        {doc.rules.map((rule, index) => (
-          <li key={rule.id} className="rule">
-            <div className="rule__top">
-              <Input
-                aria-label={t("admin.rules.name")}
-                value={rule.name}
-                onChange={(e) => patch(rule.id, { name: e.target.value })}
-              />
-              <Switch
-                label={t("admin.rules.enabled")}
-                checked={rule.enabled}
-                onCheckedChange={(enabled) => patch(rule.id, { enabled })}
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label={t("admin.rules.up")}
-                disabled={index === 0}
-                onClick={() => move(index, -1)}
-              >
-                <ArrowUp size={14} />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label={t("admin.rules.down")}
-                disabled={index === doc.rules.length - 1}
-                onClick={() => move(index, 1)}
-              >
-                <ArrowDown size={14} />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label={t("admin.rules.remove")}
-                onClick={() => setDoc({ ...doc, rules: doc.rules.filter((r) => r.id !== rule.id) })}
-              >
-                <Trash2 size={14} />
-              </Button>
-            </div>
-            <div className="rule__fields">
-              <Field label={t("admin.rules.mediaType")}>
-                {({ id }) => (
-                  <Select
-                    id={id}
-                    value={rule.when.media_type ?? ANY}
-                    onValueChange={(v) =>
-                      patch(rule.id, {
-                        when: { ...rule.when, media_type: v === ANY ? null : (v as MediaType) },
-                      })
-                    }
-                    options={[
-                      { value: ANY, label: t("admin.rules.any") },
-                      ...MEDIA_OPTIONS.map((m) => ({ value: m, label: t(`media.${m}`) })),
-                    ]}
-                  />
-                )}
-              </Field>
-              <Field label={t("admin.rules.camera")}>
-                {(c) => (
-                  <Input
-                    {...c}
-                    value={rule.when.camera_model ?? ""}
-                    placeholder={t("admin.rules.any")}
-                    onChange={(e) =>
-                      patch(rule.id, {
-                        when: { ...rule.when, camera_model: e.target.value || null },
-                      })
-                    }
-                  />
-                )}
-              </Field>
-              <Field label={t("admin.rules.batch")}>
-                {(c) => (
-                  <Input
-                    {...c}
-                    value={rule.when.batch_contains ?? ""}
-                    placeholder={t("admin.rules.any")}
-                    onChange={(e) =>
-                      patch(rule.id, {
-                        when: { ...rule.when, batch_contains: e.target.value || null },
-                      })
-                    }
-                  />
-                )}
-              </Field>
-              <Field label={t("admin.rules.target")}>
-                {(c) => (
-                  <Input
-                    {...c}
-                    className="rb-input--mono"
-                    value={rule.target}
-                    onChange={(e) => patch(rule.id, { target: e.target.value })}
-                  />
-                )}
-              </Field>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <div className="panel-head">
-        <Button
-          variant="secondary"
-          icon={<Plus size={16} />}
-          onClick={() =>
-            setDoc({
-              ...doc,
-              rules: [
-                ...doc.rules,
-                {
-                  id: `r${Date.now()}`,
-                  name: t("admin.rules.newName"),
-                  enabled: true,
-                  when: { media_type: null, camera_model: null, batch_contains: null },
-                  target: "{year}/{month}",
-                },
-              ],
-            })
-          }
-        >
-          {t("admin.rules.add")}
-        </Button>
-        <Field label={t("admin.rules.fallback")} className="rule__fallback">
-          {(c) => (
-            <Input
-              {...c}
-              className="rb-input--mono"
-              value={doc.fallback}
-              onChange={(e) => setDoc({ ...doc, fallback: e.target.value })}
-            />
-          )}
-        </Field>
-      </div>
-      {result ? (
-        <Card title={t("admin.rules.previewTitle")} className="preview-card">
-          <p className="muted">
-            {t("admin.rules.previewSummary", {
-              count: result.items.length,
-              unmatched: result.unmatched,
-            })}
-          </p>
-          <ul className="preview-list">
-            {result.items.map((item) => (
-              <li key={item.asset_id}>
-                <code>{item.from_rel_path}</code>
-                <span aria-hidden="true">→</span>
-                <code>{item.to_rel_path}</code>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+        ),
+    },
+  ];
+  return (
+    <>
+      <p className="muted">{t("admin.rules.lead")}</p>
+      <Card flush>
+        <DataTable
+          label={t("admin.tabs.rules")}
+          rows={rules.data ?? []}
+          columns={columns}
+          getRowId={(r) => r.id}
+          rowHeight={56}
+          empty={<EmptyState title={t("admin.rules.empty")} description="" />}
+        />
+      </Card>
+      <NewRuleVersion latest={rules.data?.find((r) => r.active)?.template ?? ""} />
     </>
   );
 }
 
-function SettingsPanel() {
-  const mapping = usePathMapping();
-  return mapping.data ? <SettingsForm initial={mapping.data} /> : null;
+function NewRuleVersion({ latest }: { latest: string }) {
+  const { t } = useTranslation();
+  const create = useCreateFilingRule();
+  const dryRun = useDryRunFilingRule();
+  const toast = useToast();
+  const [template, setTemplate] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [result, setResult] = useState<FilingDryRun | null>(null);
+  const value = template ?? latest;
+
+  return (
+    <Card title={t("admin.rules.newVersion")} className="preview-card">
+      <p className="muted rule-tokens">{t("admin.rules.tokens")}</p>
+      <form
+        className="form-grid"
+        onSubmit={(event) => {
+          event.preventDefault();
+          create.mutate(
+            { template: value, note },
+            {
+              onSuccess: () => {
+                setTemplate(null);
+                setNote("");
+                setResult(null);
+                toast.push({ title: t("admin.rules.created"), tone: "success" });
+              },
+            },
+          );
+        }}
+      >
+        <Field label={t("admin.rules.template")}>
+          {(c) => (
+            <Input
+              {...c}
+              className="rb-input--mono"
+              spellCheck={false}
+              value={value}
+              onChange={(e) => {
+                setTemplate(e.target.value);
+                setResult(null);
+              }}
+            />
+          )}
+        </Field>
+        <Field label={t("admin.tokens.note")}>
+          {(c) => <Input {...c} value={note} onChange={(e) => setNote(e.target.value)} />}
+        </Field>
+        {create.error ? (
+          <p className="form-error" role="alert">
+            {apiMessage(create.error, t("common.error"))}
+          </p>
+        ) : null}
+        <div className="inline-form">
+          <Button
+            type="button"
+            variant="secondary"
+            icon={<Eye size={16} />}
+            loading={dryRun.isPending}
+            onClick={() => dryRun.mutate({ template: value }, { onSuccess: setResult })}
+          >
+            {t("admin.rules.preview")}
+          </Button>
+          <Button type="submit" loading={create.isPending}>
+            {t("admin.rules.create")}
+          </Button>
+        </div>
+      </form>
+      {dryRun.error ? (
+        <p className="form-error" role="alert">
+          {apiMessage(dryRun.error, t("common.error"))}
+        </p>
+      ) : null}
+      {result ? (
+        <>
+          <p className="muted">
+            {t("admin.rules.previewSummary", {
+              count: result.items.length,
+              folders: result.directories,
+              conflicts: result.conflicts.length,
+            })}
+          </p>
+          {result.warnings.length > 0 ? (
+            <p className="muted">{result.warnings.join(" · ")}</p>
+          ) : null}
+          <ul className="preview-list">
+            {result.items.slice(0, 50).map((item) => (
+              <li key={item.asset_id}>
+                <code>{item.current_dir ?? item.filename}</code>
+                <span aria-hidden="true">→</span>
+                <code>{item.path}</code>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+    </Card>
+  );
 }
 
-function SettingsForm({ initial }: { initial: PathMapping }) {
+function SettingsPanel() {
+  const settings = useLibrarySettings();
+  return settings.data ? <SettingsForm initial={settings.data} /> : null;
+}
+
+function SettingsForm({ initial }: { initial: LibrarySettings }) {
   const { t } = useTranslation();
-  const save = useSavePathMapping();
+  const save = useSaveLibrarySettings();
   const toast = useToast();
   const [form, setForm] = useState({
-    windows: initial.windows ?? "",
-    macos: initial.macos ?? "",
-    linux: initial.linux ?? "",
+    windows: initial.path_roots?.windows ?? "",
+    macos: initial.path_roots?.macos ?? "",
+    linux: initial.path_roots?.linux ?? "",
   });
   return (
     <Card title={t("admin.settings.paths")}>
@@ -568,9 +526,12 @@ function SettingsForm({ initial }: { initial: PathMapping }) {
           event.preventDefault();
           save.mutate(
             {
-              windows: form.windows.trim() || null,
-              macos: form.macos.trim() || null,
-              linux: form.linux.trim() || null,
+              path_roots: {
+                windows: form.windows.trim() || null,
+                macos: form.macos.trim() || null,
+                linux: form.linux.trim() || null,
+              },
+              central_meta: initial.central_meta,
             },
             { onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }) },
           );

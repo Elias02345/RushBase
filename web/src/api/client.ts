@@ -1,7 +1,5 @@
 import { createApiClient } from "@rushbase/api-client";
-import createClient, { type Middleware } from "openapi-fetch";
-
-import type { ContractPaths } from "./contracts";
+import type { Middleware } from "openapi-fetch";
 
 /** Cookie and header names must match `server/src/rushbase_server/api/deps.py`. */
 export const CSRF_COOKIE = "rb_csrf";
@@ -44,26 +42,14 @@ function origin(): string {
   return window.location.origin;
 }
 
-/** Typed client for everything the generated OpenAPI schema already covers. */
+/** Typed client for the whole server API (generated from its OpenAPI schema). */
 export function createGeneratedClient() {
   const client = createApiClient({ baseUrl: origin(), credentials: "same-origin" });
   client.use(csrf);
   return client;
 }
 
-/** Typed client for the endpoints described in `contracts.ts`. */
-export function createContractClient() {
-  const client = createClient<ContractPaths>({
-    baseUrl: origin(),
-    credentials: "same-origin",
-    fetch: (request) => globalThis.fetch(request),
-  });
-  client.use(csrf);
-  return client;
-}
-
 export const api = createGeneratedClient();
-export const contract = createContractClient();
 
 interface Result<T> {
   data?: T;

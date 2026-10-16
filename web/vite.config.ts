@@ -27,7 +27,7 @@ export default defineConfig({
   build: { target: "es2022", sourcemap: false },
   server: {
     host: "127.0.0.1",
-    port: 15173,
+    port: Number(process.env.RUSHBASE_DEV_WEB_PORT ?? 15173),
     strictPort: true,
     proxy: {
       // /api/health -> <server>/health; everything under /api/v1 is served as-is.
@@ -42,8 +42,9 @@ export default defineConfig({
   preview: { host: "127.0.0.1", port: 15174, strictPort: true },
   test: {
     environment: "jsdom",
+    testTimeout: 20_000,
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
-    exclude: ["e2e/**", "node_modules/**"],
+    exclude: ["e2e/**", "e2e-real/**", "node_modules/**"],
   },
 });

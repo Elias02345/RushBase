@@ -1,3 +1,4 @@
+import { SORT_KEYS } from "../api/contracts";
 import type { AssetStatus, MediaType, Orientation, SortKey } from "../api/contracts";
 
 /** Typed, URL-synced library filters. Unknown or malformed values are dropped, never thrown. */
@@ -27,13 +28,6 @@ const STATUSES: readonly AssetStatus[] = [
   "duplicate",
 ];
 const ORIENTATIONS: readonly Orientation[] = ["landscape", "portrait", "square"];
-const SORTS: readonly SortKey[] = [
-  "capture_desc",
-  "capture_asc",
-  "name_asc",
-  "size_desc",
-  "duration_desc",
-];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function text(value: unknown): string | undefined {
@@ -62,7 +56,7 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
     date_from: date(raw.date_from),
     date_to: date(raw.date_to),
     batch_id: text(raw.batch_id),
-    sort: oneOf(raw.sort, SORTS),
+    sort: oneOf<SortKey>(raw.sort, SORT_KEYS),
     view: oneOf(raw.view, ["grid", "list"] as const),
   };
   // Drop undefined keys so the URL stays clean.
@@ -86,4 +80,11 @@ export function validateLoginSearch(raw: Record<string, unknown>): { redirect?: 
   const redirect = text(raw.redirect);
   // Only same-origin paths are accepted so a crafted link cannot bounce users elsewhere.
   return redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? { redirect } : {};
+}
+
+/** The filters and query that narrow facet counts: everything except order and view. */
+export function facetQuery(search: LibrarySearch): Omit<LibrarySearch, "sort" | "view"> {
+  return Object.fromEntries(
+    Object.entries(search).filter(([key]) => key !== "sort" && key !== "view"),
+  );
 }
