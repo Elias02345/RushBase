@@ -23,14 +23,14 @@ export function NotFoundPage() {
 }
 
 /** Last-resort boundary for route errors (network down, unexpected server answer). */
-export function ErrorPage({ error, reset }: { error: Error; reset: () => void }) {
+export function ErrorPage({ error, reset }: { error: unknown; reset: () => void }) {
   const { t } = useTranslation();
   return (
     <div className="center-page">
       <EmptyState
         icon={<TriangleAlert size={28} />}
         title={t("errors.genericTitle")}
-        description={error.message || t("errors.genericText")}
+        description={(error instanceof Error && error.message) || t("errors.genericText")}
         action={<Button onClick={reset}>{t("common.retry")}</Button>}
       />
     </div>

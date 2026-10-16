@@ -1,23 +1,487 @@
 {
-  "app": {
-    "tagline": "Your raw footage, instantly findable.",
-    "intro": "Rushbase collects, analyses and organises video, photo and audio on your network storage. The full interface arrives in milestone 3."
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "clear": "Clear",
+    "close": "Close",
+    "copied": "Copied to clipboard",
+    "copyFailed": "Could not copy",
+    "error": "That did not work.",
+    "loading": "Loading …",
+    "notifications": "Notifications",
+    "retry": "Try again",
+    "save": "Save",
+    "saved": "Saved"
   },
   "nav": {
-    "theme": "Toggle colour theme",
-    "language": "Switch language"
+    "skip": "Skip to content",
+    "home": "Rushbase home",
+    "main": "Main navigation",
+    "dashboard": "Dashboard",
+    "library": "Library",
+    "processing": "Processing",
+    "admin": "Admin",
+    "logout": "Sign out",
+    "language": "Switch language to {{language}}",
+    "shortcuts": "Keyboard shortcuts",
+    "pending_one": "{{count}} open job",
+    "pending_other": "{{count}} open jobs"
   },
-  "health": {
-    "title": "Server status",
-    "readiness": "Readiness",
-    "server": "Server",
-    "database": "Database",
-    "version": "Version {{version}}",
-    "refresh": "Check again",
-    "checking": "Checking…",
-    "up": "reachable",
-    "down": "unreachable",
-    "dbUp": "connected",
-    "dbDown": "no connection"
+  "theme": {
+    "system": "Theme: system (click to change)",
+    "light": "Theme: light (click to change)",
+    "dark": "Theme: dark (click to change)"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "editor": "Editor",
+    "viewer": "Viewer"
+  },
+  "os": {
+    "windows": "Windows",
+    "macos": "macOS",
+    "linux": "Linux"
+  },
+  "media": {
+    "video": "Video",
+    "photo": "Photo",
+    "audio": "Audio",
+    "other": "Other"
+  },
+  "orientation": {
+    "landscape": "Landscape",
+    "portrait": "Portrait",
+    "square": "Square"
+  },
+  "status": {
+    "copying": "Copying",
+    "waiting": "Waiting",
+    "processing": "Processing",
+    "filed": "Filed",
+    "review": "Review",
+    "quarantine": "Quarantine"
+  },
+  "assetStatus": {
+    "ingesting": "Copying",
+    "processing": "Processing",
+    "review": "Review",
+    "filed": "Filed",
+    "quarantined": "Quarantine",
+    "trashed": "Trashed",
+    "duplicate": "Duplicate"
+  },
+  "batch": {
+    "paused": "Paused",
+    "scanning": "Scanning",
+    "waiting": "Waiting",
+    "processing": "Processing",
+    "done": "Done",
+    "error": "Error"
+  },
+  "stages": {
+    "probe": "Probe",
+    "hash": "Hash",
+    "preview": "Preview",
+    "shots": "Shots",
+    "audio": "Audio",
+    "embed": "Embeddings",
+    "vision": "Vision",
+    "classify": "Classify",
+    "finalize": "Finalize"
+  },
+  "fileRole": {
+    "original": "Original",
+    "sidecar": "Sidecar",
+    "proxy": "Proxy"
+  },
+  "history": {
+    "ingest": {
+      "grouped": "Grouped in input"
+    },
+    "stage": {
+      "probe": "Probe finished",
+      "preview": "Preview created"
+    },
+    "filing": {
+      "moved": "Filed"
+    }
+  },
+  "meta": {
+    "groups": {
+      "camera": "Camera",
+      "lens": "Lens",
+      "exposure": "Exposure",
+      "video": "Video",
+      "audio": "Audio",
+      "location": "Location",
+      "other": "Other"
+    },
+    "fields": {
+      "make": "Make",
+      "model": "Model",
+      "serial_number": "Serial number",
+      "focal_length_mm": "Focal length (mm)",
+      "aperture": "Aperture",
+      "iso": "ISO",
+      "shutter": "Shutter",
+      "white_balance_k": "White balance (K)",
+      "codec": "Codec",
+      "resolution": "Resolution",
+      "fps": "Frame rate",
+      "bit_depth": "Bit depth",
+      "bitrate_mbps": "Bitrate (Mbit/s)",
+      "color_space": "Colour space",
+      "log_profile": "Log profile",
+      "channels": "Channels",
+      "sample_rate_hz": "Sample rate (Hz)",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "altitude_m": "Altitude (m)"
+    }
+  },
+  "login": {
+    "title": "Welcome back",
+    "lead": "Sign in to find your footage.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "invalid": "Username or password is wrong.",
+    "tooMany": "Too many attempts. Please wait {{seconds}} seconds.",
+    "failed": "Sign-in failed.",
+    "unreachable": "The server cannot be reached.",
+    "demoHint": "Demo: elias, mara or jonas with the password rushbase-demo-pass"
+  },
+  "setup": {
+    "progress": "Setup progress",
+    "steps": {
+      "language": "Language",
+      "admin": "Account",
+      "library": "Library",
+      "paths": "Paths",
+      "done": "Done"
+    },
+    "language": {
+      "title": "Welcome to Rushbase",
+      "lead": "Which language would you like to start in? You can change it later.",
+      "deText": "Interface in German",
+      "enText": "Interface in English"
+    },
+    "admin": {
+      "title": "Your administrator account",
+      "lead": "You will manage Rushbase with this. Add more people later.",
+      "displayName": "Display name",
+      "username": "Username",
+      "password": "Password",
+      "passwordHint": "At least {{count}} characters.",
+      "confirm": "Repeat password"
+    },
+    "passwordShort": "The password needs at least {{count}} characters.",
+    "passwordMismatch": "The passwords do not match.",
+    "library": {
+      "title": "Your library",
+      "lead": "Rushbase never moves your originals around: they stay where they are.",
+      "new": "Create a new library",
+      "newText": "Starts empty and creates the Input and Content folders.",
+      "adopt": "Adopt an existing library",
+      "adoptText": "Continues with a folder that is already set up.",
+      "adoptFound": "A library was found already. It will be adopted.",
+      "restore": "Restore from backup",
+      "restoreText_one": "{{count}} backup found.",
+      "restoreText_other": "{{count}} backups found.",
+      "name": "Library name",
+      "backup": "Backup",
+      "create": "Set up library",
+      "doRestore": "Restore",
+      "failed": "The library could not be set up."
+    },
+    "restored": "Backup restored",
+    "restoredText": "Sign in with your existing account.",
+    "paths": {
+      "title": "Where does the library live?",
+      "lead": "Every computer sees the share under its own path. Enter the root paths so Rushbase can show you the right path to copy.",
+      "skip": "Later in Admin",
+      "failed": "The paths could not be saved.",
+      "hint": {
+        "windows": "For example a mapped drive or UNC path.",
+        "macos": "Mounted below /Volumes.",
+        "linux": "For example mounted below /mnt."
+      },
+      "example": {
+        "windows": "\\\\nas\\media",
+        "macos": "/Volumes/media",
+        "linux": "/mnt/media"
+      }
+    },
+    "done": {
+      "title": "All set",
+      "lead": "Rushbase is running. To process material, connect your PC with the graphics card as a worker.",
+      "tokenTitle": "Connect a worker",
+      "copyCommand": "Copy command",
+      "copyToken": "Copy token only",
+      "tokenNote": "Run the command on the processing PC. The token works once and is only shown now.",
+      "tokenFailed": "The token could not be created. You can create one later under Admin.",
+      "open": "Open Rushbase"
+    },
+    "firstWorkerNote": "First worker"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Everything important works without a mouse.",
+    "palette": "Open command palette",
+    "search": "Focus search",
+    "goDashboard": "Go to dashboard",
+    "goLibrary": "Go to library",
+    "goProcessing": "Go to processing",
+    "grid": "Move through the grid",
+    "open": "Open item",
+    "select": "Select item",
+    "escape": "Close dialog",
+    "help": "This help"
+  },
+  "palette": {
+    "open": "Commands",
+    "label": "Command palette",
+    "placeholder": "Where to?",
+    "empty": "Nothing matches.",
+    "goTo": "Go to",
+    "actions": "Actions",
+    "toggleTheme": "Change colour theme",
+    "switchLanguage": "Switch language to {{language}}",
+    "shortcuts": "Show keyboard shortcuts",
+    "pauseQueue": "Pause queue",
+    "resumeQueue": "Resume queue"
+  },
+  "errors": {
+    "notFoundTitle": "Nothing here",
+    "notFoundText": "This page does not exist. Maybe the way back to the dashboard helps.",
+    "backHome": "Back to dashboard",
+    "genericTitle": "Something went wrong",
+    "genericText": "An unexpected error occurred."
+  },
+  "dashboard": {
+    "morning": "Good morning, {{name}}",
+    "afternoon": "Hello, {{name}}",
+    "evening": "Good evening, {{name}}",
+    "summary": "{{filed}} clips are filed, {{processing}} are in progress.",
+    "queuePaused": "Queue paused",
+    "pipeline": "How your material flows",
+    "pipelineLabel": "Input, analysis and content",
+    "input": "Input",
+    "analysis": "Analysis",
+    "content": "Content",
+    "analysisProgress": "Analysis progress",
+    "jobsOpen_one": "{{count}} job open",
+    "jobsOpen_other": "{{count}} jobs open",
+    "workers": "Workers",
+    "allWorkers": "All workers",
+    "noWorkerTitle": "No worker online",
+    "noWorker": "New material waits until your processing PC starts. Search keeps working.",
+    "workersOnline": "Workers online",
+    "workersOnlineText_one": "{{count}} worker is working",
+    "workersOnlineText_other": "{{count}} workers are working",
+    "recentBatches": "Recent batches",
+    "allBatches": "All batches",
+    "noBatches": "No batches yet",
+    "noBatchesText": "Copy material into the Input folder and it shows up here.",
+    "storage": "Storage",
+    "storageIn_one": "in {{count}} file",
+    "storageIn_other": "in {{count}} files",
+    "storageBar": "Storage by media type",
+    "duplicates_one": "{{count}} duplicate uses {{size}}.",
+    "duplicates_other": "{{count}} duplicates use {{size}}."
+  },
+  "library": {
+    "searchLabel": "Search material",
+    "searchPlaceholder": "Search by title, camera, lens, place …",
+    "searchPlaceholderShort": "Search …",
+    "filters": "Filters",
+    "clearFilters": "Reset",
+    "removeFilter": "Remove filter",
+    "showMore": "{{count}} more",
+    "showLess": "Less",
+    "from": "From",
+    "to": "To",
+    "sort": "Sort order",
+    "sorts": {
+      "capture_desc": "Newest first",
+      "capture_asc": "Oldest first",
+      "name_asc": "Name A–Z",
+      "size_desc": "Largest first",
+      "duration_desc": "Longest first"
+    },
+    "view": "View",
+    "viewGrid": "Grid view",
+    "viewList": "List view",
+    "results": "Results",
+    "count_one": "{{formatted}} result",
+    "count_other": "{{formatted}} results",
+    "col": {
+      "name": "Name",
+      "type": "Type",
+      "duration": "Duration",
+      "resolution": "Resolution",
+      "camera": "Camera",
+      "date": "Captured",
+      "size": "Size",
+      "status": "Status"
+    },
+    "select": "Select {{name}}",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "selectLoaded": "Select all loaded",
+    "clearSelection": "Clear selection",
+    "addToCollection": "Add to collection",
+    "soon": "Collections arrive in a later step",
+    "bulk": "Selection actions",
+    "emptyTitle": "Nothing found",
+    "emptyFiltered": "Nothing matches this search yet. Loosen the filters or try other words.",
+    "emptyFresh": "Once material is in the Input folder and analysed, it shows up here.",
+    "resetSearch": "Reset search",
+    "errorTitle": "Could not load",
+    "errorText": "The server did not respond. Try again in a moment."
+  },
+  "asset": {
+    "back": "Back",
+    "backToLibrary": "To library",
+    "missingTitle": "This item does not exist",
+    "missingText": "It was removed or the link is wrong.",
+    "noPreview": "There is no preview for this item yet.",
+    "noProxy": "The video preview is still being prepared.",
+    "shots_one": "{{count}} shot",
+    "shots_other": "{{count}} shots",
+    "shotLabel": "Shot {{n}}, {{start}} to {{end}}",
+    "keyframes": "Keyframes",
+    "jumpTo": "Jump to {{time}}",
+    "sections": "Sections",
+    "tabs": {
+      "data": "Technical",
+      "files": "Files",
+      "history": "History",
+      "transcript": "Transcript",
+      "tags": "Tags"
+    },
+    "noMetadata": "No metadata yet",
+    "noMetadataText": "Once the analysis has run, the data appears here.",
+    "pathFor": "Path for operating system",
+    "copyPath": "Copy path",
+    "copyRelative": "Copy relative path",
+    "transcriptTitle": "Transcript coming",
+    "transcriptText": "Speech will be transcribed and made searchable automatically in a later step.",
+    "tagsTitle": "Tags coming",
+    "tagsText": "Automatic keywords and subjects arrive in a later step."
+  },
+  "processing": {
+    "title": "Processing",
+    "lead": "What is running, what is waiting and what needs help.",
+    "pauseQueue": "Pause queue",
+    "resumeQueue": "Resume queue",
+    "sections": "Processing sections",
+    "tabs": {
+      "queue": "Queue",
+      "batches": "Batches",
+      "workers": "Workers",
+      "quarantine": "Quarantine"
+    },
+    "queueEmpty": "Queue is empty",
+    "queueEmptyText": "New files appear here once they are detected.",
+    "stageBar": "{{done}} done, {{running}} running, {{queued}} waiting, {{failed}} failed",
+    "stageFacts": "{{bytes}} pending, about {{duration}} of footage",
+    "batch": "Batch",
+    "batches": "Batches",
+    "firstSeen": "First seen",
+    "priority": "Priority",
+    "priorityValue": "Priority {{value}}",
+    "lower": "Lower priority of {{name}}",
+    "raise": "Raise priority of {{name}}",
+    "pause": "Pause",
+    "resume": "Resume",
+    "workers": "Workers",
+    "worker": "Worker",
+    "platform": "Platform",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Last seen",
+    "lastStage": "Last stage",
+    "revoke": "Revoke",
+    "workersCount": "{{online}} of {{total}} workers online.",
+    "workersAdminOnly": "Only administrators see the details.",
+    "quarantineEmpty": "Quarantine is empty",
+    "quarantineEmptyText": "Anything that could not be processed lands here and can be retried.",
+    "retry": "Retry",
+    "retryQueued": "Queued for another try"
+  },
+  "admin": {
+    "title": "Admin",
+    "lead": "Accounts, workers, filing rules, paths and backups.",
+    "sections": "Admin sections",
+    "tabs": {
+      "users": "Users",
+      "workers": "Worker tokens",
+      "rules": "Filing rules",
+      "settings": "Settings",
+      "backups": "Backups"
+    },
+    "users": {
+      "title": "Users",
+      "lead": "Who may use Rushbase and what they may do.",
+      "add": "Add user",
+      "create": "Create user",
+      "name": "Name",
+      "role": "Role",
+      "roleOf": "Role of {{name}}",
+      "lastLogin": "Last sign-in",
+      "active": "Active",
+      "activeLabel": "{{name}} active"
+    },
+    "tokens": {
+      "title": "Worker tokens",
+      "lead": "A token connects a new processing PC. Each token works once.",
+      "note": "Note",
+      "notePlaceholder": "For example edit suite",
+      "create": "Create token",
+      "created": "Created",
+      "createdTitle": "Token created",
+      "createdText": "Run this command on the worker PC. The token is only shown now.",
+      "empty": "No tokens yet",
+      "emptyText": "Create a token to connect a worker.",
+      "open": "Open",
+      "used": "Used",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "revoke": "Revoke"
+    },
+    "rules": {
+      "lead": "Rules apply to new material only. Files already filed stay where they are.",
+      "tokens": "Placeholders: {year} {month} {day} {camera} {type} {batch}",
+      "preview": "Preview (dry run)",
+      "previewTitle": "Dry run",
+      "previewSummary": "{{count}} files checked, {{unmatched}} without a matching rule. Nothing was moved.",
+      "name": "Rule name",
+      "enabled": "Enabled",
+      "up": "Move rule up",
+      "down": "Move rule down",
+      "remove": "Remove rule",
+      "mediaType": "Media type",
+      "camera": "Camera",
+      "batch": "Batch name contains",
+      "target": "Target folder",
+      "any": "Any",
+      "add": "Add rule",
+      "newName": "New rule",
+      "fallback": "When no rule matches"
+    },
+    "settings": {
+      "paths": "Paths per operating system"
+    },
+    "backups": {
+      "title": "Backups",
+      "lead": "Backups of the database and settings are stored on the share.",
+      "now": "Back up now",
+      "done": "Backup created",
+      "file": "File",
+      "kind": "Kind",
+      "empty": "No backups yet",
+      "emptyText": "Make your first backup now."
+    }
   }
 }

@@ -92,7 +92,7 @@ export function SetupPage() {
   }, [step, enrollment, t]);
 
   useEffect(() => {
-    if (status && !status.needs_setup && step < 4) void navigate({ to: "/login" });
+    if (status && !status.needs_setup && step === 0) void navigate({ to: "/login" });
   }, [status, step, navigate]);
 
   const submitAdmin = (event: FormEvent) => {

@@ -185,7 +185,7 @@ function Stage({ detail }: { detail: AssetDetail }) {
   };
   return (
     <div className="stage">
-      <div className="stage__frame" style={{ aspectRatio: Math.min(ratio, 2.4) }}>
+      <div className="stage__frame" style={{ aspectRatio: Math.min(Math.max(ratio, 1), 2.4) }}>
         {detail.proxy_url && detail.media_type === "video" ? (
           <video
             ref={videoRef}
@@ -212,7 +212,7 @@ function Stage({ detail }: { detail: AssetDetail }) {
 
 export function AssetPage() {
   const { t } = useTranslation();
-  const { id } = useParams({ from: "/assets/$id" });
+  const { id } = useParams({ from: "/_app/assets/$id" });
   const router = useRouter();
   const query = useAsset(id);
   const detail = query.data;

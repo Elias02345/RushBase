@@ -10,7 +10,12 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:mock": "VITE_MOCK=1 vite",
+    "build:mock": "tsc --noEmit && VITE_MOCK=1 vite build",
+    "preview:mock": "VITE_MOCK=1 vite preview",
+    "e2e": "playwright test",
+    "screenshots": "playwright test --project=screenshots"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",
@@ -19,6 +24,7 @@
     "@rushbase/ui": "workspace:*",
     "@tanstack/react-query": "5.104.2",
     "@tanstack/react-router": "1.170.44",
+    "@tanstack/react-virtual": "^3.14.18",
     "i18next": "26.4.4",
     "lucide-react": "^1.56.0",
     "openapi-fetch": "0.17.0",

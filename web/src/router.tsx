@@ -45,7 +45,7 @@ const setupRoute = createRoute({
 /** Pathless layout: everything below requires a session and renders inside the app shell. */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "app",
+  id: "_app",
   component: AppShell,
   beforeLoad: async ({ context, location }) => {
     try {

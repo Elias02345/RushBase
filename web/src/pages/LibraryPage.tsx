@@ -37,7 +37,7 @@ const FILTER_KEYS = [
 
 export function LibraryPage() {
   const { t, i18n } = useTranslation();
-  const search = useSearch({ from: "/library" });
+  const search = useSearch({ from: "/_app/library" });
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [text, setText] = useState(search.q ?? "");

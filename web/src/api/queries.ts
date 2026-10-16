@@ -199,10 +199,7 @@ export function useSetup() {
       library_name: string;
       locale: "de" | "en";
     }) => unwrap(api.POST("/api/v1/setup", { body })),
-    onSuccess: (result) => {
-      client.setQueryData(keys.me, result.user);
-      void client.invalidateQueries({ queryKey: keys.setup });
-    },
+    onSuccess: (result) => client.setQueryData(keys.me, result.user),
   });
 }
 
