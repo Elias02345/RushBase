@@ -41,7 +41,7 @@ embed_vision = "fp16"
 vlm = "cpu-2b"
 asr = "whisper-small-q8_0"
 audio_events = "ced-mini"
-embed_vision = "int8"
+embed_vision = "fp16"  # int8 is ~20 % faster on CPU but only cosine 0.95 to the reference
 
 [variants.xl-9b]
 model = "qwen3.5-9b-q8_0"

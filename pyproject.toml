@@ -48,21 +48,23 @@ ignore = ["S101"]
 "scripts/*.py" = ["S603", "S607", "T201", "S101"]
 "worker/src/rushbase_worker/**" = ["ASYNC109", "ASYNC240"]
 "worker/scripts/*.py" = ["S603", "S607", "T201"]
+"worker/tests/fixtures/ai/*.py" = ["T201", "S101"]
 "server/src/rushbase_server/migrations/**" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-mypy_path = ["core/src", "server/src", "worker/src", "server/tests"]
+mypy_path = ["core/src", "server/src", "worker/src", "server/tests", "worker/tests"]
 explicit_package_bases = true
+exclude = ["worker/tests/fixtures/ai/make_siglip_fixture.py"]
 files = ["core/src", "server/src", "worker/src", "core/tests", "server/tests", "worker/tests", "dev/testmedia"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["core/tests", "server/tests", "worker/tests"]
-pythonpath = ["server/tests"]
+pythonpath = ["server/tests", "worker/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [
   "postgres: needs a reachable PostgreSQL (RUSHBASE_TEST_DATABASE_URL)",

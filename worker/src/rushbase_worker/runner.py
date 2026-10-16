@@ -18,6 +18,7 @@ from rushbase_core import DEFAULT_HEARTBEAT_SECONDS, Stage
 from rushbase_worker import get_version
 from rushbase_worker.client import ApiError, AuthError, LeaseLostError, UnavailableError, WorkerApi
 from rushbase_worker.models import Job
+from rushbase_worker.runtimes.manager import Runtimes
 from rushbase_worker.stages import StageContext, StageError, StageHandler
 
 log = logging.getLogger(__name__)
@@ -72,14 +73,20 @@ def system_ram_mb() -> int | None:
         return None
 
 
-def capabilities_for(stages: list[Stage]) -> dict[str, Any]:
-    """The capability document sent with every claim."""
-    return {
+def capabilities_for(stages: list[Stage], runtimes: Runtimes | None = None) -> dict[str, Any]:
+    """The capability document sent with every claim (hardware facts when AI runtimes exist)."""
+    document: dict[str, Any] = {
         "backends": ["cpu"],
         "stages": [s.value for s in stages],
         "ram_mb": system_ram_mb(),
         "profile": "cpu",
     }
+    if runtimes is not None:
+        hardware = runtimes.hardware
+        document["backends"] = list(dict.fromkeys([hardware.backend.value, "cpu"]))
+        document["profile"] = hardware.profile.value
+        document["vram_mb"] = hardware.effective_vram_mb
+    return document
 
 
 def failure_body(error: str, retryable: bool, started: datetime, began: float) -> dict[str, Any]:
@@ -153,6 +160,8 @@ class Runner:
                     claimed = await self._claim(opts.concurrency - len(active), stages)
                     for job in claimed:
                         active.add(asyncio.create_task(self._process(job)))
+                    if not claimed and not active and self._ctx.runtimes is not None:
+                        await self._ctx.runtimes.lifecycle.unload_idle()  # free the GPU while idle
                     if not claimed and not active and opts.exit_when_empty:
                         reason = "empty"
                         break
@@ -162,6 +171,8 @@ class Runner:
                 active = {t for t in active if not t.done()}
         finally:
             await self._shutdown(active)
+            if self._ctx.runtimes is not None:
+                await self._ctx.runtimes.close()
         self.summary.reason = reason
         self._emit({"event": "stopped", "reason": reason, **vars(self.summary)})
         return self.summary
@@ -169,7 +180,7 @@ class Runner:
     async def _claim(self, free: int, stages: list[Stage]) -> list[Job]:
         batch = min(free, self._options.claim_batch or free)
         try:
-            claim = await self._api.claim(batch, capabilities_for(stages))
+            claim = await self._api.claim(batch, capabilities_for(stages, self._ctx.runtimes))
         except AuthError:
             raise
         except (UnavailableError, ApiError) as exc:

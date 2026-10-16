@@ -4,6 +4,7 @@ import json
 import re
 import tempfile
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -107,6 +108,7 @@ async def transcribe(
     timeout: float,
     vad_model: Path | None = None,
     language: str = "auto",
+    extra_lib_dirs: Sequence[Path] = (),
 ) -> WhisperResult:
     """Transcribe a 16 kHz mono WAV with ``whisper-cli``; language is auto-detected by default."""
     with tempfile.TemporaryDirectory(prefix="rushbase-whisper-") as tmp:
@@ -120,7 +122,9 @@ async def transcribe(
         if vad_model is not None:
             args += ["--vad", "-vm", str(vad_model)]
         began = time.monotonic()
-        result = await run_tool("whisper-cli", args, timeout=timeout, env=library_env(backend))
+        result = await run_tool(
+            "whisper-cli", args, timeout=timeout, env=library_env(backend, extra_lib_dirs)
+        )
         elapsed = time.monotonic() - began
         document = json.loads(prefix.with_suffix(".json").read_text(encoding="utf-8"))
     code, probability = parse_language(result.stderr)

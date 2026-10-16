@@ -24,7 +24,7 @@ flags=(-DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_TESTS=
 case "${BACKEND}" in
   cpu) ;;
   vulkan) flags+=(-DGGML_VULKAN=ON) ;;
-  cuda) flags+=(-DGGML_CUDA=ON "-DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}") ;;
+  cuda) flags+=(-DGGML_CUDA=ON -DGGML_CUDA_NCCL=OFF "-DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}") ;;
   metal) flags+=(-DGGML_METAL=ON -DGGML_METAL_EMBED_LIBRARY=ON) ;;
   *) echo "unknown backend ${BACKEND}" >&2; exit 2 ;;
 esac

@@ -16,6 +16,7 @@ from rushbase_worker.assets.lock import ModelSpec, load_models_lock
 from rushbase_worker.assets.models import ModelNotInstalledError, ModelStore
 from rushbase_worker.assets.plan import IMAGE_EMBEDDING_MODEL, TEXT_EMBEDDING_MODEL
 from rushbase_worker.config import WorkerSettings
+from rushbase_worker.embedding import e5, siglip
 from rushbase_worker.hardware import Backend, HardwareReport, Profile, detect_hardware, free_vram_mb
 from rushbase_worker.runtimes import onnx
 from rushbase_worker.runtimes.lifecycle import ModelLifecycle
@@ -91,6 +92,7 @@ class Runtimes:
 
     @property
     def vision_embed_role(self) -> str:
+        """SigLIP vision file role: fp16 everywhere (int8 loses fidelity, see docs/worker-ai.md)."""
         return f"vision-{self.profiles.profile(self.profile).embed_vision}"
 
     def spec(self, model_id: str) -> ModelSpec:
@@ -245,6 +247,24 @@ class Runtimes:
             use_gpu = gpu and self.settings.onnx_gpu and self.gpu_backend
             self._sessions[key] = onnx.open_session(path, use_gpu=use_gpu)
         return self._sessions[key]
+
+    def image_embedder(self) -> siglip.ImageEmbedder:
+        """SigLIP 2 vision tower (fp16; CUDA when onnxruntime-gpu is installed, else CPU)."""
+        role = self.vision_embed_role
+        path = self.models.file(IMAGE_EMBEDDING_MODEL, role)
+        return siglip.ImageEmbedder(self.onnx_session(f"siglip:{role}", path, gpu=True))
+
+    def siglip_text_embedder(self) -> siglip.TextEmbedder:
+        """SigLIP 2 text tower (fp16: the int8 export has cosine 0.88-0.97 to the reference)."""
+        path = self.models.file(IMAGE_EMBEDDING_MODEL, "text-fp16")
+        tokenizer = onnx.load_tokenizer(self.models.file(IMAGE_EMBEDDING_MODEL, "tokenizer"))
+        return siglip.TextEmbedder(self.onnx_session("siglip:text", path), tokenizer)
+
+    def e5_embedder(self) -> e5.TextEmbedder:
+        """multilingual-e5-base."""
+        path = self.models.file(TEXT_EMBEDDING_MODEL, "model")
+        tokenizer = onnx.load_tokenizer(self.models.file(TEXT_EMBEDDING_MODEL, "tokenizer"))
+        return e5.TextEmbedder(self.onnx_session("e5", path), tokenizer)
 
     async def close(self) -> None:
         """Unload everything (worker shutdown)."""

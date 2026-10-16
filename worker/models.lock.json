@@ -229,6 +229,14 @@
           "sha256": "8243a496e524bf8fa19830ff42a40a4bae2e97acc2e288d4ae97601edf954977"
         },
         {
+          "role": "text-fp16",
+          "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
+          "filename": "onnx/text_model_fp16.onnx",
+          "revision": "d1114256522a37ffa257a0a58017348ab0058db2",
+          "size": 564862230,
+          "sha256": "80954edffdc689599e5d5bc6a1738380bc9e8139a18e5c8892485f248b6b4890"
+        },
+        {
           "role": "text-int8",
           "repo": "onnx-community/siglip2-base-patch16-256-ONNX",
           "filename": "onnx/text_model_int8.onnx",

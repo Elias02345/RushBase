@@ -5,7 +5,7 @@ import contextlib
 import os
 import socket
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -162,9 +162,9 @@ def build_args(
     return args
 
 
-def library_env(backend: InstalledBackend) -> dict[str, str]:
-    """Environment with the backend's shared libraries on the loader path."""
-    paths = [str(p) for p in backend.lib_dirs]
+def library_env(backend: InstalledBackend, extra: Sequence[Path] = ()) -> dict[str, str]:
+    """Environment with the backend's shared libraries (and ``extra`` dirs) on the loader path."""
+    paths = [str(p) for p in [*backend.lib_dirs, *extra]]
     existing = os.environ.get("LD_LIBRARY_PATH")
     if existing:
         paths.append(existing)
