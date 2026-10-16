@@ -40,3 +40,29 @@ class LoginRateLimiter:
     def reset(self, key: str) -> None:
         """Forget all failures of ``key`` (after a successful login)."""
         self._failures.pop(key, None)
+
+
+class TokenBuckets:
+    """In-memory token buckets keyed by name (single server instance).
+
+    A bucket holds up to ``per_minute`` tokens and refills continuously; each request takes one.
+    """
+
+    def __init__(self) -> None:
+        self._state: dict[str, tuple[float, datetime]] = {}
+
+    def allow(self, key: str, per_minute: int, now: datetime) -> bool:
+        """Take a token for ``key``; ``False`` when its bucket is empty."""
+        tokens, stamp = self._state.get(key, (float(per_minute), now))
+        elapsed = max(0.0, (now - stamp).total_seconds())
+        tokens = min(float(per_minute), tokens + elapsed * per_minute / 60)
+        allowed = tokens >= 1
+        self._state[key] = (tokens - 1 if allowed else tokens, now)
+        if len(self._state) > 10_000:  # bounded memory under key flooding
+            self._state = dict(list(self._state.items())[-5_000:])
+        return allowed
+
+    @staticmethod
+    def retry_after(per_minute: int) -> int:
+        """Seconds until a drained bucket holds one token again."""
+        return max(1, int(60 / per_minute) + 1)

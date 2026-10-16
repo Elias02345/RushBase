@@ -74,6 +74,8 @@ class Edit:
     add_tags: list[TagRef] = field(default_factory=list)
     remove_tags: list[TagRef] = field(default_factory=list)
     review_done: bool = False
+    source: str = "human"
+    """``human`` (highest precedence) or ``claude`` (MCP: never overrides or removes human tags)."""
 
 
 def _rejected(asset: Asset) -> list[str]:
@@ -125,7 +127,8 @@ async def edit_target(
         raise EditError(f"cannot edit: {', '.join(sorted(unknown))}")
     target: Asset | Shot = shot if shot is not None else asset
     changed: dict[str, Any] = {}
-    enabled = await golden.corrections_enabled(session)
+    human = edit.source == "human"
+    enabled = human and await golden.corrections_enabled(session)
     for name, value in edit.columns.items():
         column = SHOT_COLUMN_NAMES.get(name, name) if shot is not None else name
         before = getattr(target, column)
@@ -133,7 +136,7 @@ async def edit_target(
             continue
         setattr(target, column, value)
         changed[name] = {"from": before, "to": value}
-        if name not in NOT_AI_FIELDS and column not in human_list(target):
+        if human and name not in NOT_AI_FIELDS and column not in human_list(target):
             target.human_fields = [*human_list(target), column]
         if enabled and name in golden.CORE_FIELDS and value is not None:
             await golden.upsert_label(
@@ -150,12 +153,14 @@ async def edit_target(
         asset.review_state = "done"
         changed["review_state"] = "done"
     details: dict[str, Any] = {"shot": shot.idx if shot else None, "columns": changed}
+    if not human:
+        details["source"] = edit.source
     if added or removed:
         details["tags_added"], details["tags_removed"] = added, removed
     if changed or added or removed:
         audit.record(
             session,
-            actor_kind="user",
+            actor_kind="user" if human else "mcp",
             actor_id=actor_id,
             action="asset.edit",
             target_kind="asset",
@@ -190,9 +195,10 @@ async def _edit_tags(
     removed: list[str] = []
     for ref in edit.remove_tags:
         tag_field, value = await _resolve(session, ref)
-        result = await session.execute(
-            delete(AssetTag).where(scope, AssetTag.value_id == value.id).returning(AssetTag.source)
-        )
+        removal = delete(AssetTag).where(scope, AssetTag.value_id == value.id)
+        if edit.source != "human":
+            removal = removal.where(AssetTag.source != "human")  # human tags are out of reach
+        result = await session.execute(removal.returning(AssetTag.source))
         sources = list(result.scalars())
         if "ai" in sources or "claude" in sources:
             rejected.append(rejected_key(tag_field.key, value.value, shot_idx))
@@ -200,11 +206,27 @@ async def _edit_tags(
             removed.append(f"{ref.field}:{value.value}")
     for ref in edit.add_tags:
         tag_field, value = await _resolve(session, ref)
+        if (
+            edit.source != "human"
+            and await session.scalar(
+                select(AssetTag.id)
+                .where(scope, AssetTag.source == "human", AssetTag.field_id == tag_field.id)
+                .limit(1)
+            )
+            is not None
+            and tag_field.kind == "single"
+        ):
+            continue  # a person already decided this single-valued field
         if tag_field.kind == "single":
-            await session.execute(delete(AssetTag).where(scope, AssetTag.field_id == tag_field.id))
+            clear = delete(AssetTag).where(scope, AssetTag.field_id == tag_field.id)
+            if edit.source != "human":
+                clear = clear.where(AssetTag.source != "human")
+            await session.execute(clear)
         exists = await session.scalar(
             select(AssetTag.id).where(
-                scope, AssetTag.value_id == value.id, AssetTag.source == "human"
+                scope,
+                AssetTag.value_id == value.id,
+                AssetTag.source.in_(("human", edit.source)),
             )
         )
         if exists is None:
@@ -214,7 +236,7 @@ async def _edit_tags(
                     shot_id=shot_id,
                     field_id=tag_field.id,
                     value_id=value.id,
-                    source="human",
+                    source=edit.source,
                     confidence=1.0,
                 )
             )

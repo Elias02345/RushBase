@@ -23,6 +23,7 @@ import {
   SPRITE_TILES,
 } from "./data";
 import { aiHandlers, detailFor, extraFacets, resetAiState } from "./aiHandlers";
+import { mcpHandlers, resetMcpState } from "./mcpHandlers";
 import { keyframeSvg, posterSvg, spriteSvg } from "./svg";
 
 /** Password every mock account accepts. */
@@ -113,6 +114,7 @@ let state = freshState();
 export function resetMockState(): void {
   state = freshState();
   resetAiState();
+  resetMcpState();
 }
 
 function unauthorized() {
@@ -271,6 +273,7 @@ const aiDeps = {
 
 export const handlers = [
   ...aiHandlers(aiDeps),
+  ...mcpHandlers(aiDeps),
   http.get("/api/health", () =>
     HttpResponse.json({
       status: "ok",

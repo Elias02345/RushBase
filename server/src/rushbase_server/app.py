@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from sqlalchemy import select
+from starlette.routing import Route
 
 from rushbase_core import LibraryMismatchError
 from rushbase_server import get_version
@@ -15,6 +16,9 @@ from rushbase_server.api import (
     catalog,
     filing,
     golden,
+    mcp_admin,
+    needs,
+    oauth,
     review,
     search,
     system,
@@ -23,6 +27,7 @@ from rushbase_server.api import (
 )
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
+from rushbase_server.mcp.server import build_mcp
 from rushbase_server.models import Library
 from rushbase_server.runtime import Runtime
 from rushbase_server.search.encoder import build_encoder
@@ -79,12 +84,19 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
             await _bind_library(runtime)
             if settings.background_tasks:
                 runtime.start()
-            yield
+            if settings.public_url:
+                async with mcp_sessions.run():
+                    yield
+            else:
+                yield
         finally:
             await runtime.stop()
             await engine.dispose()
 
     app = FastAPI(title="Rushbase", version=get_version(), lifespan=lifespan)
+    endpoint, mcp_sessions = build_mcp(lambda: app.state.runtime, settings.public_url)
+    app.state.mcp_sessions = mcp_sessions
+    app.router.routes.append(Route("/mcp", endpoint))
     app.include_router(system.router)
     app.include_router(auth.router)
     app.include_router(admin.router)
@@ -95,4 +107,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(search.router)
     app.include_router(review.router)
     app.include_router(golden.router)
+    app.include_router(oauth.router)
+    app.include_router(needs.router)
+    app.include_router(mcp_admin.router)
     return app

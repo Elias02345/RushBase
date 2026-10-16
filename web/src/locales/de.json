@@ -31,7 +31,8 @@
     "pending_other": "{{count}} offene Aufträge",
     "review": "Prüfen",
     "golden": "Referenzset",
-    "taxonomy": "Taxonomie"
+    "taxonomy": "Taxonomie",
+    "needs": "Bedarf"
   },
   "theme": {
     "system": "Farbschema: System (zum Wechseln klicken)",
@@ -482,7 +483,8 @@
       "rules": "Ablageregeln",
       "settings": "Einstellungen",
       "backups": "Backups",
-      "search": "Suche"
+      "search": "Suche",
+      "mcp": "MCP / Claude"
     },
     "users": {
       "title": "Konten",
@@ -751,5 +753,102 @@
     "eval": "Auswertung",
     "runEval": "Auswertung starten",
     "runSummary": "{{labels}} Angaben, Trefferquote {{accuracy}}"
+  },
+  "needs": {
+    "heading": "Bedarfslisten",
+    "lead": "Material, das noch fehlt. Passende neue Aufnahmen werden als Kandidat angehängt; niemand wird benachrichtigt.",
+    "create": "Neue Bedarfsliste",
+    "createConfirm": "Anlegen",
+    "title": "Titel",
+    "purpose": "Zweck",
+    "itemsHint": "Gesuchte Einstellungen, eine pro Zeile",
+    "status": "Status der Listen",
+    "open": "Offen",
+    "closed": "Geschlossen",
+    "lists": "Bedarfslisten",
+    "counts": "{{items}} Punkte · {{candidates}} Kandidaten",
+    "emptyTitle": "Keine Bedarfslisten",
+    "emptyText": "Lege hier eine an oder lass Claude zusammentragen, was für ein Projekt fehlt.",
+    "pick": "Wähle eine Liste, um Punkte und Kandidaten zu sehen.",
+    "close": "Liste schließen",
+    "reopen": "Liste wieder öffnen",
+    "createdBy": "Angelegt von {{who}}",
+    "creator": {
+      "user": "einer Person",
+      "mcp": "Claude"
+    },
+    "items": "Punkte",
+    "noItems": "Diese Liste hat noch keine Punkte.",
+    "itemStatus": "Status des Punktes",
+    "itemState": {
+      "open": "offen",
+      "fulfilled": "erfüllt",
+      "dropped": "verworfen"
+    },
+    "progress": "{{done}} von {{wanted}} bestätigt",
+    "candidates": "Kandidaten",
+    "noCandidates": "Noch keine Kandidaten.",
+    "candidateStatus": {
+      "candidate": "Kandidat",
+      "confirmed": "bestätigt",
+      "rejected": "abgelehnt"
+    },
+    "source": {
+      "auto": "automatisch",
+      "claude": "Claude",
+      "human": "Person"
+    },
+    "confirm": "Bestätigen",
+    "reject": "Ablehnen"
+  },
+  "mcp": {
+    "connector": {
+      "title": "Connector für claude.ai",
+      "lead": "Trage diese Adresse in claude.ai unter Einstellungen > Konnektoren > Benutzerdefinierten Konnektor hinzufügen ein.",
+      "copy": "Kopieren",
+      "copied": "Connector-URL kopiert",
+      "missing": "MCP ist ausgeschaltet: RUSHBASE_PUBLIC_URL ist nicht gesetzt. Setze die öffentliche https-Adresse dieses Servers und starte neu.",
+      "limits": "{{tools}} Werkzeuge, keines löscht oder verschiebt Dateien. Limit: {{rate}} Aufrufe pro Minute und Client."
+    },
+    "guide": {
+      "one": "Mache die Adresse per HTTPS aus dem Internet erreichbar (Reverse-Proxy, Tunnel).",
+      "two": "Öffne in claude.ai Einstellungen > Konnektoren > Benutzerdefinierten Konnektor hinzufügen und trage {{url}} ein.",
+      "three": "Melde dich auf der Zustimmungsseite mit deinem Rushbase-Konto an und erlaube die Berechtigungen.",
+      "four": "Den Zugriff kannst du hier jederzeit widerrufen; das Aufrufprotokoll unten zeigt, was Claude getan hat.",
+      "paths": "Die Pfade /mcp, /.well-known/* und /oauth/* dürfen weder von einer Firewall noch von einer Login-Schranke blockiert werden."
+    },
+    "clients": {
+      "title": "Verbundene Clients",
+      "name": "Client",
+      "scopes": "Berechtigungen",
+      "lastUsed": "Zuletzt benutzt",
+      "never": "nie",
+      "state": "Zustand",
+      "grants": "{{count}} aktiv",
+      "revoked": "widerrufen",
+      "revoke": "Widerrufen",
+      "revokedToast": "Zugriff widerrufen",
+      "empty": "Noch kein Client verbunden."
+    },
+    "redirects": {
+      "title": "Weitere Redirect-URIs",
+      "lead": "claude.ai und lokale Loopback-Adressen sind immer erlaubt. Weitere https-Callback-URLs trägst du hier ein, eine pro Zeile.",
+      "label": "Redirect-URIs",
+      "saved": "Gespeichert",
+      "invalid": "Nur https-URLs sind erlaubt."
+    },
+    "audit": {
+      "title": "Aufrufprotokoll",
+      "client": "Client",
+      "tool": "Werkzeug",
+      "all": "Alle",
+      "at": "Zeit",
+      "duration": "Dauer",
+      "size": "Zeichen",
+      "result": "Ergebnis",
+      "ok": "ok",
+      "failed": "Fehler",
+      "empty": "Keine Aufrufe aufgezeichnet."
+    }
   }
 }

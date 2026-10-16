@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M5, MCP server and needs lists)
+
+- OAuth 2.1 authorization server in the FastAPI app (ADR-0010): discovery documents,
+  consent page with Rushbase login, `/oauth/token` (PKCE S256 only, rotating refresh tokens with
+  reuse detection), dynamic client registration, client ID metadata documents with an SSRF-safe
+  fetcher, redirect allowlist, RFC 8707 audience bound to `RUSHBASE_PUBLIC_URL`, opaque tokens
+  stored hashed, per-client rate limits. Migration 0006 (additive).
+- MCP endpoint `/mcp` (Streamable HTTP, `mcp` SDK 2.3.0 pinned): 26 tools with shared schemas in
+  `rushbase_core.mcp_tools` (search, assets, keyframes, similar, facets, statistics, coverage,
+  gap analysis, needs lists, annotation with source `claude`, taxonomy, filing rules, processing),
+  three resources and an audit log. No tool deletes or moves files.
+- Needs lists (`/api/v1/needs`, web page `/needs`) with passive auto-matching of filed and
+  re-classified assets; administration page "MCP / Claude" (connector URL, clients with revoke,
+  extra redirect URIs, call log). `/health` reports `warnings` (`mcp_public_url_missing`).
+- Docs: `docs/mcp.md` (connect to claude.ai, scopes, troubleshooting, generated tool reference).
+
 ### Added (milestone M4, server and web)
 
 - Migration 0005: taxonomy, tags with provenance, transcripts, audio events, embeddings

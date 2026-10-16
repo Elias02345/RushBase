@@ -50,6 +50,7 @@ import { formatBytes, formatDateTime } from "../lib/format";
 import { copyText, enrollCommand } from "../lib/platform";
 import type { AdminTab } from "../routes/search";
 import { SearchAdmin } from "./admin/SearchAdmin";
+import { McpAdmin } from "./admin/McpAdmin";
 
 const ROLES: Role[] = ["admin", "editor", "viewer"];
 
@@ -648,6 +649,7 @@ export function AdminPage() {
           <TabsTrigger value="settings">{t("admin.tabs.settings")}</TabsTrigger>
           <TabsTrigger value="backups">{t("admin.tabs.backups")}</TabsTrigger>
           <TabsTrigger value="search">{t("admin.tabs.search")}</TabsTrigger>
+          <TabsTrigger value="mcp">{t("admin.tabs.mcp")}</TabsTrigger>
         </TabsList>
         <TabsContent value="users">
           <UsersPanel />
@@ -666,6 +668,9 @@ export function AdminPage() {
         </TabsContent>
         <TabsContent value="search">
           <SearchAdmin />
+        </TabsContent>
+        <TabsContent value="mcp">
+          <McpAdmin />
         </TabsContent>
       </Tabs>
     </div>

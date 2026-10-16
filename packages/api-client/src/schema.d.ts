@@ -196,6 +196,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * MCP connector status
+         * @description Public URL, connector URL, connected clients and settings.
+         */
+        get: operations["mcp_status_api_v1_admin_mcp_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mcp/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * MCP call log
+         * @description Newest first; filter by client and tool.
+         */
+        get: operations["mcp_audit_api_v1_admin_mcp_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mcp/clients/{client_pk}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Client
+         * @description Revoke the client and every token it holds.
+         */
+        post: operations["revoke_client_api_v1_admin_mcp_clients__client_pk__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mcp/redirect-uris": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Redirect Uris
+         * @description Replace the extra redirect URIs (clients still have to register them).
+         */
+        put: operations["put_redirect_uris_api_v1_admin_mcp_redirect_uris_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/pipeline/stages": {
         parameters: {
             query?: never;
@@ -818,6 +898,114 @@ export interface paths {
         get: operations["golden_stats_api_v1_golden_stats_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List needs lists
+         * @description Lists newest first with item states and the number of open candidates.
+         */
+        get: operations["list_needs_api_v1_needs_get"];
+        put?: never;
+        /**
+         * Create a needs list
+         * @description Create a list with optional items.
+         */
+        post: operations["create_need_api_v1_needs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/needs/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit an item
+         * @description Change description, filters, wanted count or status.
+         */
+        patch: operations["patch_item_api_v1_needs_items__item_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/needs/items/{item_id}/candidates/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Confirm, reject or add a candidate
+         * @description Human decision on a candidate (source `human`).
+         */
+        put: operations["put_candidate_api_v1_needs_items__item_id__candidates__asset_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/needs/{need_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Needs list with items and candidates
+         * @description Items with candidates, each with file name and poster for display.
+         */
+        get: operations["get_need_api_v1_needs__need_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit or close a list
+         * @description Rename, change the purpose, close or reopen.
+         */
+        patch: operations["patch_need_api_v1_needs__need_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/needs/{need_id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add items
+         * @description Append wanted shots to a list.
+         */
+        post: operations["add_items_api_v1_needs__need_id__items_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1582,6 +1770,20 @@ export interface components {
             transcript_segments: number;
         };
         /**
+         * AssetBrief
+         * @description What the UI shows of a candidate asset.
+         */
+        AssetBrief: {
+            /** Filename */
+            filename: string;
+            /** Media Type */
+            media_type: string;
+            /** Poster Url */
+            poster_url: string | null;
+            /** Summary */
+            summary: string | null;
+        };
+        /**
          * AssetDetail
          * @description Everything the detail view shows.
          */
@@ -1797,6 +1999,50 @@ export interface components {
             tag: string;
         };
         /**
+         * AuditOut
+         * @description One MCP call.
+         */
+        AuditOut: {
+            /** Args Hash */
+            args_hash: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Client Id */
+            client_id: string | null;
+            /** Client Name */
+            client_name: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Error */
+            error: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ok */
+            ok: boolean;
+            /** Result Chars */
+            result_chars: number;
+            /** Tool */
+            tool: string;
+        };
+        /**
+         * AuditPage
+         * @description A page of audit entries and the filter choices.
+         */
+        AuditPage: {
+            /** Items */
+            items: components["schemas"]["AuditOut"][];
+            /** Next Offset */
+            next_offset: number | null;
+            /** Tools */
+            tools: string[];
+        };
+        /**
          * BackupInfoOut
          * @description A backup file.
          */
@@ -1925,6 +2171,59 @@ export interface components {
             updated: number;
         };
         /**
+         * CandidateIn
+         * @description Confirm, reject or add a candidate.
+         */
+        CandidateIn: {
+            /** Shot Idx */
+            shot_idx?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "candidate" | "confirmed" | "rejected";
+        };
+        /**
+         * CandidateOut
+         * @description An asset (or shot) that may fulfil an item.
+         */
+        CandidateOut: {
+            asset?: components["schemas"]["AssetBrief"] | null;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Score */
+            score: number;
+            /** Shot Idx */
+            shot_idx: number | null;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * CandidateResult
+         * @description Candidate after a decision, with the resulting item status.
+         */
+        CandidateResult: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Item Status */
+            item_status: string;
+            /** Status */
+            status: string;
+        };
+        /**
          * CapabilitiesOut
          * @description What search can do right now (it never fails; it degrades).
          */
@@ -1962,6 +2261,36 @@ export interface components {
             jobs: components["schemas"]["JobOut"][];
             /** Lease Seconds */
             lease_seconds: number;
+        };
+        /**
+         * ClientOut
+         * @description A connected OAuth client.
+         */
+        ClientOut: {
+            /** Client Id */
+            client_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Grants */
+            grants: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Name */
+            name: string;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Scopes */
+            scopes: string[];
         };
         /**
          * CollectionIn
@@ -2461,6 +2790,11 @@ export interface components {
             status: "ok" | "degraded";
             /** Version */
             version: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /**
          * HeartbeatOut
@@ -2489,6 +2823,71 @@ export interface components {
             details: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * ItemIn
+         * @description A wanted shot.
+         */
+        ItemIn: {
+            /**
+             * Count Wanted
+             * @default 1
+             */
+            count_wanted: number;
+            /** Description */
+            description: string;
+            filters?: components["schemas"]["MediaFilters"];
+        };
+        /**
+         * ItemOut
+         * @description A wanted shot with its candidates.
+         */
+        ItemOut: {
+            /** Candidates */
+            candidates: components["schemas"]["CandidateOut"][];
+            /** Confirmed */
+            confirmed: number;
+            /** Count Wanted */
+            count_wanted: number;
+            /** Description */
+            description: string;
+            /** Filters */
+            filters: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * ItemPatch
+         * @description Changes to an item.
+         */
+        ItemPatch: {
+            /** Count Wanted */
+            count_wanted?: number | null;
+            /** Description */
+            description?: string | null;
+            filters?: components["schemas"]["MediaFilters"] | null;
+            /** Status */
+            status?: ("open" | "fulfilled" | "dropped") | null;
+        };
+        /**
+         * ItemStatus
+         * @description Item after an edit.
+         */
+        ItemStatus: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
         };
         /**
          * JobFile
@@ -2646,6 +3045,71 @@ export interface components {
             user: components["schemas"]["UserOut"];
         };
         /**
+         * McpStatus
+         * @description Connector status and settings.
+         */
+        McpStatus: {
+            /** Clients */
+            clients: components["schemas"]["ClientOut"][];
+            /** Enabled */
+            enabled: boolean;
+            /** Extra Redirect Uris */
+            extra_redirect_uris: string[];
+            /** Mcp Url */
+            mcp_url: string | null;
+            /** Public Url */
+            public_url: string | null;
+            /** Rate Limit Per Minute */
+            rate_limit_per_minute: number;
+            /** Tools */
+            tools: number;
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * MediaFilters
+         * @description Filters shared by search, counts, coverage and needs items (all optional).
+         */
+        MediaFilters: {
+            /** Camera Angle */
+            camera_angle?: string | null;
+            /** Camera Model */
+            camera_model?: string | null;
+            /** Consent */
+            consent?: ("yes" | "no" | "unknown") | null;
+            /**
+             * Date From
+             * @description Capture date, inclusive.
+             */
+            date_from?: string | null;
+            /**
+             * Date To
+             * @description Capture date, inclusive.
+             */
+            date_to?: string | null;
+            /** Interior Exterior */
+            interior_exterior?: string | null;
+            /** Lens Model */
+            lens_model?: string | null;
+            /** Log Profile */
+            log_profile?: string | null;
+            /** Media Type */
+            media_type?: ("video" | "photo" | "audio") | null;
+            /** Orientation */
+            orientation?: ("landscape" | "portrait" | "square") | null;
+            /** Review State */
+            review_state?: ("none" | "pending" | "done") | null;
+            /** Shot Size */
+            shot_size?: string | null;
+            /**
+             * Tags
+             * @description Taxonomy filters `field:value`, e.g. `location:harbour`. Values of one field are alternatives, different fields combine with AND. See `taxonomy_list`.
+             */
+            tags?: string[];
+            /** Time Of Day */
+            time_of_day?: string | null;
+        };
+        /**
          * MergeIn
          * @description Merge target.
          */
@@ -2675,6 +3139,91 @@ export interface components {
             model_id: string;
             /** Version */
             version: string;
+        };
+        /**
+         * NeedDetail
+         * @description A needs list with items and candidates.
+         */
+        NeedDetail: {
+            /** Created At */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["ItemOut"][];
+            /** Purpose */
+            purpose: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * NeedIn
+         * @description New needs list.
+         */
+        NeedIn: {
+            /** Items */
+            items?: components["schemas"]["ItemIn"][];
+            /**
+             * Purpose
+             * @default
+             */
+            purpose: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * NeedPage
+         * @description One page of lists.
+         */
+        NeedPage: {
+            /** Items */
+            items: components["schemas"]["NeedSummary"][];
+            /** Next Offset */
+            next_offset: number | null;
+        };
+        /**
+         * NeedPatch
+         * @description Changes to a list.
+         */
+        NeedPatch: {
+            /** Purpose */
+            purpose?: string | null;
+            /** Status */
+            status?: ("open" | "closed") | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * NeedSummary
+         * @description List with counts.
+         */
+        NeedSummary: {
+            /** Candidates */
+            candidates: number;
+            /** Created At */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: {
+                [key: string]: number;
+            };
+            /** Purpose */
+            purpose: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
         };
         /**
          * PriorityIn
@@ -2750,6 +3299,14 @@ export interface components {
             size_total: number;
             /** Stage */
             stage: string | null;
+        };
+        /**
+         * RedirectsIn
+         * @description Admin-configured extra redirect URIs (exact match, https or loopback).
+         */
+        RedirectsIn: {
+            /** Uris */
+            uris: string[];
         };
         /**
          * ReembedOut
@@ -3952,6 +4509,122 @@ export interface operations {
             };
         };
     };
+    mcp_status_api_v1_admin_mcp_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpStatus"];
+                };
+            };
+        };
+    };
+    mcp_audit_api_v1_admin_mcp_audit_get: {
+        parameters: {
+            query?: {
+                client_id?: string | null;
+                tool?: string | null;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_client_api_v1_admin_mcp_clients__client_pk__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_pk: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_redirect_uris_api_v1_admin_mcp_redirect_uris_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedirectsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_stages_api_v1_admin_pipeline_stages_put: {
         parameters: {
             query?: never;
@@ -4989,6 +5662,244 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GoldenStats"];
+                };
+            };
+        };
+    };
+    list_needs_api_v1_needs_get: {
+        parameters: {
+            query?: {
+                status?: ("open" | "closed") | null;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_need_api_v1_needs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NeedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_item_api_v1_needs_items__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_candidate_api_v1_needs_items__item_id__candidates__asset_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_need_api_v1_needs__need_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_need_api_v1_needs__need_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NeedPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_items_api_v1_needs__need_id__items_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemIn"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

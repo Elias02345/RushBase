@@ -4,6 +4,7 @@ import os
 import socket
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from pydantic import Field, SecretStr, field_validator
@@ -121,8 +122,42 @@ class Settings(BaseSettings):
     )
     encoder_threads: int = Field(default=2, ge=1, le=64)
 
+    # --- MCP server and OAuth (ADR-0010) ---
+    public_url: str | None = Field(
+        default=None,
+        description="Public base URL (https) under which claude.ai reaches this server. "
+        "Required for MCP; the audience of all MCP tokens.",
+    )
+    mcp_access_ttl_seconds: int = Field(default=3600, ge=60)
+    mcp_refresh_ttl_days: int = Field(default=30, ge=1)
+    mcp_rate_limit_per_minute: int = Field(default=120, ge=1, description="Per OAuth client.")
+    needs_match_threshold: float = Field(
+        default=0.012,
+        ge=0,
+        description="Minimum fused search score (RRF) for an automatic needs-list candidate.",
+    )
+
     # --- ops ---
     metrics_enabled: bool = False
+
+    @field_validator("public_url")
+    @classmethod
+    def _validate_public_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        url = value.strip().rstrip("/")
+        parts = urlsplit(url)
+        local = parts.hostname in {"localhost", "127.0.0.1", "::1"}
+        if parts.scheme != "https" and not (parts.scheme == "http" and local):
+            raise ValueError("public_url must be an https:// URL (http only for localhost)")
+        if not parts.hostname or parts.query or parts.fragment or parts.path:
+            raise ValueError("public_url must be a bare origin such as https://media.example.org")
+        return url
+
+    @property
+    def mcp_resource(self) -> str | None:
+        """The MCP endpoint URL (token audience), ``None`` while ``public_url`` is unset."""
+        return f"{self.public_url}/mcp" if self.public_url else None
 
     @field_validator("pipeline_stages")
     @classmethod

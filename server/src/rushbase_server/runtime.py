@@ -6,6 +6,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
+from uuid import UUID
 
 from sqlalchemy import delete, update
 from sqlalchemy.engine import make_url
@@ -15,9 +16,17 @@ from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
 from rushbase_server.models import Session, Worker
 from rushbase_server.search.encoder import NullEncoder, QueryEncoder
-from rushbase_server.services import backup, filing, inprocess, quarantine, queue, scanner
+from rushbase_server.services import (
+    backup,
+    filing,
+    inprocess,
+    needs,
+    quarantine,
+    queue,
+    scanner,
+)
 from rushbase_server.services.library_binding import LibraryBinding
-from rushbase_server.services.ratelimit import LoginRateLimiter
+from rushbase_server.services.ratelimit import LoginRateLimiter, TokenBuckets
 from rushbase_server.services.settings_store import (
     CENTRAL_META_KEY,
     PIPELINE_STAGES_KEY,
@@ -40,6 +49,7 @@ class Runtime:
     limiter: LoginRateLimiter
     pg_tools: backup.PgTools
     encoder: QueryEncoder = field(default_factory=NullEncoder)
+    buckets: TokenBuckets = field(default_factory=TokenBuckets)
     tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @property
@@ -108,7 +118,9 @@ class Runtime:
         env = await self.filing_env()
         if env is not None:
             await quarantine.process_pending(self.session_factory, env.root, self.clock.now)
-            await filing.run_finalize(self.session_factory, env, self.clock.now)
+            await filing.run_finalize(
+                self.session_factory, env, self.clock.now, on_filed=self.match_needs
+            )
         if self.settings.inprocess and self.binding.root is not None:
             await inprocess.run_one(
                 self.session_factory,
@@ -118,6 +130,17 @@ class Runtime:
                 self.queue_config,
             )
         return report
+
+    async def match_needs(self, asset_id: UUID) -> None:
+        """Attach a filed or re-classified asset to matching open needs items (passive)."""
+        try:
+            async with self.session_factory() as session:
+                await needs.match_asset(
+                    session, self.encoder, asset_id, self.settings.needs_match_threshold
+                )
+                await session.commit()
+        except Exception:
+            logger.warning("needs matching failed", extra={"asset": str(asset_id)}, exc_info=True)
 
     async def backup_if_due(self) -> backup.BackupInfo | None:
         """Create a backup when the newest one is older than the configured interval."""

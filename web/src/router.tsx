@@ -17,6 +17,7 @@ import {
   validateAssetSearch,
   validateLibrarySearch,
   validateLoginSearch,
+  validateNeedsSearch,
   validateProcessingSearch,
 } from "./routes/search";
 
@@ -91,6 +92,13 @@ const processingRoute = createRoute({
   component: lazyRouteComponent(() => import("./pages/ProcessingPage"), "ProcessingPage"),
 });
 
+const needsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/needs",
+  validateSearch: validateNeedsSearch,
+  component: lazyRouteComponent(() => import("./pages/NeedsPage"), "NeedsPage"),
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/admin",
@@ -142,6 +150,7 @@ export const routeTree = rootRoute.addChildren([
     reviewRoute,
     goldenRoute,
     processingRoute,
+    needsRoute,
     adminRoute,
     taxonomyRoute,
   ]),

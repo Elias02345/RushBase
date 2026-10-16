@@ -83,3 +83,14 @@ export const AI_ENUM_KEYS = [
 
 /** Query of `GET /api/v1/assets` (the cursor is owned by the paging hook). */
 export type AssetQuery = NonNullable<paths["/api/v1/assets"]["get"]["parameters"]["query"]>;
+
+export type NeedSummary = Schemas["NeedSummary"];
+export type NeedPage = Schemas["NeedPage"];
+export type NeedDetail = Schemas["NeedDetail"];
+export type NeedItem = Schemas["ItemOut"];
+export type NeedCandidate = Schemas["CandidateOut"];
+export type NeedInput = Schemas["NeedIn"];
+export type McpStatus = Schemas["McpStatus"];
+export type McpClient = Schemas["ClientOut"];
+export type McpAuditPage = Schemas["AuditPage"];
+export type McpAuditEntry = Schemas["AuditOut"];

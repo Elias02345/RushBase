@@ -33,6 +33,7 @@ async def test_health_ok_with_database(client_factory: ClientFactory, database_u
         "library_mounted": None,
         "lease_held": None,
         "setup_required": True,
+        "warnings": ["mcp_public_url_missing"],
     }
 
 

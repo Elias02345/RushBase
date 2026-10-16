@@ -7,7 +7,7 @@
 | M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | **done** — worker engine + server filing merged; verified end to end on test media |
 | M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | **done** — real UI against the real server, full-text search, real-stack E2E (`make e2e-real`) |
 | M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | planned |
-| M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | planned |
+| M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | **done** (server and web; the real claude.ai connector test needs a public HTTPS URL, see `docs/mcp.md`) |
 | M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | planned |
 | Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
 | M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
@@ -221,3 +221,27 @@ Server side of milestone M4 (the worker stages are described above).
 - **Open:** `rebuild-from-sidecars` does not yet restore tags, descriptions or transcripts from the
   sidecar `ai` section; XMP keywords are written at filing but not refreshed afterwards; the
   re-embed action requires a worker for the `embed` stage.
+
+## M5 MCP server and needs lists
+
+Guide: `docs/mcp.md`. Code: `server/src/rushbase_server/{oauth,mcp}/`, tool contract in
+`core/src/rushbase_core/mcp_tools.py` (reusable by the companion's local MCP server).
+
+- **OAuth 2.1** (ADR-0010) in the FastAPI process: metadata at `/.well-known/oauth-authorization-server`
+  and `/.well-known/oauth-protected-resource[/mcp]`, `/oauth/authorize` (server-rendered consent with
+  Rushbase login; editor/admin only), `/oauth/token`, `/oauth/register` (DCR), `/oauth/revoke`, CIMD
+  client ids (https URL, SSRF-safe fetch: public addresses only, the connection goes to the resolved
+  IP, no redirects, 5 s, 64 KiB, cached by `Cache-Control`/`ETag`). Tokens are opaque and stored
+  hashed; access 1 h, refresh 30 d sliding with rotation and reuse detection (family revoked).
+- **MCP** `/mcp`: `mcp==2.3.0`, stateless Streamable HTTP with JSON responses behind an own ASGI
+  gateway (bearer verification, audience, `WWW-Authenticate` with `resource_metadata` and
+  `scope="read"`, per-client token bucket). Tool inputs are built from the pydantic models of the
+  shared module; each call is audited in `mcp_audit` (arguments only as a hash).
+- **Needs lists:** tables `need_list`, `need_item`, `need_candidate`; REST `/api/v1/needs`, page
+  `/needs`; `Runtime.match_needs` runs after finalize (filed) and after `classify` results.
+- **Decisions:** Pillow downscales thumbnails (256 px) and keyframes (512 px) on the server from the
+  derived JPEGs; notes of `annotate_asset` live in `asset.ai_details["notes"]` (no schema change);
+  Claude's column edits (rating, lock, consent) are audited but not protected from later human edits,
+  Claude's tags never override or remove human tags; reads use scope `read`, needs tools scope `needs`.
+- **Inspector:** `npx @modelcontextprotocol/inspector --cli http://localhost:<port>/mcp --transport http --header "Authorization: Bearer <token>"` (npm cache in the toolchain) succeeded for `tools/list`, `tools/call library_stats` and `resources/list` against a locally running server with a token from the real OAuth flow (DCR, PKCE).
+- **Not verified here:** the real claude.ai connector (needs a public HTTPS URL).
