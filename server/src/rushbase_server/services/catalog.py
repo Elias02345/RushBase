@@ -8,12 +8,14 @@ import binascii
 import json
 import re
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, time
+from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, String, func, literal, select, tuple_
+from sqlalchemy import ColumnElement, Numeric, Select, String, cast, func, literal, select, tuple_
+from sqlalchemy.dialects.postgresql import REGCONFIG
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_server.models import Asset, AssetFile, AuditLog, Batch
@@ -23,6 +25,10 @@ DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
 _SPRITE = re.compile(r"^sprite(?:_(\d+))?\.[A-Za-z0-9]+$")
 POSTER_KINDS = ("poster", "thumbnail", "photo_preview")
+SEARCH_CONFIG = "rushbase_simple"
+MIN_FTS_LENGTH = 3
+MAX_QUERY_TERMS = 12
+_TERM_SPLIT = re.compile(r"[\W_]+")
 
 
 class InvalidQueryError(ValueError):
@@ -43,6 +49,25 @@ class AssetFilters:
     date_from: date | None = None
     date_to: date | None = None
     q: str | None = None
+
+
+def search_terms(q: str) -> list[str]:
+    """Words of a user query: split at every non-word character, so no tsquery syntax survives."""
+    return [t for t in _TERM_SPLIT.split(q) if t][:MAX_QUERY_TERMS]
+
+
+def _tsquery(terms: list[str]) -> ColumnElement[Any]:
+    """AND of all terms; the last one matches as a prefix (search-as-you-type)."""
+    text = " & ".join(terms) + ":*"
+    return func.to_tsquery(cast(literal(SEARCH_CONFIG), REGCONFIG), text)
+
+
+def _fts_terms(filters: AssetFilters) -> list[str] | None:
+    """Terms when the query is long enough for full-text search, else ``None`` (ILIKE fallback)."""
+    if not filters.q:
+        return None
+    terms = search_terms(filters.q)
+    return terms if len(" ".join(terms)) >= MIN_FTS_LENGTH else None
 
 
 def _filename_expr() -> ColumnElement[str]:
@@ -77,6 +102,22 @@ SORTS: dict[str, SortKey] = {
 }
 
 
+def _relevance_key(terms: list[str]) -> SortKey:
+    """Rank by ``ts_rank_cd`` (weights A > B > C > D), rounded so the cursor compares exactly."""
+    return SortKey(
+        lambda: func.round(cast(func.ts_rank_cd(Asset.search_tsv, _tsquery(terms)), Numeric), 4),
+        str,
+        _decode_rank,
+    )
+
+
+def _decode_rank(value: Any) -> Decimal:
+    try:
+        return Decimal(str(value))
+    except InvalidOperation as exc:
+        raise ValueError("invalid rank") from exc
+
+
 def parse_sort(sort: str | None) -> tuple[str, bool]:
     """``"-date"`` -> ``("date", True)``; the default is newest first."""
     text = sort or "-date"
@@ -103,7 +144,7 @@ def decode_cursor(cursor: str) -> tuple[Any, UUID]:
         raise InvalidQueryError("invalid cursor") from exc
 
 
-def _apply_filters(stmt: Select[Any], f: AssetFilters) -> Select[Any]:
+def _apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
     if f.status:
         stmt = stmt.where(Asset.status == f.status)
     else:
@@ -124,6 +165,8 @@ def _apply_filters(stmt: Select[Any], f: AssetFilters) -> Select[Any]:
     if f.date_to:
         stmt = stmt.where(when <= datetime.combine(f.date_to, time.max, UTC))
     if f.q:
+        if (terms := _fts_terms(f)) is not None:
+            return stmt.where(Asset.search_tsv.op("@@")(_tsquery(terms)))
         match = (
             select(literal(1))
             .select_from(AssetFile)
@@ -152,9 +195,18 @@ async def list_assets(
     cursor: str | None,
     limit: int,
 ) -> AssetPage:
-    """Return a keyset-paginated page; ``total`` is only computed for the first page."""
-    name, descending = parse_sort(sort)
-    key = SORTS[name]
+    """Return a keyset-paginated page; ``total`` is only computed for the first page.
+
+    Without ``sort`` and with a full-text query the order is relevance (rank rounded to four
+    decimals, then id, both descending) so the keyset cursor stays exact; otherwise ``sort``
+    (default ``-date``) applies.
+    """
+    terms = _fts_terms(filters)
+    if sort is None and terms is not None:
+        key, descending = _relevance_key(terms), True
+    else:
+        name, descending = parse_sort(sort)
+        key = SORTS[name]
     expression = key.expression().label("sort_key")
     base = (
         select(Asset, AssetFile.rel_path, Batch.label, expression)
@@ -250,14 +302,22 @@ FACET_LABELS = {
 }
 
 
-async def facets(session: AsyncSession) -> list[dict[str, Any]]:
-    """Enum facets with counts plus duration (range) and capture date (date) facets."""
+async def facets(
+    session: AsyncSession, filters: AssetFilters | None = None
+) -> list[dict[str, Any]]:
+    """Enum facets with counts plus duration (range) and capture date (date) facets.
+
+    All active filters and the search query apply. An enum facet ignores its own filter so its
+    other values stay selectable (``camera_model=A`` still lists camera B with its count).
+    """
+    active = filters or AssetFilters()
     result: list[dict[str, Any]] = []
     for key, (de, en) in FACET_LABELS.items():
         column = getattr(Asset, key)
+        own = replace(active, **{key: None}) if hasattr(active, key) else active
+        stmt = _apply_filters(select(column, func.count()).select_from(Asset), own)
         rows = await session.execute(
-            select(column, func.count())
-            .where(column.is_not(None), Asset.status != "trashed")
+            stmt.where(column.is_not(None))
             .group_by(column)
             .order_by(func.count().desc(), column)
             .limit(100)
@@ -269,9 +329,7 @@ async def facets(session: AsyncSession) -> list[dict[str, Any]]:
             )
     low, high = (
         await session.execute(
-            select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)).where(
-                Asset.status != "trashed"
-            )
+            _apply_filters(select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)), active)
         )
     ).one()
     if high is not None:
@@ -285,13 +343,8 @@ async def facets(session: AsyncSession) -> list[dict[str, Any]]:
                 "max": high,
             }
         )
-    first, last = (
-        await session.execute(
-            select(func.min(Asset.capture_at), func.max(Asset.capture_at)).where(
-                Asset.status != "trashed"
-            )
-        )
-    ).one()
+    captures = select(func.min(Asset.capture_at), func.max(Asset.capture_at))
+    first, last = (await session.execute(_apply_filters(captures, active))).one()
     if first is not None:
         result.append(
             {

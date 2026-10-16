@@ -121,7 +121,7 @@ class Asset(Base):
     consent: Mapped[str] = mapped_column(String(8), server_default="unknown", default="unknown")
     consent_ref: Mapped[str | None] = mapped_column(Text)
     analysis_profile: Mapped[str | None] = mapped_column(Text)
-    # Maintained by a trigger in milestone M3 (summaries + transcript + tags).
+    # Server-maintained by DB triggers (migration 0004); never written by the ORM.
     search_tsv: Mapped[str | None] = mapped_column(TSVECTOR)
     filed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rule_version_id: Mapped[UUID | None] = mapped_column(
@@ -232,6 +232,7 @@ class Shot(Base):
     description_long_en: Mapped[str | None] = mapped_column(Text)
     shot_size: Mapped[str | None] = mapped_column(Text)
     angle: Mapped[str | None] = mapped_column(Text)
+    # Server-maintained by a DB trigger (migration 0004); never written by the ORM.
     search_tsv: Mapped[str | None] = mapped_column(TSVECTOR)
 
     __table_args__ = (

@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -137,12 +137,7 @@ def _summary(asset: Asset, primary: str | None, label: str | None) -> dict[str, 
     }
 
 
-@router.get("/assets", response_model=AssetPage, summary="List assets")
-async def list_assets(
-    _: ViewerDep,
-    db: DbDep,
-    cursor: str | None = None,
-    limit: Annotated[int, Query(ge=1, le=catalog.MAX_LIMIT)] = catalog.DEFAULT_LIMIT,
+def _filters(
     media_type: str | None = None,
     status_: Annotated[str | None, Query(alias="status")] = None,
     batch_id: UUID | None = None,
@@ -153,13 +148,32 @@ async def list_assets(
     date_from: date | None = None,
     date_to: date | None = None,
     q: Annotated[str | None, Query(max_length=200)] = None,
-    sort: str | None = None,
-) -> AssetPage:
-    """Filter, search by file name (`q`, case-insensitive substring) and page through assets."""
-    filters = catalog.AssetFilters(
+) -> catalog.AssetFilters:
+    """Filter and search parameters shared by the asset list and the facets."""
+    return catalog.AssetFilters(
         media_type, status_, batch_id, camera_model, lens_model, log_profile, orientation,
         date_from, date_to, q,
     )  # fmt: skip
+
+
+FiltersDep = Annotated[catalog.AssetFilters, Depends(_filters)]
+
+
+@router.get("/assets", response_model=AssetPage, summary="List assets")
+async def list_assets(
+    _: ViewerDep,
+    db: DbDep,
+    filters: FiltersDep,
+    cursor: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=catalog.MAX_LIMIT)] = catalog.DEFAULT_LIMIT,
+    sort: str | None = None,
+) -> AssetPage:
+    """Filter, full-text search (`q`) and page through assets.
+
+    `q` is accent-insensitive full-text search over title, file name, batch, summaries, camera
+    data and paths, with prefix matching on the last word; queries under three characters match
+    file paths by substring. Without `sort`, searches are ordered by relevance.
+    """
     try:
         page = await catalog.list_assets(db, filters, sort, cursor, limit)
     except catalog.InvalidQueryError as exc:
@@ -273,10 +287,14 @@ class FacetsOut(BaseModel):
     facets: list[Facet]
 
 
-@router.get("/facets", response_model=FacetsOut, summary="Filter facets with counts")
-async def get_facets(_: ViewerDep, db: DbDep) -> FacetsOut:
+@router.get(
+    "/facets",
+    response_model=FacetsOut,
+    summary="Filter facets with counts for the current filters and query",
+)
+async def get_facets(_: ViewerDep, db: DbDep, filters: FiltersDep) -> FacetsOut:
     """Facets for the filter sidebar, computed from the data."""
-    return FacetsOut(facets=[Facet(**f) for f in await catalog.facets(db)])
+    return FacetsOut(facets=[Facet(**f) for f in await catalog.facets(db, filters)])
 
 
 class KeyCount(BaseModel):
