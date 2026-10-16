@@ -32,6 +32,8 @@ from rushbase_server.models.catalog import (
     Shot,
 )
 from rushbase_server.models.ingest import Batch, EnrollmentToken, InputFile, Worker
+from rushbase_server.models.needs import NeedCandidate, NeedItem, NeedList
+from rushbase_server.models.oauth import McpAudit, OAuthClient, OAuthCode, OAuthToken
 from rushbase_server.models.queue import Job, StageResult
 
 __all__ = [
@@ -56,7 +58,14 @@ __all__ = [
     "InputFile",
     "Job",
     "Library",
+    "McpAudit",
     "MoveJournal",
+    "NeedCandidate",
+    "NeedItem",
+    "NeedList",
+    "OAuthClient",
+    "OAuthCode",
+    "OAuthToken",
     "Session",
     "Shot",
     "StageResult",

@@ -17,7 +17,7 @@ from rushbase_server.models import Session, Worker
 from rushbase_server.search.encoder import NullEncoder, QueryEncoder
 from rushbase_server.services import backup, filing, inprocess, quarantine, queue, scanner
 from rushbase_server.services.library_binding import LibraryBinding
-from rushbase_server.services.ratelimit import LoginRateLimiter
+from rushbase_server.services.ratelimit import LoginRateLimiter, TokenBuckets
 from rushbase_server.services.settings_store import (
     CENTRAL_META_KEY,
     PIPELINE_STAGES_KEY,
@@ -40,6 +40,7 @@ class Runtime:
     limiter: LoginRateLimiter
     pg_tools: backup.PgTools
     encoder: QueryEncoder = field(default_factory=NullEncoder)
+    buckets: TokenBuckets = field(default_factory=TokenBuckets)
     tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @property
