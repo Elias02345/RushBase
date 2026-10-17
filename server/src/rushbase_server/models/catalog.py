@@ -305,7 +305,7 @@ class MoveJournal(Base):
 
 
 class TrashItem(Base):
-    """A trashed asset: its files rest in ``.rushbase/trash/<asset-id>/`` until restored or expired."""
+    """A trashed asset: files rest in ``.rushbase/trash/<asset-id>/`` until restored or expired."""
 
     __tablename__ = "trash_item"
 

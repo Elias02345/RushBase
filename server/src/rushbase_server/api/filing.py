@@ -8,10 +8,12 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from rushbase_server.api.deps import AdminDep, DbDep, EditorDep, RuntimeDep
-from rushbase_server.services import audit, filing_rules, quarantine
+from rushbase_server.services import audit, filing_rules, quarantine, trash
 from rushbase_server.services.settings_store import (
     CENTRAL_META_KEY,
+    DEFAULT_TRASH_RETENTION_DAYS,
     PATH_ROOTS_KEY,
+    TRASH_RETENTION_KEY,
     get_setting,
     set_setting,
 )
@@ -222,6 +224,12 @@ class LibrarySettings(BaseModel):
     central_meta: bool = Field(
         default=False, description="Also write a copy of every sidecar to .rushbase/meta/."
     )
+    trash_retention_days: int = Field(
+        default=DEFAULT_TRASH_RETENTION_DAYS,
+        ge=1,
+        le=3650,
+        description="Days a trashed asset is kept before it is deleted permanently.",
+    )
 
 
 @router.get("/admin/library-settings", response_model=LibrarySettings, tags=["admin"])
@@ -230,6 +238,7 @@ async def get_library_settings(_: AdminDep, db: DbDep) -> LibrarySettings:
     return LibrarySettings(
         path_roots=await get_setting(db, PATH_ROOTS_KEY, {}),
         central_meta=bool(await get_setting(db, CENTRAL_META_KEY, False)),
+        trash_retention_days=await trash.retention_days(db),
     )
 
 
@@ -247,6 +256,7 @@ async def put_library_settings(
     roots = {k: v for k, v in body.path_roots.items() if v}
     await set_setting(db, PATH_ROOTS_KEY, roots, admin.user.id)
     await set_setting(db, CENTRAL_META_KEY, body.central_meta, admin.user.id)
+    await set_setting(db, TRASH_RETENTION_KEY, body.trash_retention_days, admin.user.id)
     audit.record(db, actor_kind="user", actor_id=admin.user.id, action="library_settings.update")
     await db.commit()
-    return LibrarySettings(path_roots=roots, central_meta=body.central_meta)
+    return body.model_copy(update={"path_roots": roots})
