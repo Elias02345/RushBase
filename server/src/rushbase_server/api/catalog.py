@@ -461,9 +461,14 @@ class FacetsOut(BaseModel):
     response_model=FacetsOut,
     summary="Filter facets with counts for the current filters and query",
 )
-async def get_facets(_: ViewerDep, db: DbDep, filters: FiltersDep) -> FacetsOut:
+async def get_facets(
+    _: ViewerDep, db: DbDep, runtime: RuntimeDep, filters: FiltersDep
+) -> FacetsOut:
     """Facets for the filter sidebar, computed from the data."""
-    return FacetsOut(facets=[Facet(**f) for f in await catalog.facets(db, filters)])
+    computed = await runtime.cache.get_or_compute(
+        ("facets", filters), lambda: catalog.facets(db, filters)
+    )
+    return FacetsOut(facets=[Facet(**f) for f in computed])
 
 
 class KeyCount(BaseModel):
@@ -508,8 +513,8 @@ class StatsOut(BaseModel):
 @router.get("/stats", response_model=StatsOut, summary="Library statistics")
 async def get_stats(_: ViewerDep, runtime: RuntimeDep, db: DbDep) -> StatsOut:
     """Storage by media type and year, duplicate waste and the processing backlog."""
-    data = await catalog.storage_stats(db)
-    backlog = await stats.stage_backlog(db)
+    data = await runtime.cache.get_or_compute("storage", lambda: catalog.storage_stats(db))
+    backlog = await runtime.cache.get_or_compute("backlog", lambda: stats.stage_backlog(db))
     return StatsOut(
         storage=StorageOut(**data["storage"]),
         duplicates=DuplicatesOut(**data["duplicates"]),

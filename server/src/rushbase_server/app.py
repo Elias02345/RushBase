@@ -34,6 +34,7 @@ from rushbase_server.models import Library
 from rushbase_server.runtime import Runtime
 from rushbase_server.search.encoder import build_encoder
 from rushbase_server.services.backup import PgTools
+from rushbase_server.services.cache import TtlCache
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter
 from rushbase_server.settings import Settings
@@ -81,6 +82,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
             registrations=LoginRateLimiter(clock, REGISTER_PER_HOUR, 3600),
             pg_tools=PgTools.from_settings(settings),
             encoder=build_encoder(settings),
+            cache=TtlCache(settings.query_cache_seconds),
         )
         app.state.runtime = runtime
         try:

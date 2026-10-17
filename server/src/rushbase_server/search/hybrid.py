@@ -26,7 +26,7 @@ from rushbase_server.models import (
     Shot,
     TranscriptSegment,
 )
-from rushbase_server.models.ai import Vector
+from rushbase_server.models.ai import HalfVector, Vector
 from rushbase_server.search.encoder import EncoderInfo, QueryEncoder
 from rushbase_server.services import catalog
 
@@ -80,7 +80,7 @@ def rrf(channels: list[Channel]) -> list[Fused]:
 
 
 def _vector_param(vector: list[float]) -> Any:
-    return cast(bindparam("qv", vector, type_=Vector()), Vector())
+    return cast(bindparam("qv", vector, type_=Vector()), HalfVector())
 
 
 def _dedupe(rows: list[tuple[UUID, UUID | None]], limit: int) -> list[Key]:
@@ -141,7 +141,11 @@ async def vector_channel(
     """Nearest vectors of one space (cosine distance), de-duplicated to the requested level."""
     started = time.perf_counter()
     await _tune_hnsw(session)
-    distance = table.embedding.op("<=>", return_type=Float)(_vector_param(vector))
+    # The HNSW indexes are built on ``embedding::halfvec(768)`` (migration 0007): the expression
+    # must match for the planner to use them.
+    distance = cast(table.embedding, HalfVector()).op("<=>", return_type=Float)(
+        _vector_param(vector)
+    )
     start: Any = EmbeddingText.start_ms if table is EmbeddingText else literal(None, BigInteger)
     stmt = (
         select(table.asset_id, table.shot_id, start.label("start_ms"), distance.label("d"))

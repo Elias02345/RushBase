@@ -57,8 +57,8 @@ MEDIA_SHARE = (0.7, 0.2, 0.1)
 MEAN_BYTES = {"video": 650e6, "photo": 25e6, "audio": 40e6}
 TARGET_TOTAL_BYTES = 50e12
 HNSW_TABLES = (
-    ("embedding_image", "ix_embedding_image_hnsw"),
-    ("embedding_text", "ix_embedding_text_hnsw"),
+    ("embedding_image", "ix_embedding_image_hnsw_half"),
+    ("embedding_text", "ix_embedding_text_hnsw_half"),
 )
 COPY_TRIGGER_TABLES = ("asset", "asset_file", "asset_tag", "transcript_segment")
 
@@ -781,7 +781,7 @@ def build_indexes(admin: psycopg.Connection[Any], maintenance_mem: str, params: 
         started = time.monotonic()
         admin.execute(f"DROP INDEX IF EXISTS {index}")  # noqa: S608
         admin.execute(
-            f"CREATE INDEX {index} ON {table} USING hnsw (embedding vector_cosine_ops){params}"
+            f"CREATE INDEX {index} ON {table} USING hnsw ((embedding::halfvec(768)) halfvec_cosine_ops){params}"
         )  # noqa: S608
         log(f"built {index} in {time.monotonic() - started:.0f} s")
 

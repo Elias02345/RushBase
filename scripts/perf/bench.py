@@ -225,7 +225,9 @@ def start_server(
         "RUSHBASE_BACKGROUND_TASKS": "false",
         "RUSHBASE_ENCODER_THREADS": os.environ.get("RUSHBASE_ENCODER_THREADS", "2"),
     }
-    env["RUSHBASE_LIBRARY_ROOT"] = tempfile.mkdtemp(prefix="rushbase-perf-lib-")  # only for the login
+    env["RUSHBASE_LIBRARY_ROOT"] = tempfile.mkdtemp(
+        prefix="rushbase-perf-lib-"
+    )  # only for the login
     if source:
         env["PYTHONPATH"] = f"{source}/server/src:{source}/core/src"
     if models_dir:

@@ -148,6 +148,13 @@ class Settings(BaseSettings):
         description="Minimum fused search score (RRF) for an automatic needs-list candidate.",
     )
 
+    query_cache_seconds: float = Field(
+        default=15,
+        ge=0,
+        description="How long facet counts, statistics and vector counts may be served from "
+        "memory (0 = always exact). Search results and asset details are never cached.",
+    )
+
     # --- ops ---
     metrics_enabled: bool = False
     metrics_token: SecretStr | None = Field(

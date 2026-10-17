@@ -51,6 +51,18 @@ class Vector(UserDefinedType[list[float]]):
         return process
 
 
+class HalfVector(UserDefinedType[list[float]]):
+    """pgvector ``halfvec(n)``: the 16-bit form the HNSW indexes are built on (half the size)."""
+
+    cache_ok = True
+
+    def __init__(self, dim: int = EMBEDDING_DIM) -> None:
+        self.dim = dim
+
+    def get_col_spec(self, **kw: Any) -> str:
+        return f"halfvec({self.dim})"
+
+
 class TaxField(Base):
     """A taxonomy field (location type, activity, mood ...)."""
 
@@ -207,10 +219,9 @@ class EmbeddingImage(Base):
 
     __table_args__ = (
         Index(
-            "ix_embedding_image_hnsw",
-            "embedding",
+            "ix_embedding_image_hnsw_half",
+            sql_text("(embedding::halfvec(768)) halfvec_cosine_ops"),
             postgresql_using="hnsw",
-            postgresql_ops={"embedding": "vector_cosine_ops"},
         ),
         Index("ix_embedding_image_asset_id", "asset_id"),
         Index("ix_embedding_image_shot_id", "shot_id"),
@@ -236,10 +247,9 @@ class EmbeddingText(Base):
 
     __table_args__ = (
         Index(
-            "ix_embedding_text_hnsw",
-            "embedding",
+            "ix_embedding_text_hnsw_half",
+            sql_text("(embedding::halfvec(768)) halfvec_cosine_ops"),
             postgresql_using="hnsw",
-            postgresql_ops={"embedding": "vector_cosine_ops"},
         ),
         Index("ix_embedding_text_asset_id", "asset_id"),
         Index("ix_embedding_text_shot_id", "shot_id"),

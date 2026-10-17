@@ -20,6 +20,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     Uuid,
+    func,
     text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
@@ -176,6 +177,15 @@ class Asset(Base):
         Index("ix_asset_batch_id", "batch_id"),
         Index("ix_asset_search_tsv", "search_tsv", postgresql_using="gin"),
     )
+
+
+# Keyset pagination of the asset list: one index per sort option (migration 0007).
+Index(
+    "ix_asset_sort_date", func.coalesce(Asset.capture_at, Asset.created_at).desc(), Asset.id.desc()
+)
+Index("ix_asset_sort_created", Asset.created_at.desc(), Asset.id.desc())
+Index("ix_asset_sort_size", Asset.size_total.desc(), Asset.id.desc())
+Index("ix_asset_sort_duration", func.coalesce(Asset.duration_ms, -1).desc(), Asset.id.desc())
 
 
 class AssetFile(Base):

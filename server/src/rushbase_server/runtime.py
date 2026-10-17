@@ -25,6 +25,7 @@ from rushbase_server.services import (
     queue,
     scanner,
 )
+from rushbase_server.services.cache import TtlCache
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter, TokenBuckets
 from rushbase_server.services.settings_store import (
@@ -51,6 +52,7 @@ class Runtime:
     pg_tools: backup.PgTools
     encoder: QueryEncoder = field(default_factory=NullEncoder)
     buckets: TokenBuckets = field(default_factory=TokenBuckets)
+    cache: TtlCache = field(default_factory=lambda: TtlCache(0))
     tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @property

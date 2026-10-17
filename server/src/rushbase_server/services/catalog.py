@@ -14,7 +14,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Numeric, Select, String, cast, func, literal, select, tuple_
+from sqlalchemy import ColumnElement, Integer, Numeric, Select, cast, func, literal, select, tuple_
 from sqlalchemy.dialects.postgresql import REGCONFIG
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -378,6 +378,39 @@ FACET_LABELS = {
 }
 
 
+FACET_VALUE_LIMIT = 100
+
+
+def cast_kwargs(key: str) -> dict[str, Any]:
+    """``{key: None}`` as keyword arguments that clear one filter."""
+    return {key: None}
+
+
+def _own_filter_set(active: AssetFilters, key: str) -> bool:
+    return getattr(active, key, None) is not None
+
+
+async def _enum_counts(
+    session: AsyncSession, keys: Sequence[str], filters: AssetFilters
+) -> dict[str, list[tuple[str, int]]]:
+    """Value counts of several enum columns in a single pass (``GROUPING SETS``)."""
+    if not keys:
+        return {}
+    columns = [getattr(Asset, key) for key in keys]
+    stmt = apply_filters(select(*columns, func.count()).select_from(Asset), filters).group_by(
+        func.grouping_sets(*(tuple_(c) for c in columns))
+    )
+    counts: dict[str, list[tuple[str, int]]] = {key: [] for key in keys}
+    for row in await session.execute(stmt):
+        for key, value in zip(keys, row[:-1], strict=True):
+            if value is not None:
+                counts[key].append((str(value), int(row[-1])))
+    for values in counts.values():
+        values.sort(key=lambda item: (-item[1], item[0]))
+        del values[FACET_VALUE_LIMIT:]
+    return counts
+
+
 async def facets(
     session: AsyncSession, filters: AssetFilters | None = None
 ) -> list[dict[str, Any]]:
@@ -385,31 +418,29 @@ async def facets(
 
     All active filters and the search query apply. An enum facet ignores its own filter so its
     other values stay selectable (``camera_model=A`` still lists camera B with its count).
+    Facets without an active own filter share one table pass; each facet with one needs its own.
     """
     active = filters or AssetFilters()
+    shared = [k for k in FACET_LABELS if not _own_filter_set(active, k)]
+    counts = await _enum_counts(session, shared, active)
+    for key in FACET_LABELS:
+        if key not in counts:
+            counts.update(await _enum_counts(session, [key], replace(active, **cast_kwargs(key))))
     result: list[dict[str, Any]] = []
     for key, (de, en) in FACET_LABELS.items():
-        column = getattr(Asset, key)
-        blank: dict[str, Any] = {key: None}
-        own = replace(active, **blank) if hasattr(active, key) else active
-        stmt = apply_filters(select(column, func.count()).select_from(Asset), own)
-        rows = await session.execute(
-            stmt.where(column.is_not(None))
-            .group_by(column)
-            .order_by(func.count().desc(), column)
-            .limit(100)
-        )
-        values = [{"value": str(v), "count": c} for v, c in rows]
+        values = [{"value": v, "count": c} for v, c in counts[key]]
         if values:
             result.append(
                 {"key": key, "label_de": de, "label_en": en, "kind": "enum", "values": values}
             )
     result += await _tag_facets(session, active)
-    low, high = (
-        await session.execute(
-            apply_filters(select(func.min(Asset.duration_ms), func.max(Asset.duration_ms)), active)
-        )
-    ).one()
+    ranges = select(
+        func.min(Asset.duration_ms),
+        func.max(Asset.duration_ms),
+        func.min(Asset.capture_at),
+        func.max(Asset.capture_at),
+    )
+    low, high, first, last = (await session.execute(apply_filters(ranges, active))).one()
     if high is not None:
         result.append(
             {
@@ -421,8 +452,6 @@ async def facets(
                 "max": high,
             }
         )
-    captures = select(func.min(Asset.capture_at), func.max(Asset.capture_at))
-    first, last = (await session.execute(apply_filters(captures, active))).one()
     if first is not None:
         result.append(
             {
@@ -437,32 +466,47 @@ async def facets(
     return result
 
 
+async def _tag_counts(
+    session: AsyncSession, fields: Sequence[TaxField], filters: AssetFilters
+) -> dict[UUID, list[tuple[str, int]]]:
+    """Approved tag value counts of ``fields`` under ``filters`` in one pass."""
+    if not fields:
+        return {}
+    stmt = (
+        select(AssetTag.field_id, TaxValue.value, func.count(func.distinct(Asset.id)))
+        .select_from(Asset)
+        .join(AssetTag, AssetTag.asset_id == Asset.id)
+        .join(TaxValue, TaxValue.id == AssetTag.value_id)
+        .where(AssetTag.field_id.in_([f.id for f in fields]), TaxValue.status == "approved")
+    )
+    stmt = apply_filters(stmt, filters).group_by(AssetTag.field_id, TaxValue.value)
+    counts: dict[UUID, list[tuple[str, int]]] = {f.id: [] for f in fields}
+    for field_id, value, count in await session.execute(stmt):
+        counts[field_id].append((value, int(count)))
+    for values in counts.values():
+        values.sort(key=lambda item: (-item[1], item[0]))
+        del values[FACET_VALUE_LIMIT:]
+    return counts
+
+
 async def _tag_facets(session: AsyncSession, active: AssetFilters) -> list[dict[str, Any]]:
     """One enum facet per taxonomy field that has approved, used values (value = ``value``)."""
-    result: list[dict[str, Any]] = []
     fields = (
         (await session.execute(select(TaxField).order_by(TaxField.sort, TaxField.key)))
         .scalars()
         .all()
     )
+    filtered = {f.key for f in fields if any(t.startswith(f.key + ":") for t in active.tags)}
+    counts = await _tag_counts(session, [f for f in fields if f.key not in filtered], active)
     for field in fields:
-        own = replace(
-            active, tags=tuple(t for t in active.tags if not t.startswith(field.key + ":"))
-        )
-        stmt = (
-            select(TaxValue.value, func.count(func.distinct(Asset.id)))
-            .select_from(Asset)
-            .join(AssetTag, AssetTag.asset_id == Asset.id)
-            .join(TaxValue, TaxValue.id == AssetTag.value_id)
-            .where(AssetTag.field_id == field.id, TaxValue.status == "approved")
-        )
-        rows = await session.execute(
-            apply_filters(stmt, own)
-            .group_by(TaxValue.value)
-            .order_by(func.count(func.distinct(Asset.id)).desc(), TaxValue.value)
-            .limit(100)
-        )
-        values = [{"value": f"{field.key}:{v}", "count": c} for v, c in rows]
+        if field.key in filtered:
+            own = replace(
+                active, tags=tuple(t for t in active.tags if not t.startswith(field.key + ":"))
+            )
+            counts.update(await _tag_counts(session, [field], own))
+    result: list[dict[str, Any]] = []
+    for field in fields:
+        values = [{"value": f"{field.key}:{v}", "count": c} for v, c in counts[field.id]]
         if values:
             result.append(
                 {
@@ -477,38 +521,39 @@ async def _tag_facets(session: AsyncSession, active: AssetFilters) -> list[dict[
 
 
 async def storage_stats(session: AsyncSession) -> dict[str, Any]:
-    """Storage totals by media type and capture year, plus duplicate waste."""
-    counted = Asset.status.notin_(("duplicate", "trashed"))
-    total = await session.scalar(
-        select(func.coalesce(func.sum(Asset.size_total), 0)).where(counted)
-    )
-    by_type = await session.execute(
-        select(Asset.media_type, func.sum(Asset.size_total), func.count())
-        .where(counted)
-        .group_by(Asset.media_type)
-        .order_by(Asset.media_type)
-    )
-    year = func.extract("year", func.coalesce(Asset.capture_at, Asset.created_at)).cast(String)
-    by_year = await session.execute(
-        select(year, func.sum(Asset.size_total), func.count())
-        .where(counted)
-        .group_by(year)
-        .order_by(year)
-    )
-    dup_count, wasted = (
-        await session.execute(
-            select(func.count(), func.coalesce(func.sum(Asset.size_total), 0)).where(
-                Asset.status == "duplicate"
-            )
+    """Storage totals by media type and capture year, plus duplicate waste (one table pass)."""
+    year = func.extract("year", func.coalesce(Asset.capture_at, Asset.created_at))
+    rows = await session.execute(
+        select(
+            Asset.media_type,
+            year.cast(Integer),
+            Asset.status == "duplicate",
+            func.coalesce(func.sum(Asset.size_total), 0),
+            func.count(),
         )
-    ).one()
+        .where(Asset.status != "trashed")
+        .group_by(Asset.media_type, year.cast(Integer), Asset.status == "duplicate")
+    )
+    by_type: dict[str, list[int]] = {}
+    by_year: dict[int, list[int]] = {}
+    duplicates = [0, 0]
+    for media_type, y, is_duplicate, size, count in rows:
+        if is_duplicate:
+            duplicates[0] += int(count)
+            duplicates[1] += int(size)
+            continue
+        for bucket in (by_type.setdefault(media_type, [0, 0]), by_year.setdefault(int(y), [0, 0])):
+            bucket[0] += int(size)
+            bucket[1] += int(count)
     return {
         "storage": {
-            "total_bytes": int(total or 0),
-            "by_media_type": [{"key": k, "bytes": int(b), "count": c} for k, b, c in by_type],
+            "total_bytes": sum(v[0] for v in by_type.values()),
+            "by_media_type": [
+                {"key": k, "bytes": v[0], "count": v[1]} for k, v in sorted(by_type.items())
+            ],
             "by_year": [
-                {"year": int(float(y)), "bytes": int(b), "count": c} for y, b, c in by_year
+                {"year": k, "bytes": v[0], "count": v[1]} for k, v in sorted(by_year.items())
             ],
         },
-        "duplicates": {"count": int(dup_count), "wasted_bytes": int(wasted)},
+        "duplicates": {"count": duplicates[0], "wasted_bytes": duplicates[1]},
     }
