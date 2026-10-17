@@ -1,4 +1,4 @@
-"""Final gaps: "used in project" feedback (``asset_usage``) and personal token expiry.
+"""Final gaps: "used in project" feedback (``asset_usage``), token expiry, results index.
 
 Additive and idempotent; ``downgrade`` removes exactly these objects.
 
@@ -31,6 +31,8 @@ _DDL = (
     )
     """,
     "CREATE INDEX IF NOT EXISTS ix_asset_usage_project_name ON asset_usage (project_name)",
+    # throughput of the last days (dashboard) without scanning all results
+    "CREATE INDEX IF NOT EXISTS ix_stage_result_finished_at ON stage_result (finished_at)",
 )
 
 
@@ -41,6 +43,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Drop ``asset_usage`` and ``api_token.expires_at``."""
+    """Drop ``asset_usage``, the results index and ``api_token.expires_at``."""
+    op.execute("DROP INDEX IF EXISTS ix_stage_result_finished_at")
     op.execute("DROP TABLE IF EXISTS asset_usage")
     op.execute("ALTER TABLE api_token DROP COLUMN IF EXISTS expires_at")

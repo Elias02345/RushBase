@@ -60,6 +60,7 @@ class StageResult(Base):
             "stage",
             text("finished_at DESC"),
         ),
+        Index("ix_stage_result_finished_at", "finished_at"),
         # At most one successful result per job: duplicate submissions are ignored.
         Index(
             "ux_stage_result_job_id",

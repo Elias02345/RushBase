@@ -14,6 +14,7 @@ from rushbase_server.api import (
     admin,
     auth,
     catalog,
+    dashboard,
     filing,
     golden,
     mcp_admin,
@@ -115,6 +116,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(admin.router)
     app.include_router(worker.router)
     app.include_router(catalog.router)
+    app.include_router(dashboard.router)
     app.include_router(filing.router)
     app.include_router(trash.router)
     app.include_router(privacy.router)
