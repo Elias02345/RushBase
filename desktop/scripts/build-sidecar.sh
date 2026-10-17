@@ -10,6 +10,10 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+# Git Bash on Windows yields /d/a/...; PyInstaller (a native Windows program) needs D:/a/...
+if command -v cygpath >/dev/null 2>&1; then
+  ROOT="$(cygpath -m "${ROOT}")"
+fi
 OUT_DIR="${ROOT}/desktop/src-tauri/binaries"
 WORK_DIR="${ROOT}/desktop/.sidecar-build"
 

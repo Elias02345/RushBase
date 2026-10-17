@@ -120,7 +120,7 @@ fn drag_check(path: String) -> system::DragCheck {
 fn platform_info(app: Shared) -> serde_json::Value {
     let mut info = serde_json::to_value(system::platform_info()).unwrap_or_default();
     info["tray"] = app.has_tray.load(Ordering::Relaxed).into();
-    info["updater"] = option_env!("RUSHBASE_UPDATER_PUBKEY").is_some().into();
+    info["updater"] = updater_pubkey().is_some().into();
     info
 }
 
@@ -199,7 +199,7 @@ pub fn run() {
         .plugin(tauri_plugin_drag::init());
 
     // The updater only exists in builds made with a signing public key (docs/companion.md).
-    if let Some(key) = option_env!("RUSHBASE_UPDATER_PUBKEY") {
+    if let Some(key) = updater_pubkey() {
         builder = builder.plugin(tauri_plugin_updater::Builder::new().pubkey(key).build());
     }
 
@@ -273,4 +273,10 @@ pub fn run() {
                 }
             }
         });
+}
+
+/// The updater signing public key compiled into this build; an empty value means "no updater"
+/// (CI passes an empty repository variable until the release keys exist).
+fn updater_pubkey() -> Option<&'static str> {
+    option_env!("RUSHBASE_UPDATER_PUBKEY").filter(|key| !key.trim().is_empty())
 }
