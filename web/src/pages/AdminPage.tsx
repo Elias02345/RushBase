@@ -51,6 +51,8 @@ import { copyText, enrollCommand } from "../lib/platform";
 import type { AdminTab } from "../routes/search";
 import { SearchAdmin } from "./admin/SearchAdmin";
 import { McpAdmin } from "./admin/McpAdmin";
+import { MigrationAdmin } from "./admin/MigrationAdmin";
+import { TrashAdmin } from "./admin/TrashAdmin";
 
 const ROLES: Role[] = ["admin", "editor", "viewer"];
 
@@ -534,6 +536,7 @@ function SettingsForm({ initial }: { initial: LibrarySettings }) {
                 linux: form.linux.trim() || null,
               },
               central_meta: initial.central_meta,
+              trash_retention_days: initial.trash_retention_days,
             },
             { onSuccess: () => toast.push({ title: t("common.saved"), tone: "success" }) },
           );
@@ -650,6 +653,8 @@ export function AdminPage() {
           <TabsTrigger value="backups">{t("admin.tabs.backups")}</TabsTrigger>
           <TabsTrigger value="search">{t("admin.tabs.search")}</TabsTrigger>
           <TabsTrigger value="mcp">{t("admin.tabs.mcp")}</TabsTrigger>
+          <TabsTrigger value="trash">{t("admin.tabs.trash")}</TabsTrigger>
+          <TabsTrigger value="migration">{t("admin.tabs.migration")}</TabsTrigger>
         </TabsList>
         <TabsContent value="users">
           <UsersPanel />
@@ -671,6 +676,12 @@ export function AdminPage() {
         </TabsContent>
         <TabsContent value="mcp">
           <McpAdmin />
+        </TabsContent>
+        <TabsContent value="trash">
+          <TrashAdmin />
+        </TabsContent>
+        <TabsContent value="migration">
+          <MigrationAdmin />
         </TabsContent>
       </Tabs>
     </div>

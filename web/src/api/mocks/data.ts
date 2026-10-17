@@ -281,6 +281,7 @@ export function buildDetail(summary: AssetSummary, mapping: PathRoots): Omit<Ass
   const base = new Date(summary.capture_at ?? NOW).getTime();
   return {
     ...summary,
+    sync: [],
     files: [
       {
         role: "original",

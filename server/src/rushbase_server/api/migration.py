@@ -46,7 +46,7 @@ class ExecuteIn(Selection):
     confirmation: str = Field(max_length=50)
 
 
-class ItemOut(BaseModel):
+class MigrationItemOut(BaseModel):
     """One unit of the preview."""
 
     asset_ids: list[UUID]
@@ -60,7 +60,7 @@ class ItemOut(BaseModel):
 class PreviewOut(BaseModel):
     """The dry run."""
 
-    items: list[ItemOut]
+    items: list[MigrationItemOut]
     to_move: int
     confirmation: str
 
@@ -144,7 +144,9 @@ async def preview(
     count = sum(len(p.assets) for p in plans if not p.skipped)
     return PreviewOut(
         items=[
-            ItemOut(**{**vars(i), "asset_ids": list(i.asset_ids), "warnings": list(i.warnings)})
+            MigrationItemOut(
+                **{**vars(i), "asset_ids": list(i.asset_ids), "warnings": list(i.warnings)}
+            )
             for i in migration.preview_items(plans)
         ],
         to_move=count,

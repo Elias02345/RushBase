@@ -14,6 +14,7 @@ import { FilterX, FolderSearch, LayoutGrid, List, ListPlus, X } from "lucide-rea
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { BulkPrivacy } from "./library/BulkPrivacy";
 import { useBulkEdit, useCollections, useHybridSearch } from "../api/aiQueries";
 import type { AssetSummary, SortKey } from "../api/contracts";
 import { useAssets, useFacets } from "../api/queries";
@@ -489,6 +490,7 @@ export function LibraryPage() {
             >
               {t("library.lockSelected")}
             </Button>
+            <BulkPrivacy ids={[...selected]} onDone={() => setSelected(new Set())} />
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
               {t("library.clearSelection")}
             </Button>

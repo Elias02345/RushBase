@@ -13,6 +13,7 @@ import type {
 } from "../contracts";
 import type { User } from "../types";
 import { buildDetail, type PathRoots } from "./data";
+import { syncFor } from "./safetyHandlers";
 import {
   buildGoldenFields,
   buildProposals,
@@ -33,6 +34,13 @@ type Guard = (
   }) => Response | Promise<Response>,
 ) => Parameters<typeof http.get>[1];
 
+interface Privacy {
+  person_identifiable: string;
+  consent: string;
+  consent_ref: string | null;
+  locked: boolean;
+}
+
 interface AiState {
   taxonomy: Taxonomy;
   labels: Map<string, string>;
@@ -40,6 +48,8 @@ interface AiState {
   evalRuns: EvalRun[];
   /** Tags added/removed by edits: asset id to `field:value` list. */
   editedTags: Map<string, { add: string[]; remove: string[] }>;
+  /** Privacy fields edited by a person: asset id to the changed fields. */
+  privacy: Map<string, Partial<Privacy>>;
 }
 
 function freshAiState(): AiState {
@@ -49,6 +59,7 @@ function freshAiState(): AiState {
     collections: [],
     evalRuns: [],
     editedTags: new Map(),
+    privacy: new Map(),
   };
 }
 
@@ -80,6 +91,8 @@ function findValue(id: unknown): TaxonomyValue | undefined {
 export function detailFor(asset: AssetSummary, deps: AiDeps): AssetDetail {
   const index = deps.assets().indexOf(asset);
   const detail = withAi(buildDetail(asset, deps.roots()), ai.taxonomy, index);
+  Object.assign(detail.ai, ai.privacy.get(asset.id));
+  detail.sync = syncFor(asset, deps.assets());
   const edits = ai.editedTags.get(asset.id);
   if (edits) {
     detail.ai.tags = detail.ai.tags.filter(
@@ -406,11 +419,21 @@ export function aiHandlers(deps: AiDeps) {
         const body = (await request.json()) as {
           review_done?: boolean;
           locked?: boolean;
+          person_identifiable?: string;
+          consent?: string;
+          consent_ref?: string | null;
           add_tags?: { field: string; value: string }[];
           remove_tags?: { field: string; value: string }[];
         };
         if (body.review_done) asset.review_state = "done";
         if (body.locked !== undefined) asset.locked = body.locked;
+        const { person_identifiable, consent, consent_ref } = body;
+        ai.privacy.set(asset.id, {
+          ...ai.privacy.get(asset.id),
+          ...(person_identifiable !== undefined ? { person_identifiable } : {}),
+          ...(consent !== undefined ? { consent } : {}),
+          ...(consent_ref !== undefined ? { consent_ref } : {}),
+        });
         const edits = ai.editedTags.get(asset.id) ?? { add: [], remove: [] };
         for (const t of body.add_tags ?? []) edits.add.push(`${t.field}:${t.value}`);
         for (const t of body.remove_tags ?? []) edits.remove.push(`${t.field}:${t.value}`);
@@ -425,10 +448,23 @@ export function aiHandlers(deps: AiDeps) {
     http.post(
       "/api/v1/assets/bulk",
       guarded("editor", async ({ request }) => {
-        const body = (await request.json()) as { asset_ids: string[]; locked?: boolean };
+        const body = (await request.json()) as {
+          asset_ids: string[];
+          locked?: boolean;
+          person_identifiable?: string;
+          consent?: string;
+          consent_ref?: string;
+        };
         for (const asset of deps.assets()) {
-          if (body.asset_ids.includes(asset.id) && body.locked !== undefined)
-            asset.locked = body.locked;
+          if (!body.asset_ids.includes(asset.id)) continue;
+          if (body.locked !== undefined) asset.locked = body.locked;
+          const { person_identifiable, consent, consent_ref } = body;
+          ai.privacy.set(asset.id, {
+            ...ai.privacy.get(asset.id),
+            ...(person_identifiable ? { person_identifiable } : {}),
+            ...(consent ? { consent } : {}),
+            ...(consent_ref ? { consent_ref } : {}),
+          });
         }
         return HttpResponse.json({ updated: body.asset_ids.length });
       }),

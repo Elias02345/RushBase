@@ -120,6 +120,16 @@ const reviewRoute = createRoute({
   component: lazyRouteComponent(() => import("./pages/ReviewPage"), "ReviewPage"),
 });
 
+const privacyRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/privacy",
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData({ queryKey: keys.me, queryFn: fetchMe });
+    if (!hasRole(me.role, "editor")) throw redirect({ to: "/" });
+  },
+  component: lazyRouteComponent(() => import("./pages/PrivacyPage"), "PrivacyPage"),
+});
+
 const goldenRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/golden",
@@ -149,6 +159,7 @@ export const routeTree = rootRoute.addChildren([
     assetRoute,
     reviewRoute,
     goldenRoute,
+    privacyRoute,
     processingRoute,
     needsRoute,
     adminRoute,

@@ -93,7 +93,8 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
 }
 
 export type ProcessingTab = "queue" | "batches" | "workers" | "quarantine";
-export type AdminTab = "users" | "workers" | "rules" | "settings" | "backups" | "search" | "mcp";
+export type AdminTab =
+  "users" | "workers" | "rules" | "settings" | "backups" | "search" | "mcp" | "trash" | "migration";
 
 export function validateProcessingSearch(raw: Record<string, unknown>): { tab?: ProcessingTab } {
   const tab = oneOf(raw.tab, ["queue", "batches", "workers", "quarantine"] as const);
@@ -109,6 +110,8 @@ export function validateAdminSearch(raw: Record<string, unknown>): { tab?: Admin
     "backups",
     "search",
     "mcp",
+    "trash",
+    "migration",
   ] as const);
   return tab ? { tab } : {};
 }

@@ -512,6 +512,14 @@
             ],
             "title": "Summary"
           },
+          "sync": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SyncOut"
+            },
+            "title": "Sync",
+            "type": "array"
+          },
           "tech_summary_de": {
             "anyOf": [
               {
@@ -1496,6 +1504,34 @@
             "title": "Asset Ids",
             "type": "array"
           },
+          "consent": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent"
+          },
+          "consent_ref": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Ref"
+          },
           "locked": {
             "anyOf": [
               {
@@ -1506,6 +1542,22 @@
               }
             ],
             "title": "Locked"
+          },
+          "person_identifiable": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Identifiable"
           },
           "remove_from_collection": {
             "anyOf": [
@@ -1866,6 +1918,24 @@
           "created_at"
         ],
         "title": "CollectionOut",
+        "type": "object"
+      },
+      "DecisionIn": {
+        "description": "The person's decision.",
+        "properties": {
+          "decision": {
+            "enum": [
+              "confirmed",
+              "rejected"
+            ],
+            "title": "Decision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecisionIn",
         "type": "object"
       },
       "DryRunIn": {
@@ -2350,6 +2420,78 @@
           "poster_url"
         ],
         "title": "ExampleOut",
+        "type": "object"
+      },
+      "ExecuteIn": {
+        "description": "Execution needs the typed confirmation shown by the preview.",
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "confirmation": {
+            "maxLength": 50,
+            "title": "Confirmation",
+            "type": "string"
+          },
+          "template": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Template",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template",
+          "confirmation"
+        ],
+        "title": "ExecuteIn",
+        "type": "object"
+      },
+      "ExecuteOut": {
+        "description": "The result of a run, with the relink list.",
+        "properties": {
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "moved": {
+            "title": "Moved",
+            "type": "integer"
+          },
+          "relink_csv": {
+            "title": "Relink Csv",
+            "type": "string"
+          },
+          "relink_path": {
+            "title": "Relink Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "moved",
+          "failed",
+          "relink_csv",
+          "relink_path"
+        ],
+        "title": "ExecuteOut",
         "type": "object"
       },
       "Facet": {
@@ -3473,9 +3615,110 @@
             "description": "Keys: windows, macos, linux.",
             "title": "Path Roots",
             "type": "object"
+          },
+          "trash_retention_days": {
+            "default": 30,
+            "description": "Days a trashed asset is kept before it is deleted permanently.",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Trash Retention Days",
+            "type": "integer"
           }
         },
         "title": "LibrarySettings",
+        "type": "object"
+      },
+      "LockIn": {
+        "description": "Select a batch or a person (exactly one) and what to set on the matches.",
+        "properties": {
+          "batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent"
+          },
+          "consent_ref": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Ref"
+          },
+          "dry_run": {
+            "default": true,
+            "description": "Only count the matches; change nothing.",
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "person": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person"
+          }
+        },
+        "title": "LockIn",
+        "type": "object"
+      },
+      "LockOut": {
+        "description": "The matches and how many were changed.",
+        "properties": {
+          "matched": {
+            "title": "Matched",
+            "type": "integer"
+          },
+          "sample": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Sample",
+            "type": "array"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "matched",
+          "updated",
+          "sample"
+        ],
+        "title": "LockOut",
         "type": "object"
       },
       "LoginIn": {
@@ -3805,6 +4048,71 @@
         "title": "MetadataOut",
         "type": "object"
       },
+      "MigrationItemOut": {
+        "description": "One unit of the preview.",
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "new_dir": {
+            "title": "New Dir",
+            "type": "string"
+          },
+          "old_dir": {
+            "title": "Old Dir",
+            "type": "string"
+          },
+          "skipped": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipped"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_ids",
+          "filename",
+          "old_dir",
+          "new_dir",
+          "warnings",
+          "skipped"
+        ],
+        "title": "MigrationItemOut",
+        "type": "object"
+      },
+      "MigrationSettings": {
+        "description": "Whether the tool is switched on.",
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "title": "MigrationSettings",
+        "type": "object"
+      },
       "ModelInfo": {
         "description": "An installed model for a stage.",
         "properties": {
@@ -4024,6 +4332,33 @@
           "candidates"
         ],
         "title": "NeedSummary",
+        "type": "object"
+      },
+      "PreviewOut": {
+        "description": "The dry run.",
+        "properties": {
+          "confirmation": {
+            "title": "Confirmation",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MigrationItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "to_move": {
+            "title": "To Move",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "to_move",
+          "confirmation"
+        ],
+        "title": "PreviewOut",
         "type": "object"
       },
       "PriorityIn": {
@@ -4766,6 +5101,43 @@
           "words"
         ],
         "title": "SegmentOut",
+        "type": "object"
+      },
+      "Selection": {
+        "description": "The assets to re-file (give ``asset_ids`` or ``batch_id``) and the new template.",
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "template": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Template",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "title": "Selection",
         "type": "object"
       },
       "SetupIn": {
@@ -5538,6 +5910,57 @@
         "title": "StorageOut",
         "type": "object"
       },
+      "SyncOut": {
+        "description": "An audio/video sync suggestion seen from one of the two assets.",
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "offset_ms": {
+            "title": "Offset Ms",
+            "type": "integer"
+          },
+          "other_asset_id": {
+            "format": "uuid",
+            "title": "Other Asset Id",
+            "type": "string"
+          },
+          "other_filename": {
+            "title": "Other Filename",
+            "type": "string"
+          },
+          "other_role": {
+            "title": "Other Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "other_asset_id",
+          "other_filename",
+          "other_role",
+          "offset_ms",
+          "confidence",
+          "basis",
+          "status"
+        ],
+        "title": "SyncOut",
+        "type": "object"
+      },
       "SynonymIn": {
         "description": "A synonym to add.",
         "properties": {
@@ -5878,6 +6301,95 @@
           "total_segments"
         ],
         "title": "TranscriptOut",
+        "type": "object"
+      },
+      "TrashIn": {
+        "description": "The explicit confirmation of the dialog.",
+        "properties": {
+          "confirm": {
+            "description": "Must be true: the caller confirmed the dialog.",
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "TrashIn",
+        "type": "object"
+      },
+      "TrashList": {
+        "description": "The trash with its retention period.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TrashedOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "retention_days",
+          "items"
+        ],
+        "title": "TrashList",
+        "type": "object"
+      },
+      "TrashedOut": {
+        "description": "A trashed asset.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "files": {
+            "title": "Files",
+            "type": "integer"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "prior_status": {
+            "title": "Prior Status",
+            "type": "string"
+          },
+          "size_total": {
+            "title": "Size Total",
+            "type": "integer"
+          },
+          "trashed_at": {
+            "format": "date-time",
+            "title": "Trashed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "filename",
+          "media_type",
+          "size_total",
+          "prior_status",
+          "trashed_at",
+          "expires_at",
+          "files"
+        ],
+        "title": "TrashedOut",
         "type": "object"
       },
       "UserCreate": {
@@ -7236,6 +7748,152 @@
         ]
       }
     },
+    "/api/v1/admin/migration/execute": {
+      "post": {
+        "description": "Move the assets (rename only), journal it and return the relink list.",
+        "operationId": "execute_api_v1_admin_migration_execute_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run a migration",
+        "tags": [
+          "migration"
+        ]
+      }
+    },
+    "/api/v1/admin/migration/preview": {
+      "post": {
+        "description": "Show where the selected assets would move with the new template; moves nothing.",
+        "operationId": "preview_api_v1_admin_migration_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Selection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dry run of a migration",
+        "tags": [
+          "migration"
+        ]
+      }
+    },
+    "/api/v1/admin/migration/settings": {
+      "get": {
+        "description": "Whether the migration tool is enabled (default: off).",
+        "operationId": "get_settings_api_v1_admin_migration_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Migration tool switch",
+        "tags": [
+          "migration"
+        ]
+      },
+      "put": {
+        "description": "Enable or disable the tool.",
+        "operationId": "put_settings_api_v1_admin_migration_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MigrationSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Switch the migration tool",
+        "tags": [
+          "migration"
+        ]
+      }
+    },
     "/api/v1/admin/pipeline/stages": {
       "put": {
         "description": "Choose which stages newly ingested assets get (``finalize`` is always included).",
@@ -7367,6 +8025,65 @@
         "tags": [
           "admin",
           "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/trash": {
+      "get": {
+        "description": "Trashed assets with their expiry.",
+        "operationId": "list_trash_api_v1_admin_trash_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrashList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List the trash",
+        "tags": [
+          "trash"
+        ]
+      }
+    },
+    "/api/v1/admin/trash/{asset_id}/restore": {
+      "post": {
+        "description": "Move the files back; 409 with the occupied locations when an original path is taken.",
+        "operationId": "restore_api_v1_admin_trash__asset_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore an asset from the trash",
+        "tags": [
+          "trash"
         ]
       }
     },
@@ -7965,7 +8682,7 @@
     },
     "/api/v1/assets/bulk": {
       "post": {
-        "description": "Add/remove tags, set the lock or change collection membership for up to 500 assets.",
+        "description": "Edit up to 500 assets: tags, lock, consent, person flag and collection membership.",
         "operationId": "bulk_edit_api_v1_assets_bulk_post",
         "requestBody": {
           "content": {
@@ -8556,6 +9273,53 @@
         "summary": "Transcript",
         "tags": [
           "review"
+        ]
+      }
+    },
+    "/api/v1/assets/{asset_id}/trash": {
+      "post": {
+        "description": "Move the files of a filed asset or duplicate to `.rushbase/trash/` (reversible).",
+        "operationId": "trash_asset_api_v1_assets__asset_id__trash_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrashIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Move an asset to the trash",
+        "tags": [
+          "trash"
         ]
       }
     },
@@ -10255,6 +11019,48 @@
         ]
       }
     },
+    "/api/v1/privacy/lock": {
+      "post": {
+        "description": "Find the assets of a batch or mentioning/tagged with a person; lock them unless dry run.\n\nLocked assets keep their person and consent fields when the analysis runs again. Face\nrecognition is not involved: a person is a taxonomy value (`person` field) or a name in the\ntexts and transcript.",
+        "operationId": "lock_assets_api_v1_privacy_lock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LockIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LockOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lock the assets of a batch or person",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
     "/api/v1/quarantine": {
       "get": {
         "description": "Assets whose processing failed permanently, newest first.",
@@ -11748,6 +12554,53 @@
         "summary": "System Status",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/sync-suggestions/{suggestion_id}": {
+      "post": {
+        "description": "Confirm (links the pair in both sidecars) or reject a sync suggestion.",
+        "operationId": "decide_api_v1_sync_suggestions__suggestion_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "sync"
         ]
       }
     },
