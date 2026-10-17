@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0-rc.1] - 2026-10-17
+
 ### Added (releases)
 
 - `scripts/release.sh <version>` bumps every manifest, rolls this changelog, commits and tags;

@@ -1,6 +1,6 @@
 [package]
 name = "rushbase-desktop"
-version = "0.1.0"
+version = "0.9.0-rc.1"
 description = "Rushbase companion app: local AI processing and library browsing"
 authors = ["Rushbase contributors"]
 license = "Apache-2.0"

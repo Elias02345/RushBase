@@ -1,6 +1,6 @@
 [project]
 name = "rushbase-server"
-version = "0.1.0"
+version = "0.9.0rc1"
 description = "Rushbase coordinator: API, database and web UI host."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
