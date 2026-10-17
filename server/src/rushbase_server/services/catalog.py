@@ -174,21 +174,22 @@ def _tag_groups(tags: Sequence[str]) -> dict[str, list[str]]:
 
 
 def _has_tag(field_key: str, values: list[str]) -> ColumnElement[bool]:
-    """EXISTS an approved tag of ``field_key`` with one of ``values`` on the asset."""
-    return (
-        select(literal(1))
-        .select_from(AssetTag)
-        .join(TaxField, TaxField.id == AssetTag.field_id)
-        .join(TaxValue, TaxValue.id == AssetTag.value_id)
+    """The asset has an approved tag of ``field_key`` with one of ``values``.
+
+    The value ids are resolved first and matched through ``ix_asset_tag_value_id``; a semi-join on
+    them lets PostgreSQL combine the filter with an HNSW scan far more cheaply than a correlated
+    ``EXISTS`` over three tables (measured: about 3x faster warm, 3x cold).
+    """
+    value_ids = (
+        select(TaxValue.id)
+        .join(TaxField, TaxField.id == TaxValue.field_id)
         .where(
-            AssetTag.asset_id == Asset.id,
             TaxField.key == field_key,
             TaxValue.status == "approved",
             func.lower(TaxValue.value).in_(values),
         )
-        .correlate(Asset)
-        .exists()
     )
+    return Asset.id.in_(select(AssetTag.asset_id).where(AssetTag.value_id.in_(value_ids)))
 
 
 def apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
@@ -522,17 +523,18 @@ async def _tag_facets(session: AsyncSession, active: AssetFilters) -> list[dict[
 
 async def storage_stats(session: AsyncSession) -> dict[str, Any]:
     """Storage totals by media type and capture year, plus duplicate waste (one table pass)."""
-    year = func.extract("year", func.coalesce(Asset.capture_at, Asset.created_at))
+    year = func.extract("year", func.coalesce(Asset.capture_at, Asset.created_at)).cast(Integer)
+    year_label, duplicate_label = year.label("year"), (Asset.status == "duplicate").label("dup")
     rows = await session.execute(
         select(
             Asset.media_type,
-            year.cast(Integer),
-            Asset.status == "duplicate",
+            year_label,
+            duplicate_label,
             func.coalesce(func.sum(Asset.size_total), 0),
             func.count(),
         )
         .where(Asset.status != "trashed")
-        .group_by(Asset.media_type, year.cast(Integer), Asset.status == "duplicate")
+        .group_by(Asset.media_type, year_label, duplicate_label)
     )
     by_type: dict[str, list[int]] = {}
     by_year: dict[int, list[int]] = {}

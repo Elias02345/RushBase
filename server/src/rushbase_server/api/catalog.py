@@ -465,9 +465,7 @@ async def get_facets(
     _: ViewerDep, db: DbDep, runtime: RuntimeDep, filters: FiltersDep
 ) -> FacetsOut:
     """Facets for the filter sidebar, computed from the data."""
-    computed = await runtime.cache.get_or_compute(
-        ("facets", filters), lambda: catalog.facets(db, filters)
-    )
+    computed = await runtime.cached(("facets", filters), lambda s: catalog.facets(s, filters))
     return FacetsOut(facets=[Facet(**f) for f in computed])
 
 
@@ -513,8 +511,8 @@ class StatsOut(BaseModel):
 @router.get("/stats", response_model=StatsOut, summary="Library statistics")
 async def get_stats(_: ViewerDep, runtime: RuntimeDep, db: DbDep) -> StatsOut:
     """Storage by media type and year, duplicate waste and the processing backlog."""
-    data = await runtime.cache.get_or_compute("storage", lambda: catalog.storage_stats(db))
-    backlog = await runtime.cache.get_or_compute("backlog", lambda: stats.stage_backlog(db))
+    data = await runtime.cached("storage", catalog.storage_stats)
+    backlog = await runtime.cached("backlog", stats.stage_backlog)
     return StatsOut(
         storage=StorageOut(**data["storage"]),
         duplicates=DuplicatesOut(**data["duplicates"]),

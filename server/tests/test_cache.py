@@ -62,3 +62,27 @@ async def test_zero_ttl_disables_caching_and_errors_are_not_cached() -> None:
     with pytest.raises(ValueError, match="boom"):
         await cache.get_or_compute("k", failing)
     assert await cache.get_or_compute("k", compute) == 3
+
+
+async def test_stale_values_are_served_while_one_refresh_runs() -> None:
+    clock = Clock()
+    cache = TtlCache(10, clock=clock)
+    calls = 0
+    release = asyncio.Event()
+
+    async def compute() -> int:
+        nonlocal calls
+        calls += 1
+        if calls > 1:
+            await release.wait()
+        return calls
+
+    assert await cache.get_or_compute("k", compute, stale=True) == 1
+    clock.now = 11
+    assert await cache.get_or_compute("k", compute, stale=True) == 1  # stale, refresh started
+    assert await cache.get_or_compute("k", compute, stale=True) == 1  # no second refresh
+    release.set()
+    for _ in range(20):
+        await asyncio.sleep(0)
+    assert calls == 2
+    assert await cache.get_or_compute("k", compute, stale=True) == 2

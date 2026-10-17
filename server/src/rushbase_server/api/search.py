@@ -147,9 +147,9 @@ async def capabilities(_: ViewerDep, db: DbDep, runtime: RuntimeDep) -> Capabili
     async def space(name: str) -> SpaceStatus:
         info = runtime.encoder.info(name)
         compatible, mismatched = (
-            await runtime.cache.get_or_compute(
+            await runtime.cached(
                 ("vectors", name, info.model_id, info.revision),
-                lambda: hybrid.compatible_counts(db, name, info),
+                lambda s: hybrid.compatible_counts(s, name, info),
             )
             if info.model_id
             else (0, 0)

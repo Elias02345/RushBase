@@ -3,14 +3,14 @@
 import asyncio
 import contextlib
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Hashable
 from dataclasses import dataclass, field
 from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import delete, update
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
@@ -81,6 +81,15 @@ class Runtime:
             central_meta=central,
             queue_config=self.queue_config,
         )
+
+    async def cached[T](self, key: Hashable, compute: Callable[[AsyncSession], Awaitable[T]]) -> T:
+        """Serve an expensive aggregate from the TTL cache (own session, stale while refreshing)."""
+
+        async def run() -> T:
+            async with self.session_factory() as session:
+                return await compute(session)
+
+        return await self.cache.get_or_compute(key, run, stale=True)
 
     # --- single iterations (also called directly by tests) ---
 
