@@ -1,8 +1,12 @@
 name: Desktop
 
-# Builds the companion installers (Windows MSI/NSIS, macOS universal DMG, Linux AppImage/deb/rpm)
-# with the worker CLI frozen as a sidecar. Runs on release tags and on demand; pushes and pull
-# requests are covered by ci.yml (desktop lint, typecheck, tests, clippy are part of it).
+# Release pipeline. On a `v*` tag it builds everything and publishes ONE GitHub release:
+#   - companion installers (Windows MSI/NSIS, macOS Apple Silicon DMG, Linux AppImage/deb/rpm)
+#   - the headless worker CLI (PyInstaller one-file `rushbase`) per OS
+#   - Docker images on GHCR: rushbase-server and rushbase-worker (cpu, cuda, vulkan, rocm)
+#   - SHA256SUMS, release notes (CHANGELOG + install table) and, with the updater key, latest.json
+# Manual runs on a branch only upload workflow artifacts and build (not push) the images. Pushes and
+# pull requests are covered by ci.yml. How to cut a release: docs/releasing.md.
 #
 # Optional signing secrets (builds are unsigned when they are missing):
 #   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD   updater signature (latest.json)
@@ -14,11 +18,6 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Create or update a draft GitHub release with the installers"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -27,9 +26,47 @@ concurrency:
   group: desktop-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  # Only tag runs publish; everything else produces artifacts.
+  IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
 jobs:
+  # Fails when a manifest differs from the tag, then creates the single draft release all jobs
+  # upload into (creating it here keeps the matrix jobs from racing to create it).
+  verify:
+    name: Verify version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve tag and version
+        id: v
+        run: |
+          if [[ "${IS_RELEASE}" == "true" ]]; then
+            tag="${GITHUB_REF_NAME}"
+            bash scripts/check-version.sh "${tag}"
+          else
+            tag="v$(sed -n 's/^  "version": "\(.*\)",$/\1/p' desktop/src-tauri/tauri.conf.json | head -n1)"
+            echo "::notice::Manual run: using the manifest version ${tag}"
+          fi
+          echo "tag=${tag}" >>"${GITHUB_OUTPUT}"
+          echo "version=${tag#v}" >>"${GITHUB_OUTPUT}"
+      - name: Create the draft release
+        if: ${{ env.IS_RELEASE == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          if ! gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release create "${TAG}" --draft --verify-tag --title "Rushbase ${TAG}" \
+              --notes "Draft: assets are still being built."
+          fi
+
   build:
     name: ${{ matrix.name }}
+    needs: verify
     strategy:
       fail-fast: false
       matrix:
@@ -37,15 +74,21 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             args: "--bundles appimage,deb,rpm"
+            cli_os: linux
+            cli_arch: x86_64
           # Apple Silicon only: onnxruntime ships no macOS x86_64 wheels any more, so the worker
           # sidecar cannot be built for Intel Macs (ADR-0004, update 2026-10-17).
           - name: macOS (Apple Silicon)
             os: macos-14
             args: "--target aarch64-apple-darwin --bundles dmg"
             triple: aarch64-apple-darwin
+            cli_os: macos
+            cli_arch: aarch64
           - name: Windows
             os: windows-latest
             args: "--bundles msi,nsis"
+            cli_os: windows
+            cli_arch: x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -81,6 +124,19 @@ jobs:
         env:
           TARGET_TRIPLE: ${{ matrix.triple }}
         run: bash desktop/scripts/build-sidecar.sh
+
+      # The same binary is attached to the release as the headless worker.
+      - name: Name the headless worker binary
+        shell: bash
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          mkdir -p headless
+          ext=""
+          [[ "${RUNNER_OS}" == "Windows" ]] && ext=".exe"
+          src="$(find desktop/src-tauri/binaries -name "rushbase-*${ext}" | head -n1)"
+          cp "${src}""headless/rushbase-${VERSION}-${{ matrix.cli_os }}-${{ matrix.cli_arch }}${ext}"
+          ls -l headless
 
       - name: Import the Windows signing certificate
         if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
@@ -128,20 +184,39 @@ jobs:
         with:
           projectPath: desktop
           args: ${{ matrix.args }}
-          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
-          releaseName: "Rushbase ${{ github.ref_name }}"
+          # An empty tagName means "build only"; with a tag everything goes into the draft release
+          # created by the verify job (latest.json is uploaded there as well when the updater key exists).
+          tagName: ${{ env.IS_RELEASE == 'true' && needs.verify.outputs.tag || '' }}
+          releaseName: "Rushbase ${{ needs.verify.outputs.tag }}"
           releaseDraft: true
           prerelease: false
-          # Without a tag or the manual release switch the installers are only uploaded as artifacts.
-          uploadWorkflowArtifacts: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release) }}
+          uploadWorkflowArtifacts: ${{ env.IS_RELEASE != 'true' }}
           includeUpdaterJson: ${{ vars.RUSHBASE_UPDATER_PUBKEY != '' }}
 
-      - name: Upload installers
-        if: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release) }}
+      - name: Attach the headless worker to the release
+        if: ${{ env.IS_RELEASE == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.verify.outputs.tag }}
+        run: gh release upload "${TAG}" headless/* --clobber
+
+      # The Arch package job repackages this deb.
+      - name: Keep the deb for the Arch package
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rushbase-deb
+          path: desktop/src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
+      - name: Upload build artifacts
+        if: ${{ env.IS_RELEASE != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: rushbase-${{ runner.os }}
           path: |
+            headless/*
             desktop/src-tauri/target/**/release/bundle/**/*.AppImage
             desktop/src-tauri/target/**/release/bundle/**/*.deb
             desktop/src-tauri/target/**/release/bundle/**/*.rpm
@@ -150,21 +225,121 @@ jobs:
             desktop/src-tauri/target/**/release/bundle/**/*-setup.exe
           if-no-files-found: error
 
-  worker-image:
-    name: Worker image (${{ matrix.variant }})
+  # Server and worker images. Tags push to GHCR (amd64 + arm64 where the base image allows);
+  # other runs only prove the images build.
+  image:
+    name: Image ${{ matrix.image }}${{ matrix.variant && format(' ({0})', matrix.variant) || '' }}
+    needs: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
-        variant: [cpu, cuda, vulkan, rocm]
+        include:
+          - image: server
+            file: deploy/docker/server.Dockerfile
+            platforms: linux/amd64,linux/arm64
+          - image: worker
+            variant: cpu
+            file: deploy/docker/worker.Dockerfile
+            platforms: linux/amd64,linux/arm64
+          - image: worker
+            variant: cuda
+            file: deploy/docker/worker.Dockerfile
+            platforms: linux/amd64
+          - image: worker
+            variant: vulkan
+            file: deploy/docker/worker.Dockerfile
+            platforms: linux/amd64
+          - image: worker
+            variant: rocm
+            file: deploy/docker/worker.Dockerfile
+            platforms: linux/amd64
     steps:
       - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v3
+        if: ${{ env.IS_RELEASE == 'true' && contains(matrix.platforms, 'arm64') }}
       - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: ${{ env.IS_RELEASE == 'true' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image tags
+        id: tags
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          IMAGE: ${{ matrix.image }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/rushbase-${IMAGE}"
+          suffix=""
+          [[ -n "${VARIANT}" ]] && suffix="-${VARIANT}"
+          {
+            echo "tags<<__RB_EOF__"
+            echo "${repo}:${VERSION}${suffix}"
+            # Moving tags only for stable versions (no -rc suffix).
+            if [[ "${VERSION}" != *-* ]]; then
+              if [[ -n "${VARIANT}" ]]; then echo "${repo}:latest-${VARIANT}"; else echo "${repo}:latest"; fi
+            fi
+            echo "__RB_EOF__"
+          } >>"${GITHUB_OUTPUT}"
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: deploy/docker/worker.Dockerfile
-          build-args: VARIANT=${{ matrix.variant }}
-          push: false
-          cache-from: type=gha,scope=worker-${{ matrix.variant }}
-          cache-to: type=gha,scope=worker-${{ matrix.variant }},mode=max
+          file: ${{ matrix.file }}
+          build-args: ${{ matrix.variant && format('VARIANT={0}', matrix.variant) || '' }}
+          platforms: ${{ env.IS_RELEASE == 'true' && matrix.platforms || 'linux/amd64' }}
+          push: ${{ env.IS_RELEASE == 'true' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.verify.outputs.version }}
+            org.opencontainers.image.licenses=Apache-2.0
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.variant }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.variant }},mode=max
+
+  # Arch Linux package (rushbase-bin) built from the deb in a throwaway archlinux container.
+  arch:
+    name: Arch package
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: rushbase-deb
+          path: deb
+      - name: Build and validate
+        run: bash scripts/ci/build-arch-package.sh "$(ls deb/Rushbase_*_amd64.deb)" arch-out
+      - name: Attach to the release
+        if: ${{ env.IS_RELEASE == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.verify.outputs.tag }}
+        run: |
+          cp arch-out/PKGBUILD arch-out/PKGBUILD.rushbase-bin
+          cp arch-out/.SRCINFO arch-out/SRCINFO.rushbase-bin
+          gh release upload "${TAG}" arch-out/*.pkg.tar.zst arch-out/PKGBUILD.rushbase-bin arch-out/SRCINFO.rushbase-bin --clobber
+      - name: Keep the package as an artifact
+        if: ${{ env.IS_RELEASE != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rushbase-arch
+          path: arch-out/*.pkg.tar.zst
+
+  # Checksums, release notes, pre-release flag, then draft -> published.
+  publish:
+    name: Publish release
+    needs: [verify, build, image, arch]
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci/publish-release.sh "${{ needs.verify.outputs.tag }}"

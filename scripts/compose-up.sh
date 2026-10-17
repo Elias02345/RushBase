@@ -21,13 +21,31 @@ dump_diagnostics() {
   journal_dump rushbase-compose
 }
 
+# use_published_image: on a release tag checkout (and no RUSHBASE_SERVER_IMAGE in .env or the
+# environment) run the GHCR image of that version. When it cannot be pulled, fall back to the
+# local build, so a tag without published images or an offline registry still works.
+use_published_image() {
+  RUSHBASE_SERVER_IMAGE="${RUSHBASE_SERVER_IMAGE:-$(env_get RUSHBASE_SERVER_IMAGE || true)}"
+  if [[ -z "${RUSHBASE_SERVER_IMAGE}" ]]; then
+    local tag
+    tag="$(git -C "${APP_DIR}" describe --exact-match --tags --match 'v*' 2>/dev/null || true)"
+    if [[ -n "${tag}" ]]; then RUSHBASE_SERVER_IMAGE="ghcr.io/elias02345/rushbase-server:${tag#v}"; fi
+  fi
+  if [[ -n "${RUSHBASE_SERVER_IMAGE}" ]] && ! retry 3 20 compose pull server; then
+    warn "Cannot pull ${RUSHBASE_SERVER_IMAGE}; building the server image locally."
+    RUSHBASE_SERVER_IMAGE=""
+  fi
+  export RUSHBASE_SERVER_IMAGE
+}
+
 case "${1:-start}" in
   check)
     compose config -q
     ;;
   start)
     compose config -q || { err "Invalid compose configuration (check ${APP_DIR}/.env)."; exit 1; }
-    if ! retry 3 20 compose build; then
+    use_published_image
+    if [[ -z "${RUSHBASE_SERVER_IMAGE}" ]] && ! retry 3 20 compose build; then
       dump_diagnostics
       exit 1
     fi

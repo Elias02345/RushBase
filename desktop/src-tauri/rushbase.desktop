@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Rushbase
+GenericName=Media library companion
+GenericName[de]=Medienbibliothek-Begleiter
+Comment=Process footage on your own GPU and browse the Rushbase library
+Comment[de]=Material auf der eigenen GPU verarbeiten und die Rushbase-Bibliothek durchsuchen
+Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 {{exec}}
+Icon=rushbase
+Terminal=false
+Categories=AudioVideo;Video;Utility;
+Keywords=video;footage;media;library;archive;ai;transcode;proxy;
+Keywords[de]=Video;Material;Medien;Bibliothek;Archiv;KI;
+StartupWMClass=rushbase-desktop

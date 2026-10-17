@@ -99,6 +99,24 @@ Server, workers and apps each mount the share themselves; only metadata, jobs an
 travel over HTTP. Architecture invariants are listed in [`CLAUDE.md`](CLAUDE.md); decisions in
 [`docs/adr/`](docs/adr/README.md).
 
+## Install
+
+Download from [GitHub Releases](https://github.com/Elias02345/RushBase/releases) (checksums in
+`SHA256SUMS`; the apps are not code-signed yet):
+
+| OS | Download | First start |
+| --- | --- | --- |
+| Windows | `.msi` or `-setup.exe` | SmartScreen: *More info, Run anyway* |
+| macOS (Apple Silicon) | `.dmg` | right-click the app, *Open* (or `xattr -dr com.apple.quarantine /Applications/Rushbase.app`) |
+| Arch / CachyOS / Manjaro | `sudo pacman -U rushbase-bin-<version>-1-x86_64.pkg.tar.zst` | appears in the application launcher |
+| Debian / Ubuntu, Fedora | `.deb` / `.rpm` | appears in the application launcher |
+| Any Linux | `.AppImage` | `chmod +x`, run; use AppImageLauncher or Gear Lever for a menu entry |
+| Headless worker (no GUI) | `rushbase-<version>-<os>-<arch>` | `rushbase enroll`, `rushbase process` |
+
+Docker: `ghcr.io/elias02345/rushbase-server:<version>` and
+`ghcr.io/elias02345/rushbase-worker:<version>-cpu|cuda|vulkan|rocm`. Server installer: see below.
+Releasing: [docs/releasing.md](docs/releasing.md).
+
 ## Quick start
 
 **1. Server** (Ubuntu/Debian, as root; all flags in [operations](docs/operations.md)):

@@ -41,7 +41,8 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/server.Dockerfile
-    image: rushbase-server:local
+    # Published image for the installed release (compose-up.sh sets it on a tag checkout); local build otherwise.
+    image: ${RUSHBASE_SERVER_IMAGE:-rushbase-server:local}
     environment:
       RUSHBASE_SECRET_KEY: ${RUSHBASE_SECRET_KEY:?RUSHBASE_SECRET_KEY is missing; run install.sh}
       RUSHBASE_DATABASE_URL: postgresql+psycopg://rushbase:${RUSHBASE_DB_PASSWORD}@postgres:5432/rushbase

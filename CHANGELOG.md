@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (releases)
+
+- `scripts/release.sh <version>` bumps every manifest, rolls this changelog, commits and tags;
+  `scripts/check-version.sh` fails CI when a manifest differs from the tag. See `docs/releasing.md`.
+- A `v*` tag now publishes one release: installers (Windows, macOS Apple Silicon, Linux
+  AppImage/deb/rpm), an Arch package, the headless worker CLI per OS, `SHA256SUMS`, notes with
+  install instructions, and GHCR images (`rushbase-server`, `rushbase-worker` cpu/cuda/vulkan/rocm;
+  amd64 + arm64 for server and worker-cpu). Versions below 1.0.0 or with a suffix are pre-releases.
+- Linux packages ship a proper desktop entry and hicolor icons (32 to 512 px and scalable); new
+  square app icon; the Docker stack uses the published server image on a tag checkout
+  (`RUSHBASE_SERVER_IMAGE`, local build as fallback).
+
 ### Changed (repository)
 
 - README rewritten with logo, screenshots, architecture diagram and a verified quick start; issue
