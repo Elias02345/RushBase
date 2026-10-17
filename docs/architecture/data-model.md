@@ -90,6 +90,16 @@ M4 (migration 0005, below) adds the AI tables; M5 adds the need lists.
   `decided_by/at`). Only `confirmed` pairs are written to the sidecar (`sync` section).
 - `app_setting` `migration.enabled` (default false) switches the content migration tool.
 
+### Final gaps (migration 0009)
+
+- `asset_usage` (`asset_id` FK, `project_name`, `source` `resolve|manual|claude`; primary key is
+  the three columns; `machine`, `first_seen`, `last_seen`). Feedback only: written by the companion
+  report, by hand or by Claude; not part of the sidecars, so a rebuild starts empty and the next
+  `resolve sync-usage` refills it. Deleting an asset deletes its rows.
+- `api_token.expires_at` (nullable timestamptz): a personal token past it is rejected like a
+  revoked one.
+- Index `ix_stage_result_finished_at` for the dashboard throughput.
+
 ### Full-text search (M3, migration 0004)
 
 - Text search configuration `rushbase_simple` = `simple` with the `unaccent` dictionary on all word

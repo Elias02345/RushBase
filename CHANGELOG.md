@@ -6,6 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (final gaps)
+
+- "Used in project": `rushbase resolve sync-usage` reads the timeline usage of the Rushbase clips
+  in the open Resolve project (read-only) and reports it with the personal token or the worker
+  key; table `asset_usage` (migration 0009), facet and filter "Used in project" in the library,
+  a _Usage_ tab in the asset detail with manual marks.
+- Reprocess by model: administrators queue a stage again for every asset whose latest result has
+  an older or different model version, model or profile (dry-run count first), in _Processing ->
+  Reprocess_ with the current models per stage; the MCP tool `reprocess` takes a `model` selector
+  and `dry_run`.
+- Dashboard: storage growth per month and media type, a coverage heatmap of any two fields (cells
+  open the filtered library, weakest cells listed) and job throughput per hour for the last seven
+  days; all grouped single-pass queries behind the TTL cache.
+- Audit-log viewer (_Administration -> Audit log_): filter by actor, action, target and time,
+  keyset pagination, detail drawer.
+- The asset detail lists the needs items the asset is a candidate for and lets editors confirm or
+  reject inline.
+- Personal API tokens: optional expiry (never, 30, 90, 365 days), enforced on every request and
+  shown in the list; new _Administration -> API tokens_ tab.
+
 ### Added (spec gaps)
 
 - Delete to trash: administrators move a filed asset or duplicate (card folders whole, with

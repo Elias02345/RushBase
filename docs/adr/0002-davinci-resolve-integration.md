@@ -39,7 +39,9 @@ the Resolve Studio 21.1.1 scripting README and `DaVinciResolveScript.pyi` stubs:
 5. File export works without scripting (also for the free edition): metadata CSV (header template
    captured once via `ExportMetadata` and committed as a fixture), FCPXML **1.10** (1.9 optional),
    CMX 3600 EDL for simple cut lists.
-6. "Used in project" read-back via `GetClipProperty()["Usage"]` (Studio only).
+6. "Used in project" read-back via `GetClipProperty()["Usage"]` (Studio only): implemented as
+   `rushbase resolve sync-usage` (read-only), table `asset_usage` on the server (migration 0009).
+   Verified against the fake Resolve only; the property name is to be confirmed on a real Studio.
 
 ## Consequences
 - Free-edition users get file exports and drag-and-drop, but no live push.

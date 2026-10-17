@@ -26,13 +26,24 @@ End-user guide: [Deutsch](user-guide/de.md) | [English](user-guide/en.md). Disas
   reachable through MCP.
 - Migration 0008: `trash_item`, `sync_suggestion`.
 
-Open spec items found by the scan (not implemented): "used in project" feedback from Resolve and
-its facet (section 4/8, only described in ADR-0002); reprocessing by model version ("stage X for
-all assets with model version < Y", section 5) is not offered, only by filter; dashboard shows no
-storage growth over time and no coverage heatmap (coverage exists as an MCP tool only, section
-12); no general audit-log viewer in the web UI (only the MCP call log and the per-asset
-history); the asset detail does not list linked need lists; FCPXML export of confirmed synced
-audio; face clustering feature flag (out of scope, off by default).
+## Final gaps (branch `feature/final-gaps`, migration 0009)
+
+- "Used in project" (spec 4/8, ADR-0002): `asset_usage`, `rushbase resolve sync-usage`
+  (fake-Resolve tests only, never run against a real Resolve), `POST /api/v1/usage/report` and
+  `/api/v1/worker/usage`, facet and filter `used_in_project`, asset tab _Usage_.
+- Reprocess by model (spec 5): `GET /api/v1/admin/reprocess/models`, `POST
+  /api/v1/admin/reprocess/by-model` (dry run by default), MCP `reprocess` with `model`/`dry_run`,
+  dialog in _Processing_.
+- Dashboard (spec 12): `/api/v1/stats/growth|throughput|dimensions|coverage`, index
+  `ix_stage_result_finished_at`.
+- Audit-log viewer (spec 12): `GET /api/v1/admin/audit`, admin tab _Audit log_.
+- Linked needs lists in the asset detail (spec 12): `GET /api/v1/needs/for-asset/{id}`.
+- Personal API token expiry: `api_token.expires_at`, tab _API tokens_.
+
+Still open: FCPXML export of confirmed synced audio; face clustering feature flag (out of scope,
+off by default); real-Resolve verification of `GetClipProperty("Usage")` (run
+`rushbase resolve sync-usage --dry-run` once on a Studio machine); `asset_usage` is feedback only
+and is not part of the sidecars, so `rebuild-from-sidecars` starts it empty until the next sync.
 
 ## M6 companion
 
