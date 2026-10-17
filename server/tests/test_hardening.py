@@ -1,6 +1,6 @@
 """Security hardening: trusted proxies, secure cookies, setup token, metrics token."""
 
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager
 from pathlib import Path
 
@@ -73,6 +73,28 @@ async def test_setup_token_attempts_are_rate_limited(
             (await server.client.post("/api/v1/setup", json=body)).status_code for _ in range(5)
         ]
         assert codes[-1] == 429
+
+
+async def test_oversized_request_bodies_are_rejected(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(
+        database_url, library_root=library_root, max_body_bytes=2048
+    ) as server:
+        declared = await server.client.post("/api/v1/auth/login", content=b"x" * 5000)
+        assert declared.status_code == 413
+        assert "default-src 'self'" in declared.headers["content-security-policy"]
+
+        async def chunks() -> AsyncIterator[bytes]:
+            for _ in range(10):
+                yield b"y" * 500  # no Content-Length: counted while streaming
+
+        streamed = await server.client.post("/api/v1/auth/login", content=chunks())
+        assert streamed.status_code == 413
+        small = await server.client.post(
+            "/api/v1/auth/login", json={"username": "a", "password": "b"}
+        )
+        assert small.status_code == 401
 
 
 async def test_setup_without_token_setting_stays_open(
