@@ -32,7 +32,7 @@ docker run --name "${name}" \
   -v "${OUT}:/out" \
   -e "PKGVER=${pkgver}" -e "DEB_NAME=${deb_name}" -e "HOST_UID=$(id -u)" -e "HOST_GID=$(id -g)" \
   archlinux:latest bash -Eeuo pipefail -c '
-    pacman -Syu --noconfirm --needed base-devel git libarchive desktop-file-utils >/dev/null
+    pacman -Syu --noconfirm --needed base-devel libarchive pacman-contrib desktop-file-utils >/dev/null
     useradd -m builder
     install -d -o builder -g builder /home/builder/pkg
     install -m644 -o builder -g builder /in/PKGBUILD /home/builder/pkg/PKGBUILD
