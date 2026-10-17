@@ -12,6 +12,7 @@ fields and values that a tag names but the database lacks are created as approve
 import asyncio
 import logging
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -32,6 +33,7 @@ from rushbase_server.models import (
     AudioEvent,
     Batch,
     Shot,
+    SyncSuggestion,
     TaxField,
     TaxValue,
     TranscriptSegment,
@@ -326,6 +328,35 @@ async def _apply_ai(session: AsyncSession, asset: Asset, sidecar: SidecarV1) -> 
     await session.flush()
 
 
+async def _apply_sync(session: AsyncSession, documents: Iterable[SidecarV1]) -> None:
+    """Restore confirmed sync pairs once both assets exist."""
+    for sidecar in documents:
+        for item in sidecar.sync:
+            audio, video = (
+                (sidecar.asset_id, item.other_asset_id)
+                if item.other_role == "video"
+                else (item.other_asset_id, sidecar.asset_id)
+            )
+            if await session.get(Asset, audio) is None or await session.get(Asset, video) is None:
+                continue
+            exists = await session.scalar(
+                select(SyncSuggestion.id).where(
+                    SyncSuggestion.asset_a == audio, SyncSuggestion.asset_b == video
+                )
+            )
+            if exists is None:
+                session.add(
+                    SyncSuggestion(
+                        asset_a=audio,
+                        asset_b=video,
+                        offset_ms=item.offset_ms,
+                        confidence=item.confidence or 1.0,
+                        basis=item.basis or "timecode",
+                        status="confirmed",
+                    )
+                )
+
+
 async def rebuild_from_sidecars(
     session: AsyncSession, root: Path, *, dry_run: bool = False
 ) -> RebuildReport:
@@ -359,4 +390,6 @@ async def rebuild_from_sidecars(
         metadata.version = sidecar.metadata.version
         await _apply_shots(session, asset, sidecar)
         await _apply_ai(session, asset, sidecar)
+    if not dry_run:
+        await _apply_sync(session, sidecars.values())
     return report

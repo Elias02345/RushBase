@@ -24,7 +24,7 @@ from rushbase_server.models import (
     TaxValue,
     TranscriptSegment,
 )
-from rushbase_server.services import catalog, derived, stats
+from rushbase_server.services import catalog, derived, stats, sync
 from rushbase_server.services.settings_store import PATH_ROOTS_KEY, get_setting
 
 router = APIRouter(prefix="/api/v1", tags=["catalog"])
@@ -170,6 +170,19 @@ class HistoryOut(BaseModel):
     details: dict[str, Any]
 
 
+class SyncOut(BaseModel):
+    """An audio/video sync suggestion seen from one of the two assets."""
+
+    id: UUID
+    other_asset_id: UUID
+    other_filename: str
+    other_role: str
+    offset_ms: int
+    confidence: float
+    basis: str
+    status: str
+
+
 class AssetDetail(AssetSummary):
     """Everything the detail view shows."""
 
@@ -185,6 +198,7 @@ class AssetDetail(AssetSummary):
     decode_status: str
     history: list[HistoryOut]
     ai: AiOut
+    sync: list[SyncOut] = []
 
 
 async def ai_out(db: AsyncSession, asset: Asset) -> AiOut:
@@ -339,6 +353,27 @@ async def list_assets(
     )
 
 
+async def _sync_out(db: AsyncSession, asset: Asset) -> list[SyncOut]:
+    result = []
+    for row, other in await sync.suggestions_of(db, asset.id):
+        name = await db.scalar(
+            select(AssetFile.original_rel_path).where(AssetFile.id == other.primary_file_id)
+        )
+        result.append(
+            SyncOut(
+                id=row.id,
+                other_asset_id=other.id,
+                other_filename=(name or "").rsplit("/", 1)[-1],
+                other_role=other.media_type,
+                offset_ms=row.offset_ms,
+                confidence=row.confidence,
+                basis=row.basis,
+                status=row.status,
+            )
+        )
+    return result
+
+
 @router.get("/assets/{asset_id}", response_model=AssetDetail, summary="Asset details")
 async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
     """Files (with per-OS paths), metadata, shots, derived links and history of one asset."""
@@ -428,6 +463,7 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
             for e in await catalog.history(db, asset_id)
         ],
         ai=await ai_out(db, asset),
+        sync=await _sync_out(db, asset),
     )
 
 

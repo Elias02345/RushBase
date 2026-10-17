@@ -17,10 +17,13 @@ from rushbase_server.api import (
     filing,
     golden,
     mcp_admin,
+    migration,
     needs,
     oauth,
+    privacy,
     review,
     search,
+    sync,
     system,
     taxonomy,
     trash,
@@ -113,6 +116,9 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(catalog.router)
     app.include_router(filing.router)
     app.include_router(trash.router)
+    app.include_router(privacy.router)
+    app.include_router(migration.router)
+    app.include_router(sync.router)
     app.include_router(taxonomy.router)
     app.include_router(search.router)
     app.include_router(review.router)

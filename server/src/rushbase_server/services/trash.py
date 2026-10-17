@@ -97,7 +97,7 @@ def _is_rushbase_xmp(path: Path) -> bool:
         return False
 
 
-def _sidecar_extras(root: Path, asset: Asset, files: list[AssetFile]) -> list[str]:
+def sidecar_files(root: Path, asset: Asset, files: list[AssetFile]) -> list[str]:
     """Sidecar files Rushbase wrote for ``asset`` (JSON, own XMP, central copy) that exist."""
     found: list[str] = []
     primary = next((f for f in files if f.id == asset.primary_file_id), files[0])
@@ -130,7 +130,7 @@ async def _plan(
         moves.append(QuarantineMove("dir", card, f"{target}/{card}"))
     else:
         moves.extend(QuarantineMove("file", f.rel_path, f"{target}/{f.rel_path}") for f in files)
-    extras = await asyncio.to_thread(_sidecar_extras, root, asset, files)
+    extras = await asyncio.to_thread(sidecar_files, root, asset, files)
     dirs = [m.src for m in moves if m.kind == "dir"]
     moves.extend(
         QuarantineMove("file", rel, f"{target}/{rel}")
@@ -140,7 +140,7 @@ async def _plan(
     return moves
 
 
-def _journal(
+def journal_moves(
     root: Path, now: datetime, asset_id: UUID, moves: list[QuarantineMove], why: str
 ) -> None:
     path = root / SYSTEM_DIR / JOURNAL_DIR / f"{now:%Y-%m}.jsonl"
@@ -203,7 +203,7 @@ async def trash_asset(
             resolve_in_root(root, f"{trash_dir(asset.id)}/{MANIFEST_FILE}"),
             (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8"),
         )
-        await asyncio.to_thread(_journal, root, now, asset.id, done, "trash")
+        await asyncio.to_thread(journal_moves, root, now, asset.id, done, "trash")
     except OSError as exc:
         back = [QuarantineMove(m.kind, m.dst, m.src) for m in reversed(done)]
         await asyncio.to_thread(execute_moves, root, back)
@@ -271,7 +271,7 @@ async def restore_asset(
     back = [QuarantineMove(m.kind, m.dst, m.src) for m in moves]
     try:
         await asyncio.to_thread(execute_moves, root, back)
-        await asyncio.to_thread(_journal, root, now, asset.id, back, "trash_restore")
+        await asyncio.to_thread(journal_moves, root, now, asset.id, back, "trash_restore")
     except OSError as exc:
         raise TrashError(f"could not move the files back: {exc}") from exc
     before = item.manifest.get("files", {})
@@ -396,7 +396,7 @@ async def purge_expired(factory: SessionFactory, root: Path, now_fn: Callable[[]
                 logger.exception("purging the trash failed", extra={"asset": str(asset_id)})
                 continue
             moves = [QuarantineMove("dir", trash_dir(asset_id), "")]
-            await asyncio.to_thread(_journal, root, now_fn(), asset_id, moves, "purge")
+            await asyncio.to_thread(journal_moves, root, now_fn(), asset_id, moves, "purge")
             audit.record(
                 session,
                 actor_kind="system",

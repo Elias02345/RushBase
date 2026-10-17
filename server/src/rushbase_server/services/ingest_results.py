@@ -21,7 +21,7 @@ from rushbase_core.results import (
     parse_stage_output,
 )
 from rushbase_server.models import Asset, AssetFile, AssetMetadata, Job, Shot
-from rushbase_server.services import ai_results, normalize
+from rushbase_server.services import ai_results, normalize, sync
 from rushbase_server.services.derived import DerivedPathError, check_derived_rel_path
 
 
@@ -74,6 +74,8 @@ async def _apply_probe(session: AsyncSession, job: Job, probe: ProbeOutput) -> N
         metadata.normalized = normalized
         metadata.raw = raw
         metadata.version += 1
+    await session.flush()
+    await sync.suggest_for_asset(session, asset)
 
 
 async def _apply_hash(session: AsyncSession, job: Job, output: HashOutput) -> None:

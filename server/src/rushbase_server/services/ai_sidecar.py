@@ -30,7 +30,7 @@ from rushbase_server.models import (
     TaxValue,
     TranscriptSegment,
 )
-from rushbase_server.services import sidecars
+from rushbase_server.services import sidecars, sync
 from rushbase_server.services.settings_store import CENTRAL_META_KEY, get_setting
 
 if TYPE_CHECKING:
@@ -192,6 +192,7 @@ async def refresh_sidecar(
         now,
         tags,
         ai,
+        await sync.confirmed_sections(session, asset_id),
     )
     primary = next((f for f in files if f.id == asset.primary_file_id), files[0])
     task = sidecars.SidecarTask(
