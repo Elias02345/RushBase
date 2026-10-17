@@ -135,7 +135,7 @@ jobs:
           ext=""
           [[ "${RUNNER_OS}" == "Windows" ]] && ext=".exe"
           src="$(find desktop/src-tauri/binaries -name "rushbase-*${ext}" | head -n1)"
-          cp "${src}""headless/rushbase-${VERSION}-${{ matrix.cli_os }}-${{ matrix.cli_arch }}${ext}"
+          cp "${src}" "headless/rushbase-${VERSION}-${{ matrix.cli_os }}-${{ matrix.cli_arch }}${ext}"
           ls -l headless
 
       - name: Import the Windows signing certificate
