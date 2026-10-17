@@ -2,6 +2,7 @@
 
 import json
 import os
+import secrets
 from pathlib import Path
 from uuid import UUID
 
@@ -44,12 +45,17 @@ def atomic_write_text(target: Path, text: str) -> None:
     This is the write pattern for every file Rushbase creates on the share (ADR-0005): other
     clients never observe a partially written file under its final name.
     """
-    tmp = target.with_name(f".{target.name}.rbtmp")
-    with tmp.open("w", encoding="utf-8") as handle:
-        handle.write(text)
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(tmp, target)
+    tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.rbtmp")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        with os.fdopen(os.open(tmp, flags, 0o644), "w", encoding="utf-8") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, target)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
     try:
         dir_fd = os.open(target.parent, os.O_RDONLY)
     except OSError:  # directory fsync is not supported everywhere (e.g. some network mounts)

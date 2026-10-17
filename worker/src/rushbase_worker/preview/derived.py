@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+import secrets
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -17,8 +18,8 @@ MIME_TYPES = {
 
 
 def temp_name(final: Path) -> Path:
-    """Sibling temp path that keeps the extension (``.proxy.rbtmp.mp4``) so tools infer formats."""
-    return final.with_name(f".{final.stem}.rbtmp{final.suffix}")
+    """Unpredictable sibling temp path that keeps the extension (``.proxy.rbtmp-ab12.mp4``)."""
+    return final.with_name(f".{final.stem}.rbtmp-{secrets.token_hex(4)}{final.suffix}")
 
 
 @contextlib.contextmanager
