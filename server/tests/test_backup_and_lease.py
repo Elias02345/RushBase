@@ -238,3 +238,30 @@ async def test_setup_restore_endpoint_restores_a_backup_on_an_empty_database(
         assert login.status_code == 200
         again = await client.post("/api/v1/setup/restore", json={"backup_name": info.name})
         assert again.status_code == 409
+
+
+async def test_background_loops_leave_an_unset_up_database_alone(
+    server_factory: ServerFactory, database_url: str, fresh_database_url: str, library_root: Path
+) -> None:
+    """A replacement server must not scan, file or back up before setup/restore: that would
+    make the restore from the share impossible ("target database is not empty")."""
+    need_pg_tools()
+    async with server_factory(database_url, library_root=library_root) as server:
+        await server.setup_admin()
+        await server.runtime.backup_now()
+    batch = library_root / "Input" / "2026-01-01_Drill"
+    batch.mkdir(parents=True)
+    (batch / "clip.mp4").write_bytes(b"x" * 64)
+    before = backup.list_backups(backup.backup_dir(library_root))
+    migrate(fresh_database_url)
+    async with server_factory(
+        fresh_database_url, library_root=library_root, stable_seconds=0, stable_scans=1
+    ) as replacement:
+        assert replacement.runtime.binding.held
+        assert not await replacement.runtime.setup_complete()
+        await replacement.runtime._scan()
+        await replacement.runtime._maintain()
+        await replacement.runtime._backup()
+        engine = replacement.runtime.engine
+        assert await backup.database_is_empty(engine)
+    assert len(backup.list_backups(backup.backup_dir(library_root))) == len(before)

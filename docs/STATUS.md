@@ -1,5 +1,7 @@
 # Project status
 
+End-user guide: [Deutsch](user-guide/de.md) | [English](user-guide/en.md). Disaster recovery: [operations.md](operations.md#disaster-recovery) (drill: `scripts/dr-drill.sh`).
+
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | M0 Foundation | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media | **done** |

@@ -271,6 +271,66 @@ custom-format `db.dump`, `env.backup` (mode 600) and `meta.json`. The newest
 the library on the share is the source of truth for originals and sidecars, and the database can
 be rebuilt from sidecars. Take your own backups of `/var/lib/rushbase/backups` and of the NAS.
 
+## Disaster recovery
+
+The library on the share is the source of truth. The server also writes a PostgreSQL dump to
+`<library>/.rushbase/backups/` on a schedule (`rushbase-server backup now`, or `POST /api/v1/admin/backups`), so a lost server host or database can be replaced in two ways. Both are exercised
+end to end by `scripts/dr-drill.sh` (nightly in CI, `workflow_dispatch`; needs only
+`make dev-up` locally).
+
+### Path 1: restore the newest backup (everything comes back)
+
+1. Install Rushbase on the replacement host with the **same** `RUSHBASE_LIBRARY_ROOT` mount and a
+   new, empty database (`install.sh` does this; use the same `RUSHBASE_SECRET_KEY` only if you
+   still have the old `.env`, otherwise a new one is fine, all users sign in again).
+2. If the old server died without shutting down, its lease in `library.json` stays valid for
+   `RUSHBASE_SERVER_LEASE_SECONDS` (default 120 s). A plain start refuses with "lease held" until
+   it expires; wait two minutes, or start once with `rushbase-server --force-takeover` when you
+   are sure the old server is gone. Never run two servers against one library.
+3. Open `http://<host>:<port>/setup`. `GET /api/v1/setup` reports `restore_available` and lists the
+   backups; the wizard offers "Restore backup". Pick the newest one and enter the setup code.
+   CLI alternative: `rushbase-server migrate && rushbase-server backup restore <file>`.
+4. Nothing scans, files or backs up before the first user exists, so the database stays empty until
+   the restore (a replacement server cannot "pollute" the new database first).
+5. Sign in with the old accounts. Workers keep their API keys: start `rushbase process` again,
+   no re-enrollment. Material in `Input/` is picked up as usual.
+
+Restored: users, sessions, OAuth clients and tokens, workers, needs lists and candidates, audit
+log, taxonomy, filing rule history, jobs, embeddings, review state. Lost: changes made after the
+newest backup (the newest dump is at most `RUSHBASE_BACKUP_INTERVAL_HOURS` old).
+
+### Path 2: rebuild from sidecars (no usable backup)
+
+1. Install on the replacement host with an empty database, `rushbase-server migrate`.
+2. `rushbase-server rebuild-from-sidecars --dry-run`, then without `--dry-run`. It reads
+   `Content/**/_meta/*.json` and recreates batches, assets, files, metadata, shots, AI
+   descriptions, tags (with their source `ai` / `human` and confidence), human edits such as
+   title, rating and lock, transcript segments and audio events. It is idempotent.
+3. Start the server and run the setup wizard to create the first admin.
+4. Start a worker (re-enroll first, see below). Call `POST /api/v1/admin/reembed` (admin) so the
+   workers' `embed` stage rebuilds the search vectors; full-text search works immediately.
+
+**Not recoverable from sidecars:** users, sessions and personal API tokens, OAuth clients and
+connector grants, worker enrollments (enroll again with a new token), needs lists and their
+candidates, the audit log, filing rule history, job history and stage results, embeddings
+(re-created by the workers), and assets that were never filed (duplicates and quarantined files
+stay in `Input/` and are simply scanned again, getting new ids). Taxonomy values that a tag names
+are re-created as approved; unused values and synonyms are not.
+
+### Rehearse it
+
+```sh
+make dev-up
+scripts/dr-drill.sh          # about 5 minutes, PASS/FAIL summary, removes everything it created
+```
+
+The drill uses its own databases `rushbase_dr_{a,b,c}`, a temporary library below
+`dev/data/dr-drill/` and port 18090. It kills server A with `kill -9` (lease not released),
+verifies that a second server refuses to start until the lease has expired, restores on B,
+checks counts, ids, paths, tags with sources, human edits, needs list and search results
+against the snapshot taken on A, lets the worker process new material, and finally rebuilds on C
+with the backups moved away.
+
 ## Sacred paths
 
 The updater never touches `.env`, secret/encryption keys, the PostgreSQL data directory or

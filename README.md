@@ -51,7 +51,7 @@ Read `CLAUDE.md` for the full list of architecture invariants.
 | `web/`, `packages/` | React web UI, shared UI components, generated API client |
 | `desktop/` | Tauri companion app (planned, milestone M6) |
 | `dev/` | Development stack (PostgreSQL + Samba) and synthetic test media generator |
-| `docs/` | ADRs, status, update rules, CLI JSON contract |
+| `docs/` | ADRs, status, update rules, CLI JSON contract, user guide ([Deutsch](docs/user-guide/de.md), [English](docs/user-guide/en.md)), [operations and disaster recovery](docs/operations.md) |
 
 ## Quick start (development)
 

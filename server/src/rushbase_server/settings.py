@@ -187,6 +187,15 @@ class Settings(BaseSettings):
         return url
 
     @model_validator(mode="after")
+    def _lease_outlives_heartbeat(self) -> Self:
+        if self.server_lease_seconds < 2 * self.server_lease_heartbeat_seconds:
+            raise ValueError(
+                "server_lease_seconds must be at least twice server_lease_heartbeat_seconds, "
+                "otherwise the lease expires between renewals and a second server can take over"
+            )
+        return self
+
+    @model_validator(mode="after")
     def _metrics_need_token(self) -> Self:
         if self.metrics_enabled and self.metrics_token is None:
             raise ValueError("metrics_enabled requires metrics_token")

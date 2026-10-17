@@ -35,8 +35,10 @@ the maintainer.
 - [x] Security review and fixes (`SECURITY.md`, CHANGELOG "Security").
 - [x] Robustness: worker killed mid-job (`scripts/kill-test.sh`), server restart during
       processing, library mount lost and restored.
-- [ ] Disaster-recovery drill: fresh server + existing library → restore from the newest backup
+- [x] Disaster-recovery drill: fresh server + existing library → restore from the newest backup
       in `.rushbase/backups/` → search works; and without backups → `rebuild-from-sidecars`.
+      `scripts/dr-drill.sh` PASS (16 checks), nightly in CI (`dr-drill` job); procedure and what
+      is not recoverable: `docs/operations.md` "Disaster recovery".
 
 ## Manual test matrix (maintainer)
 
@@ -52,6 +54,6 @@ the maintainer.
 
 - [x] Operations (install, update, rollback, proxy/tunnel, hardening): `docs/operations.md`.
 - [x] Connector guide: `docs/mcp.md`. Companion: `docs/companion.md`. Worker: `docs/worker*.md`.
-- [ ] End-user guide (German + English): searching, reviewing, tagging, needs lists, sending to
-      Resolve.
+- [x] End-user guide (German + English): searching, reviewing, tagging, needs lists, sending to
+      Resolve: [`docs/user-guide/de.md`](user-guide/de.md), [`en.md`](user-guide/en.md).
 - [ ] `CHANGELOG.md` release section, `THIRD_PARTY.md` complete, version bumped everywhere.

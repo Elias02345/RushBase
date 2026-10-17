@@ -49,3 +49,11 @@ def test_load_settings_exits_cleanly_when_missing(capsys: pytest.CaptureFixture[
     err = capsys.readouterr().err
     assert "refusing to start" in err
     assert "RUSHBASE_SECRET_KEY" in err
+
+
+def test_lease_must_outlive_the_heartbeat(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RUSHBASE_SECRET_KEY", "k" * 40)
+    monkeypatch.setenv("RUSHBASE_DATABASE_URL", "postgresql+psycopg://u@h/db")
+    monkeypatch.setenv("RUSHBASE_SERVER_LEASE_SECONDS", "20")
+    with pytest.raises(ValidationError, match="server_lease_seconds"):
+        Settings()

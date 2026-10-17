@@ -164,3 +164,36 @@ jobs:
       - uses: actions/checkout@v4
       - name: Sandbox test
         run: scripts/sandbox-test.sh
+
+  dr-drill:
+    # Disaster-recovery drill (release checklist): restore from backup and rebuild from sidecars.
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: rushbase
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: rushbase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rushbase -d rushbase"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RUSHBASE_DATABASE_URL: postgresql+psycopg://rushbase:ci-only-password@127.0.0.1:5432/rushbase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Disaster-recovery drill
+        run: |
+          RUSHBASE_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          export RUSHBASE_SECRET_KEY
+          scripts/dr-drill.sh
