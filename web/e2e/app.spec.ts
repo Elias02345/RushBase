@@ -109,6 +109,7 @@ test("setup wizard walks through to the worker command", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/setup/);
   await page.getByRole("button", { name: "Weiter" }).click();
+  await page.getByLabel("Setup-Code").fill("setup-code-from-installer");
   await page.getByLabel("Benutzername").fill("admin");
   await page.getByLabel("Passwort", { exact: true }).fill("a-long-password-1");
   await page.getByLabel("Passwort wiederholen").fill("a-long-password-1");
@@ -116,6 +117,17 @@ test("setup wizard walks through to the worker command", async ({ page }) => {
   await page.getByRole("button", { name: "Bibliothek einrichten" }).click();
   await page.getByRole("button", { name: "Später in der Verwaltung" }).click();
   await expect(page.getByTestId("enroll-command")).toContainText("rushbase enroll --server");
+  await expectNoViolations(page);
+});
+
+test("setup wizard prefills the setup code from the URL", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("rushbase.lang", "de");
+    window.sessionStorage.setItem("rushbase.mock.scenario", "fresh");
+  });
+  await page.goto("/setup?token=prefilled-code-123");
+  await page.getByRole("button", { name: "Weiter" }).click();
+  await expect(page.getByLabel("Setup-Code")).toHaveValue("prefilled-code-123");
   await expectNoViolations(page);
 });
 

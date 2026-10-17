@@ -3344,6 +3344,11 @@ export interface components {
         RestoreIn: {
             /** Backup Name */
             backup_name: string;
+            /**
+             * Setup Token
+             * @default
+             */
+            setup_token: string;
         };
         /**
          * RestoreOut
@@ -3546,6 +3551,11 @@ export interface components {
             locale: "de" | "en";
             /** Password */
             password: string;
+            /**
+             * Setup Token
+             * @default
+             */
+            setup_token: string;
             /** Username */
             username: string;
         };
@@ -3564,6 +3574,11 @@ export interface components {
             needs_setup: boolean;
             /** Restore Available */
             restore_available: boolean;
+            /**
+             * Setup Token Required
+             * @default false
+             */
+            setup_token_required: boolean;
         };
         /**
          * ShotAiOut

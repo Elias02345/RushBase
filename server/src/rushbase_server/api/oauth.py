@@ -278,7 +278,7 @@ async def _consent_response(
         max_age=900,
         httponly=True,
         samesite="strict",
-        secure=runtime.settings.cookie_secure,
+        secure=runtime.settings.use_secure_cookies,
         path="/oauth",
     )
     return response

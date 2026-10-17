@@ -222,6 +222,8 @@
       "enText": "Interface in English"
     },
     "admin": {
+      "setupCode": "Setup-Code",
+      "setupCodeHint": "Vom Installer ausgegeben (RUSHBASE_SETUP_TOKEN in der .env-Datei).",
       "title": "Dein Administrator-Konto",
       "lead": "Damit verwaltest du Rushbase. Weitere Personen legst du später an.",
       "displayName": "Anzeigename",

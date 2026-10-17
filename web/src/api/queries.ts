@@ -215,6 +215,7 @@ export function useSetup() {
       display_name: string;
       library_name: string;
       locale: "de" | "en";
+      setup_token: string;
     }) => unwrap(api.POST("/api/v1/setup", { body })),
     onSuccess: (result) => client.setQueryData(keys.me, result.user),
   });
@@ -222,8 +223,8 @@ export function useSetup() {
 
 export function useRestore() {
   return useMutation({
-    mutationFn: (backup_name: string) =>
-      unwrap(api.POST("/api/v1/setup/restore", { body: { backup_name } })),
+    mutationFn: (body: { backup_name: string; setup_token: string }) =>
+      unwrap(api.POST("/api/v1/setup/restore", { body })),
   });
 }
 

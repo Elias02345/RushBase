@@ -23,10 +23,12 @@ from rushbase_server.api.deps import (
 )
 from rushbase_server.db import upgrade_to_head
 from rushbase_server.models import ApiToken, Library, Session, User
+from rushbase_server.runtime import Runtime
 from rushbase_server.services import audit, backup
 from rushbase_server.services.security import (
     PERSONAL_TOKEN_PREFIX,
     WeakPasswordError,
+    constant_time_equals,
     hash_password,
     hash_token,
     new_secret,
@@ -86,6 +88,7 @@ class SetupStatus(BaseModel):
     """What the setup wizard needs to know."""
 
     needs_setup: bool
+    setup_token_required: bool = False
     library_configured: bool
     library_initialised: bool
     restore_available: bool
@@ -100,11 +103,30 @@ class SetupIn(BaseModel):
     display_name: str = Field(default="", max_length=200)
     library_name: str = Field(default="Rushbase", min_length=1, max_length=200)
     locale: Locale = "de"
+    setup_token: str = Field(default="", max_length=200)
+
+
+def _check_setup_token(runtime: Runtime, request: Request, supplied: str) -> None:
+    """Require the installer-generated setup code (when configured); failures are rate-limited."""
+    expected = runtime.settings.setup_token
+    if expected is None:
+        return
+    key = f"setup:{client_ip(request) or 'unknown'}"
+    retry = runtime.limiter.retry_after(key)
+    if retry:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "too many failed attempts",
+            headers={"Retry-After": str(retry)},
+        )
+    if not constant_time_equals(supplied, expected.get_secret_value()):
+        runtime.limiter.register_failure(key)
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "invalid setup token")
 
 
 def _set_session_cookies(response: Response, runtime: RuntimeDep, token: str, csrf: str) -> None:
     max_age = int(runtime.settings.session_ttl_hours * 3600)
-    secure = runtime.settings.cookie_secure
+    secure = runtime.settings.use_secure_cookies
     response.set_cookie(
         SESSION_COOKIE,
         token,
@@ -149,6 +171,7 @@ async def setup_status(runtime: RuntimeDep, db: DbDep) -> SetupStatus:
         backups = backup.list_backups(backup.backup_dir(root))
     return SetupStatus(
         needs_setup=not has_user,
+        setup_token_required=runtime.settings.setup_token is not None,
         library_configured=root is not None,
         library_initialised=runtime.binding.initialised(),
         restore_available=bool(backups),
@@ -169,6 +192,7 @@ async def setup(
     body: SetupIn, request: Request, response: Response, runtime: RuntimeDep, db: DbDep
 ) -> LoginOut:
     """Only works while no user exists. Logs the new admin in."""
+    _check_setup_token(runtime, request, body.setup_token)
     await db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": SETUP_LOCK_KEY})
     if await db.scalar(select(func.count()).select_from(User)):
         raise HTTPException(status.HTTP_409_CONFLICT, "setup is already complete")
@@ -223,6 +247,7 @@ class RestoreIn(BaseModel):
     """Which backup of the share to restore."""
 
     backup_name: str = Field(min_length=1, max_length=300)
+    setup_token: str = Field(default="", max_length=200)
 
 
 class RestoreOut(BaseModel):
@@ -241,6 +266,7 @@ _restore_lock = asyncio.Lock()
 )
 async def restore_setup(body: RestoreIn, request: Request, runtime: RuntimeDep) -> RestoreOut:
     """Only works while the database is empty; restores, migrates and re-binds the library."""
+    _check_setup_token(runtime, request, body.setup_token)
     root = runtime.binding.root
     if root is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "RUSHBASE_LIBRARY_ROOT is not configured")

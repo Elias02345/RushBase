@@ -288,6 +288,7 @@ export const handlers = [
   http.get("/api/v1/setup", () =>
     HttpResponse.json({
       needs_setup: !state.setupDone,
+      setup_token_required: scenario() === "fresh",
       library_configured: true,
       library_initialised: false,
       restore_available: !state.setupDone && state.backups.length > 0,
