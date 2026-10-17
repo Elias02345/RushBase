@@ -5,6 +5,7 @@ channels use the HNSW indexes with pgvector's iterative scan so selective filter
 enough rows. A channel whose encoder or stored vectors are unavailable is skipped, never an error.
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -237,6 +238,15 @@ async def compatible_counts(
     return int(compatible), int(total) - int(compatible)
 
 
+async def has_compatible(session: AsyncSession, space: str, info: EncoderInfo) -> bool:
+    """Whether any stored vector of ``space`` matches the encoder (an index probe, no count)."""
+    table = EmbeddingImage if space == "image" else EmbeddingText
+    stmt = select(literal(1)).select_from(table).where(table.model_id == info.model_id)
+    if info.revision:
+        stmt = stmt.where(table.revision == info.revision)
+    return await session.scalar(stmt.limit(1)) is not None
+
+
 async def search(
     session: AsyncSession,
     encoder: QueryEncoder,
@@ -258,12 +268,11 @@ async def search(
         if not info.available:
             skipped[name] = info.reason or "encoder unavailable"
             continue
-        compatible, _mismatched = await compatible_counts(session, space, info)
-        if not compatible:
+        if not await has_compatible(session, space, info):
             skipped[name] = "no compatible vectors stored"
             continue
         started = time.perf_counter()
-        vector = encode(query)
+        vector = await asyncio.to_thread(encode, query)
         encoded_ms = _ms(started)
         channel = await vector_channel(
             session, name, table, info.model_id, info.revision, vector, level, filters, depth

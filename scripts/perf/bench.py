@@ -25,6 +25,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
@@ -224,7 +225,7 @@ def start_server(
         "RUSHBASE_BACKGROUND_TASKS": "false",
         "RUSHBASE_ENCODER_THREADS": os.environ.get("RUSHBASE_ENCODER_THREADS", "2"),
     }
-    env.pop("RUSHBASE_LIBRARY_ROOT", None)
+    env["RUSHBASE_LIBRARY_ROOT"] = tempfile.mkdtemp(prefix="rushbase-perf-lib-")  # only for the login
     if source:
         env["PYTHONPATH"] = f"{source}/server/src:{source}/core/src"
     if models_dir:

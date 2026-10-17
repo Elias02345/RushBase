@@ -765,6 +765,15 @@ def load_needs(conn: psycopg.Connection[Any], py: random.Random) -> int:
     return items
 
 
+AUDIT_SQL = (
+    "INSERT INTO audit_log (id, at, actor_kind, action, target_kind, target_id, details) "
+    "SELECT gen_random_uuid(), a.created_at + interval '1 day' * g, 'system', "
+    "CASE g WHEN 1 THEN 'asset.filed' ELSE 'asset.edit' END, 'asset', a.id::text, '{}'::jsonb "
+    "FROM asset a CROSS JOIN generate_series(1, 2) g"
+)
+"""Two audit entries per asset (filing and one edit): the detail view reads them."""
+
+
 def build_indexes(admin: psycopg.Connection[Any], maintenance_mem: str, params: str) -> None:
     admin.execute(f"SET maintenance_work_mem = '{maintenance_mem}'")  # noqa: S608
     admin.execute("SET max_parallel_maintenance_workers = 3")
@@ -846,6 +855,7 @@ def seed(  # noqa: PLR0913
         for table in COPY_TRIGGER_TABLES:
             conn.execute(f"ALTER TABLE {table} ENABLE TRIGGER USER")  # noqa: S608
         conn.execute("UPDATE asset a SET search_tsv = asset_search_vector(a)")
+        conn.execute(AUDIT_SQL)
         log("search vectors computed")
         if build_hnsw:
             finish(conn, stats, maintenance_mem, hnsw_params)
