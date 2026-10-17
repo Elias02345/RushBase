@@ -356,7 +356,41 @@
     "storageIn_other": "in {{count}} files",
     "storageBar": "Storage by media type",
     "duplicates_one": "{{count}} duplicate uses {{size}}.",
-    "duplicates_other": "{{count}} duplicates use {{size}}."
+    "duplicates_other": "{{count}} duplicates use {{size}}.",
+    "growth": {
+      "title": "Storage growth",
+      "total": "over {{months}} months",
+      "label": "Storage added per month: {{summary}}",
+      "assets_one": "{{count}} asset",
+      "assets_other": "{{count}} assets",
+      "empty": "No growth yet",
+      "emptyText": "Once footage is filed, you see here how the library grows."
+    },
+    "throughput": {
+      "title": "Throughput",
+      "average": "Avg {{n}} jobs per hour",
+      "total": "{{count}} in 7 days",
+      "peak": "peak {{count}} per hour",
+      "label": "{{total}} finished jobs in 7 days, {{average}} per hour on average",
+      "daysAgo": "7 days ago",
+      "now": "now",
+      "empty": "No processing yet",
+      "emptyText": "No job finished in the last 7 days."
+    },
+    "coverage": {
+      "title": "Coverage",
+      "lead": "How much footage there is per combination. Click a cell to open the library with that filter; dashed cells are gaps.",
+      "rows": "Rows",
+      "columns": "Columns",
+      "caption": "Number of assets by {{rows}} and {{columns}}",
+      "cell": "{{row}}, {{column}}: {{count}} assets",
+      "empty": "No values",
+      "emptyText": "There are no values for this selection yet.",
+      "truncated": "Only the most frequent combinations are shown.",
+      "weakest": "Weakest coverage",
+      "assets_one": "{{count}} asset",
+      "assets_other": "{{count}} assets"
+    }
   },
   "library": {
     "searchLabel": "Search material",
@@ -433,7 +467,9 @@
       "ai": "Description",
       "similar": "Similar",
       "privacy": "Privacy",
-      "sync": "Audio sync"
+      "sync": "Audio sync",
+      "usage": "Usage",
+      "needs": "Needs lists"
     },
     "noMetadata": "No metadata yet",
     "noMetadataText": "Once the analysis has run, the data appears here.",
@@ -502,7 +538,9 @@
       "search": "Search",
       "mcp": "MCP / Claude",
       "trash": "Trash",
-      "migration": "Migration"
+      "migration": "Migration",
+      "tokens": "API tokens",
+      "audit": "Audit log"
     },
     "users": {
       "title": "Users",
@@ -968,5 +1006,137 @@
     "done": "{{count}} assets moved",
     "result": "{{moved}} moved, {{failed}} failed.",
     "relink": "Download relink list (CSV)"
+  },
+  "usage": {
+    "facet": "Used in project",
+    "anyProject": "any project",
+    "lead": "Projects this footage was used in. Resolve reports it through `rushbase resolve sync-usage`; you can also add it by hand.",
+    "emptyTitle": "Not used in any project yet",
+    "emptyText": "Once a Resolve project uses the clip on a timeline and has been synced, it shows up here.",
+    "seen": "First seen {{first}} · last {{last}}",
+    "source": {
+      "resolve": "Resolve",
+      "manual": "By hand",
+      "claude": "Claude"
+    },
+    "remove": "Remove",
+    "projectName": "Project name",
+    "projectPlaceholder": "Project name, for example Harbour film",
+    "add": "Add"
+  },
+  "assetNeeds": {
+    "lead": "Needs lists that track this footage as a candidate or confirmed.",
+    "closed": "List closed",
+    "itemState": "Item: {{state}} · match {{score}}%",
+    "item": {
+      "open": "open",
+      "fulfilled": "fulfilled",
+      "dropped": "dropped"
+    },
+    "shot": "Scene {{n}}",
+    "status": {
+      "candidate": "Candidate",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected"
+    },
+    "confirm": "Confirm",
+    "reject": "Reject"
+  },
+  "tokens": {
+    "title": "Personal API tokens",
+    "lead": "For the command line, the companion app and scripts. A token has your account's rights; the plain text is shown once.",
+    "name": "Name",
+    "namePlaceholder": "for example Edit suite",
+    "prefix": "Prefix",
+    "scope": "Rights",
+    "full": "Like your account",
+    "readOnly": "Read only",
+    "readOnlyOption": "Read only",
+    "lastUsed": "Last used",
+    "never": "never",
+    "expires": "Expires",
+    "noExpiry": "never expires",
+    "revoked": "Revoked",
+    "expired": "Expired",
+    "revoke": "Revoke",
+    "lifetime": "Valid for",
+    "lifetimes": {
+      "never": "Unlimited",
+      "30": "30 days",
+      "90": "90 days",
+      "365": "365 days"
+    },
+    "create": "Create token",
+    "empty": "No tokens yet",
+    "emptyText": "Create a token to connect the companion app or the CLI.",
+    "createdTitle": "Your new token",
+    "createdText": "Copy it now. It cannot be shown again.",
+    "copy": "Copy"
+  },
+  "audit": {
+    "title": "Audit log",
+    "lead": "Security-relevant actions: sign-ins, rights, deletion, reprocessing, tokens. Read only; nothing here is ever deleted.",
+    "at": "Time",
+    "actor": "Actor",
+    "actorKind": "Actor type",
+    "action": "Action",
+    "target": "Target",
+    "targetKind": "Target type",
+    "targetId": "Target ID",
+    "from": "From",
+    "to": "To",
+    "all": "All",
+    "kind": {
+      "user": "User",
+      "worker": "Worker",
+      "mcp": "Claude (MCP)",
+      "system": "System"
+    },
+    "onlyThisActor": "Only this actor",
+    "ip": "IP address",
+    "id": "Entry ID",
+    "details": "Details",
+    "actorChip": "Actor {{id}}",
+    "reset": "Reset filters",
+    "empty": "No entries",
+    "emptyText": "Whatever happens shows up here.",
+    "emptyFiltered": "No entries match these filters.",
+    "loaded_one": "{{count}} entry loaded",
+    "loaded_other": "{{count}} entries loaded",
+    "more": "Load more"
+  },
+  "reprocess": {
+    "open": "Reprocess",
+    "title": "Reprocess",
+    "lead": "Queue a stage again for everything whose latest result came from an older or different model. Files are never touched.",
+    "current": "Current models per stage",
+    "noResults": "No analysis results yet.",
+    "versionProfile": "Version {{version}} · profile {{profile}}",
+    "assets_one": "{{count}} asset",
+    "assets_other": "{{count}} assets",
+    "allButThis": "Everything but this",
+    "stage": "Stage",
+    "field": "Attribute",
+    "fields": {
+      "model_version": "Model version",
+      "model_id": "Model",
+      "profile": "Profile"
+    },
+    "operator": "Condition",
+    "ops": {
+      "lt": "older than",
+      "ne": "different from"
+    },
+    "value": "Value",
+    "valuePlaceholder": "for example 1.2",
+    "count": "Count",
+    "queue": "Queue {{count}}",
+    "queueNone": "Count first",
+    "matches_one": "{{count}} asset affected",
+    "matches_other": "{{count}} assets affected",
+    "truncated": "At most 100,000 are queued at once; repeat the action afterwards.",
+    "noValue": "not set",
+    "queued_one": "{{count}} job queued",
+    "queued_other": "{{count}} jobs queued"
   }
 }

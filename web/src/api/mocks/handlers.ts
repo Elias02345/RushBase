@@ -23,6 +23,7 @@ import {
   SPRITE_TILES,
 } from "./data";
 import { aiHandlers, detailFor, extraFacets, resetAiState } from "./aiHandlers";
+import { insightHandlers, resetInsightState, usageFacet, usedIn } from "./insightHandlers";
 import { mcpHandlers, resetMcpState } from "./mcpHandlers";
 import { resetSafetyState, safetyHandlers } from "./safetyHandlers";
 import { keyframeSvg, posterSvg, spriteSvg } from "./svg";
@@ -118,6 +119,7 @@ export function resetMockState(): void {
   resetAiState();
   resetMcpState();
   resetSafetyState();
+  resetInsightState();
 }
 
 function unauthorized() {
@@ -161,6 +163,7 @@ function matches(asset: AssetSummary, query: Record<string, string>): boolean {
   if (!equals("log_profile", query.log_profile)) return false;
   if (!equals("orientation", query.orientation)) return false;
   if (query.batch_id && batchIdForLabel(asset.batch_label) !== query.batch_id) return false;
+  if (query.used_in_project && !usedIn(asset, state.assets, query.used_in_project)) return false;
   const day = asset.capture_at?.slice(0, 10) ?? "";
   if (query.date_from && day < query.date_from) return false;
   if (query.date_to && day > query.date_to) return false;
@@ -278,6 +281,7 @@ export const handlers = [
   ...aiHandlers(aiDeps),
   ...mcpHandlers(aiDeps),
   ...safetyHandlers(aiDeps),
+  ...insightHandlers(aiDeps),
   http.get("/api/health", () =>
     HttpResponse.json({
       status: "ok",
@@ -384,7 +388,16 @@ export const handlers = [
     guarded("viewer", ({ request }) => {
       const query = Object.fromEntries(new URL(request.url).searchParams) as Record<string, string>;
       const narrowed = state.assets.filter((asset) => matches(asset, query));
-      return HttpResponse.json({ facets: [...buildFacets(narrowed), ...extraFacets(narrowed)] });
+      return HttpResponse.json({
+        facets: [
+          ...buildFacets(narrowed),
+          ...extraFacets(narrowed),
+          ...usageFacet(
+            state.assets.filter((asset) => matches(asset, { ...query, used_in_project: "" })),
+            state.assets,
+          ),
+        ],
+      });
     }),
   ),
   http.get(

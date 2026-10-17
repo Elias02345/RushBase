@@ -356,7 +356,41 @@
     "storageIn_other": "in {{count}} Dateien",
     "storageBar": "Speicherverteilung nach Medientyp",
     "duplicates_one": "{{count}} Duplikat belegt {{size}}.",
-    "duplicates_other": "{{count}} Duplikate belegen {{size}}."
+    "duplicates_other": "{{count}} Duplikate belegen {{size}}.",
+    "growth": {
+      "title": "Speicherwachstum",
+      "total": "in {{months}} Monaten",
+      "label": "Hinzugefügter Speicher je Monat: {{summary}}",
+      "assets_one": "{{count}} Medium",
+      "assets_other": "{{count}} Medien",
+      "empty": "Noch kein Wachstum",
+      "emptyText": "Sobald Material einsortiert ist, siehst du hier, wie die Bibliothek wächst."
+    },
+    "throughput": {
+      "title": "Durchsatz",
+      "average": "Ø {{n}} Aufträge pro Stunde",
+      "total": "{{count}} in 7 Tagen",
+      "peak": "Spitze {{count}} pro Stunde",
+      "label": "{{total}} fertige Aufträge in 7 Tagen, im Schnitt {{average}} pro Stunde",
+      "daysAgo": "vor 7 Tagen",
+      "now": "jetzt",
+      "empty": "Noch keine Verarbeitung",
+      "emptyText": "In den letzten 7 Tagen ist kein Auftrag fertig geworden."
+    },
+    "coverage": {
+      "title": "Abdeckung",
+      "lead": "Wie viel Material es je Kombination gibt. Ein Klick auf ein Feld öffnet die Bibliothek mit diesem Filter; gestrichelte Felder sind Lücken.",
+      "rows": "Zeilen",
+      "columns": "Spalten",
+      "caption": "Anzahl Medien nach {{rows}} und {{columns}}",
+      "cell": "{{row}}, {{column}}: {{count}} Medien",
+      "empty": "Keine Werte",
+      "emptyText": "Für diese Auswahl gibt es noch keine Werte.",
+      "truncated": "Nur die häufigsten Kombinationen werden gezeigt.",
+      "weakest": "Schwächste Abdeckung",
+      "assets_one": "{{count}} Medium",
+      "assets_other": "{{count}} Medien"
+    }
   },
   "library": {
     "searchLabel": "Material durchsuchen",
@@ -433,7 +467,9 @@
       "ai": "Beschreibung",
       "similar": "Ähnliches",
       "privacy": "Datenschutz",
-      "sync": "Ton-Sync"
+      "sync": "Ton-Sync",
+      "usage": "Verwendung",
+      "needs": "Bedarfslisten"
     },
     "noMetadata": "Noch keine Metadaten",
     "noMetadataText": "Sobald die Analyse gelaufen ist, stehen die Daten hier.",
@@ -502,7 +538,9 @@
       "search": "Suche",
       "mcp": "MCP / Claude",
       "trash": "Papierkorb",
-      "migration": "Migration"
+      "migration": "Migration",
+      "tokens": "API-Tokens",
+      "audit": "Protokoll"
     },
     "users": {
       "title": "Konten",
@@ -968,5 +1006,137 @@
     "done": "{{count}} Assets verschoben",
     "result": "{{moved}} verschoben, {{failed}} fehlgeschlagen.",
     "relink": "Relink-Liste (CSV) herunterladen"
+  },
+  "usage": {
+    "facet": "Verwendet in Projekt",
+    "anyProject": "irgendein Projekt",
+    "lead": "Projekte, in denen dieses Material verwendet wurde. Resolve meldet das über `rushbase resolve sync-usage`; du kannst es auch von Hand eintragen.",
+    "emptyTitle": "Noch in keinem Projekt verwendet",
+    "emptyText": "Sobald ein Resolve-Projekt den Clip auf einer Timeline nutzt und synchronisiert wurde, erscheint es hier.",
+    "seen": "Zuerst gesehen {{first}} · zuletzt {{last}}",
+    "source": {
+      "resolve": "Resolve",
+      "manual": "Von Hand",
+      "claude": "Claude"
+    },
+    "remove": "Entfernen",
+    "projectName": "Projektname",
+    "projectPlaceholder": "Projektname, z. B. Imagefilm Hafen",
+    "add": "Eintragen"
+  },
+  "assetNeeds": {
+    "lead": "Bedarfslisten, in denen dieses Material als Kandidat oder bestätigt geführt wird.",
+    "closed": "Liste geschlossen",
+    "itemState": "Punkt: {{state}} · Treffer {{score}} %",
+    "item": {
+      "open": "offen",
+      "fulfilled": "erfüllt",
+      "dropped": "verworfen"
+    },
+    "shot": "Szene {{n}}",
+    "status": {
+      "candidate": "Kandidat",
+      "confirmed": "Bestätigt",
+      "rejected": "Abgelehnt"
+    },
+    "confirm": "Bestätigen",
+    "reject": "Ablehnen"
+  },
+  "tokens": {
+    "title": "Persönliche API-Tokens",
+    "lead": "Für die Kommandozeile, die Companion-App und Skripte. Ein Token hat die Rechte deines Kontos; den Klartext siehst du nur einmal.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Schnittplatz",
+    "prefix": "Kennung",
+    "scope": "Rechte",
+    "full": "Wie dein Konto",
+    "readOnly": "Nur lesen",
+    "readOnlyOption": "Nur lesen",
+    "lastUsed": "Zuletzt benutzt",
+    "never": "nie",
+    "expires": "Läuft ab",
+    "noExpiry": "läuft nie ab",
+    "revoked": "Widerrufen",
+    "expired": "Abgelaufen",
+    "revoke": "Widerrufen",
+    "lifetime": "Gültigkeit",
+    "lifetimes": {
+      "never": "Unbegrenzt",
+      "30": "30 Tage",
+      "90": "90 Tage",
+      "365": "365 Tage"
+    },
+    "create": "Token erstellen",
+    "empty": "Noch keine Tokens",
+    "emptyText": "Erstelle ein Token, um die Companion-App oder das CLI zu verbinden.",
+    "createdTitle": "Dein neues Token",
+    "createdText": "Kopiere es jetzt. Danach ist es nicht mehr lesbar.",
+    "copy": "Kopieren"
+  },
+  "audit": {
+    "title": "Protokoll",
+    "lead": "Sicherheitsrelevante Aktionen: Anmeldungen, Rechte, Löschen, Neuverarbeiten, Tokens. Nur lesbar, nichts davon wird gelöscht.",
+    "at": "Zeit",
+    "actor": "Akteur",
+    "actorKind": "Art des Akteurs",
+    "action": "Aktion",
+    "target": "Ziel",
+    "targetKind": "Zielart",
+    "targetId": "Ziel-ID",
+    "from": "Von",
+    "to": "Bis",
+    "all": "Alle",
+    "kind": {
+      "user": "Benutzer",
+      "worker": "Worker",
+      "mcp": "Claude (MCP)",
+      "system": "System"
+    },
+    "onlyThisActor": "Nur dieser Akteur",
+    "ip": "IP-Adresse",
+    "id": "Eintrags-ID",
+    "details": "Einzelheiten",
+    "actorChip": "Akteur {{id}}",
+    "reset": "Filter zurücksetzen",
+    "empty": "Keine Einträge",
+    "emptyText": "Sobald etwas passiert, erscheint es hier.",
+    "emptyFiltered": "Mit diesen Filtern gibt es keine Einträge.",
+    "loaded_one": "{{count}} Eintrag geladen",
+    "loaded_other": "{{count}} Einträge geladen",
+    "more": "Mehr laden"
+  },
+  "reprocess": {
+    "open": "Neu verarbeiten",
+    "title": "Neu verarbeiten",
+    "lead": "Eine Stufe erneut einplanen für alles, was zuletzt mit einem älteren oder anderen Modell analysiert wurde. Dateien bleiben unberührt.",
+    "current": "Aktuelle Modelle je Stufe",
+    "noResults": "Noch keine Analyseergebnisse.",
+    "versionProfile": "Version {{version}} · Profil {{profile}}",
+    "assets_one": "{{count}} Medium",
+    "assets_other": "{{count}} Medien",
+    "allButThis": "Alles außer diesem",
+    "stage": "Stufe",
+    "field": "Merkmal",
+    "fields": {
+      "model_version": "Modellversion",
+      "model_id": "Modell",
+      "profile": "Profil"
+    },
+    "operator": "Bedingung",
+    "ops": {
+      "lt": "älter als",
+      "ne": "ungleich"
+    },
+    "value": "Wert",
+    "valuePlaceholder": "z. B. 1.2",
+    "count": "Zählen",
+    "queue": "{{count}} neu einplanen",
+    "queueNone": "Erst zählen",
+    "matches_one": "{{count}} Medium betroffen",
+    "matches_other": "{{count}} Medien betroffen",
+    "truncated": "Es werden höchstens 100.000 auf einmal eingeplant; wiederhole die Aktion danach.",
+    "noValue": "ohne Angabe",
+    "queued_one": "{{count}} Auftrag eingeplant",
+    "queued_other": "{{count}} Aufträge eingeplant"
   }
 }

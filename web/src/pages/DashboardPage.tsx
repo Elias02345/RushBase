@@ -8,6 +8,9 @@ import { hasRole, useBatches, useMe, useStats, useStatus, useWorkers } from "../
 import type { SystemStatus } from "../api/types";
 import { formatBytes, formatNumber, formatRelative } from "../lib/format";
 import { batchTone } from "../lib/status";
+import { GrowthCard } from "./dashboard/GrowthCard";
+import { HeatmapCard } from "./dashboard/HeatmapCard";
+import { ThroughputCard } from "./dashboard/ThroughputCard";
 
 function sum(values: Iterable<number>): number {
   let total = 0;
@@ -276,6 +279,12 @@ export function DashboardPage() {
             <Skeleton height={120} />
           )}
         </Card>
+      </div>
+
+      <div className="dash-wide-grid">
+        <GrowthCard />
+        <ThroughputCard />
+        <HeatmapCard />
       </div>
     </div>
   );

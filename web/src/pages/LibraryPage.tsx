@@ -53,6 +53,7 @@ const FILTER_KEYS = [
   "review_state",
   "consent",
   "collection_id",
+  "used_in_project",
 ] as const;
 
 export function LibraryPage() {
@@ -334,7 +335,9 @@ export function LibraryPage() {
                 >
                   {key === "date_from" || key === "date_to"
                     ? `${t(key === "date_from" ? "library.from" : "library.to")} ${search[key]}`
-                    : valueLabel(t, key, String(search[key]))}
+                    : key === "used_in_project"
+                      ? `${t("usage.facet")}: ${search[key] === "*" ? t("usage.anyProject") : search[key]}`
+                      : valueLabel(t, key, String(search[key]))}
                   <X size={14} aria-label={t("library.removeFilter")} />
                 </button>
               </li>
