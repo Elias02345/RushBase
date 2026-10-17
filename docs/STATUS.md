@@ -2,17 +2,37 @@
 
 End-user guide: [Deutsch](user-guide/de.md) | [English](user-guide/en.md). Disaster recovery: [operations.md](operations.md#disaster-recovery) (drill: `scripts/dr-drill.sh`).
 
-| Milestone | Scope | Status |
-| --- | --- | --- |
-| M0 Foundation | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media | **done** |
-| M1 Server core | Schema and migrations, library init, input scanner, queue with leasing, worker API, auth, backups, server lease | **done** |
-| M2 CPU worker | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal | **done** — worker engine + server filing merged; verified end to end on test media |
-| M3 Web UI v1 | Search, detail view, processing, statistics, admin, Playwright E2E | **done** — real UI against the real server, full-text search, real-stack E2E (`make e2e-real`) |
-| M4 AI stages | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness | **done** — all AI stages verified end to end on the reference RTX 3070 (`docs/eval/2026-10-vlm-benchmark.md`) |
-| M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | **done** (server and web; the real claude.ai connector test needs a public HTTPS URL, see `docs/mcp.md`) |
-| M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | **done on Linux** — Windows/macOS builds and real Resolve untested (`docs/companion.md`) |
-| Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
-| M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | **part 1 done** (performance, backlog, robustness; `docs/eval/2026-10-perf.md`) |
+| Milestone      | Scope                                                                                                                                                  | Status                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| M0 Foundation  | Monorepo, licence, ADR scaffold, CI, dev environment (PostgreSQL + Samba), test media                                                                  | **done**                                                                                                      |
+| M1 Server core | Schema and migrations, library init, input scanner, queue with leasing, worker API, auth, backups, server lease                                        | **done**                                                                                                      |
+| M2 CPU worker  | `probe`, `hash`, `preview`, `shots`; sidecars + XMP; filing rules; move, quarantine, journal                                                           | **done** — worker engine + server filing merged; verified end to end on test media                            |
+| M3 Web UI v1   | Search, detail view, processing, statistics, admin, Playwright E2E                                                                                     | **done** — real UI against the real server, full-text search, real-stack E2E (`make e2e-real`)                |
+| M4 AI stages   | whisper.cpp, embeddings, VLM with schema output, taxonomy, hybrid search, review list, eval harness                                                    | **done** — all AI stages verified end to end on the reference RTX 3070 (`docs/eval/2026-10-vlm-benchmark.md`) |
+| M5 MCP         | OAuth, all tools, wish lists, "connect in claude.ai" guide                                                                                             | **done** (server and web; the real claude.ai connector test needs a public HTTPS URL, see `docs/mcp.md`)      |
+| M6 Companion   | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers                                                                         | **done on Linux** — Windows/macOS builds and real Resolve untested (`docs/companion.md`)                      |
+| Operations     | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only)                                              |
+| M7 Hardening   | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0                                                                 | **part 1 done** (performance, backlog, robustness; `docs/eval/2026-10-perf.md`)                               |
+
+## Spec gaps (branch `feature/spec-gaps`)
+
+- Delete to trash and restore, retention setting and expiry purge (`services/trash.py`,
+  `api/trash.py`, admin tab _Trash_); admin and browser session only.
+- Privacy: consent/person flag in asset detail and bulk edit, lock by batch or person
+  (`services/privacy.py`, page _Privacy_). Face recognition stays off and is not implemented.
+- Audio/video sync suggestions (`services/sync.py`, asset tab _Audio sync_); FCPXML export of
+  confirmed synced audio is not done.
+- Content migration tool (`services/migration.py`, admin tab _Migration_), off by default, never
+  reachable through MCP.
+- Migration 0008: `trash_item`, `sync_suggestion`.
+
+Open spec items found by the scan (not implemented): "used in project" feedback from Resolve and
+its facet (section 4/8, only described in ADR-0002); reprocessing by model version ("stage X for
+all assets with model version < Y", section 5) is not offered, only by filter; dashboard shows no
+storage growth over time and no coverage heatmap (coverage exists as an MCP tool only, section
+12); no general audit-log viewer in the web UI (only the MCP call log and the per-asset
+history); the asset detail does not list linked need lists; FCPXML export of confirmed synced
+audio; face clustering feature flag (out of scope, off by default).
 
 ## M6 companion
 
@@ -142,7 +162,7 @@ The OpenAPI schema (`/openapi.json`, client in `packages/api-client`) documents 
 - Without any worker the server still serves status, backlog and administration (ADR-0012). Setting
   `RUSHBASE_INPROCESS_STAGES=hash` lets the server hash files itself; `probe` joins in M2.
 - Restoring: start `rushbase-server` against an empty database on an existing library; `GET
-  /api/v1/setup` lists the backups, then `rushbase-server backup restore <file>`.
+/api/v1/setup` lists the backups, then `rushbase-server backup restore <file>`.
 - `scripts/kill-test.sh` starts a private server with short timings when nothing listens on 18080;
   against a running dev server set `KILL_TEST_USER`/`KILL_TEST_PASSWORD` (it then needs minutes
   because of the default 120 s lease).
@@ -160,6 +180,7 @@ Everything below runs on the server; the stage outputs arrive through the worker
   or quarantined); if foreign files share the card directory its members move file by file below a
   new root with the structure kept. Quarantine moves only the asset's own files unless it is the sole
   member of its card directory. `review` means "analysed, waiting for the rest of its card".
+
 ## M3 web UI
 
 The web app (`web/`, shared components in `packages/ui`) runs against the real server. Stack,

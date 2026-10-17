@@ -112,4 +112,18 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("table", { name: "Worker-Tokens" })).toContainText("Offen");
+
+  // --- trash: move a clip to the trash and restore it ---------------------------------------
+  const before = await assetTotal(page.request);
+  await page.goto("/library?q=uhd");
+  await page.getByRole("list", { name: "Treffer" }).getByRole("link").first().click();
+  await page.getByRole("button", { name: "In den Papierkorb", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "In den Papierkorb verschieben" })
+    .click();
+  await expect(page).toHaveURL(/tab=trash/);
+  await expect.poll(() => assetTotal(page.request)).toBe(before - 1);
+  await page.getByRole("button", { name: "Wiederherstellen" }).click();
+  await expect.poll(() => assetTotal(page.request)).toBe(before);
 });

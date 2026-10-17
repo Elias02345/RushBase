@@ -446,7 +446,8 @@
     "tagsText": "Tags appear after analysis, or when you add them yourself.",
     "transcriptSearch": "Search the transcript",
     "transcriptCount": "{{shown}} of {{total}} segments",
-    "audioEvents": "Audio events"
+    "audioEvents": "Audio events",
+    "duplicateOf": "Go to the original"
   },
   "processing": {
     "title": "Processing",

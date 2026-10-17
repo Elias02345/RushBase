@@ -12,7 +12,7 @@ could break an in-place update of a live installation must be flagged in the pul
 | PostgreSQL data directory / Docker volume | the live database |
 | Library `Content/` | stable, user-owned originals and sidecars |
 | Library `Input/` | material waiting to be ingested |
-| Library `.rushbase/` (`meta`, `backups`, `quarantine`, `trash`, `journal`, `library.json`) | state needed to rebuild and restore; `derived/` may be regenerated, never deleted by the updater |
+| Library `.rushbase/` (`meta`, `backups`, `quarantine`, `trash` (deleted only by the server's retention job), `journal`, `library.json`) | state needed to rebuild and restore; `derived/` may be regenerated, never deleted by the updater |
 | TLS certificates and user-authored configuration overrides | operator-owned |
 | `/var/lib/rushbase/` (`backups/`, `install.conf`, `update-state/`) | rollback material and install choices; the updater only adds backups and prunes the oldest beyond `RUSHBASE_BACKUP_KEEP` |
 | `/etc/rushbase/smb.credentials`, the managed block in `/etc/fstab` | SMB credentials and mount definition written by the installer |

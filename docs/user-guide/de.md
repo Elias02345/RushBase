@@ -15,7 +15,7 @@ nicht für die, die Rushbase installieren (das steht in [operations.md](../opera
 - Rushbase **verändert deine Originale nie**. Es liest, analysiert und sortiert sie nur in die
   Bibliothek (`Content/`) um. Einmal einsortiert, bleibt eine Datei für immer an ihrem Platz, damit
   Schnittprojekte nicht brechen.
-- **Suchen geht immer**, auch wenn der Analyse-PC aus ist. Für *neue* Beschreibungen, Transkripte
+- **Suchen geht immer**, auch wenn der Analyse-PC aus ist. Für _neue_ Beschreibungen, Transkripte
   und Szenen muss der Analyse-PC (Worker) laufen.
 - **Deine Korrekturen gewinnen immer** gegen die KI.
 
@@ -27,9 +27,9 @@ nicht für die, die Rushbase installieren (das steht in [operations.md](../opera
 
 Was der Ordnername bedeutet:
 
-| Teil | Wirkung |
-| --- | --- |
-| `2026-10-12` | Drehdatum als Hinweis, falls die Kamera kein Aufnahmedatum liefert. |
+| Teil                   | Wirkung                                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `2026-10-12`           | Drehdatum als Hinweis, falls die Kamera kein Aufnahmedatum liefert.                            |
 | `Imagefilm_Standort-A` | Bezeichnung des **Stapels**. Sie ist durchsuchbar und landet im Ordnernamen in der Bibliothek. |
 
 Dateien, die direkt in `Input/` liegen, fasst Rushbase pro Tag zu einem automatischen Stapel
@@ -40,16 +40,16 @@ behandelt sie als Einheit und sortiert sie erst um, wenn alles darin analysiert 
 
 ### Was danach passiert
 
-Auf der **Übersicht** und unter **Verarbeitung** siehst du den Weg: *Eingang → Analyse → Bibliothek*.
+Auf der **Übersicht** und unter **Verarbeitung** siehst du den Weg: _Eingang → Analyse → Bibliothek_.
 
-| Status | Bedeutung |
-| --- | --- |
-| Kopiert | Die Dateien werden noch auf den Speicher kopiert. Rushbase wartet, bis sich nichts mehr ändert. |
-| Wartet | Erkannt, wartet auf einen Worker. |
-| In Arbeit | Wird gerade analysiert. |
-| Prüfen | Die Analyse war unsicher, ein Mensch soll draufschauen (siehe Abschnitt 4). |
-| Einsortiert | Fertig und in `Content/` abgelegt. |
-| Quarantäne | Die Datei ließ sich nicht verarbeiten (siehe FAQ). |
+| Status      | Bedeutung                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| Kopiert     | Die Dateien werden noch auf den Speicher kopiert. Rushbase wartet, bis sich nichts mehr ändert. |
+| Wartet      | Erkannt, wartet auf einen Worker.                                                               |
+| In Arbeit   | Wird gerade analysiert.                                                                         |
+| Prüfen      | Die Analyse war unsicher, ein Mensch soll draufschauen (siehe Abschnitt 4).                     |
+| Einsortiert | Fertig und in `Content/` abgelegt.                                                              |
+| Quarantäne  | Die Datei ließ sich nicht verarbeiten (siehe FAQ).                                              |
 
 ![Verarbeitung](../screenshots/processing-light.png)
 
@@ -61,7 +61,7 @@ läuft, arbeitet er alles auf einmal ab. Alles, was schon analysiert ist, bleibt
 ## 2. Suchen und Filtern
 
 Unter **Bibliothek** gibst du einfach ein, was du suchst - in normalen Worten, deutsch oder
-englisch: *"Drohne über dem Hafen bei Sonnenuntergang"*, *"Interview Frau mit Brille"*, *"A001"*.
+englisch: _"Drohne über dem Hafen bei Sonnenuntergang"_, _"Interview Frau mit Brille"_, _"A001"_.
 Rushbase kombiniert Volltext (Titel, Dateiname, Kamera, Transkript, Beschreibung) mit einer
 Bild- und Bedeutungssuche.
 
@@ -74,7 +74,7 @@ Bild- und Bedeutungssuche.
   Datum, Dauer, Tags und mehr ein. Die Zahlen zeigen, wie viele Treffer jeder Wert hätte.
   "Zurücksetzen" räumt alles ab.
 - **Sortieren und Ansicht:** Relevanz, neueste, älteste, längste ...; Raster oder Liste.
-- **Ähnliches finden:** Im Material-Detail (Reiter *Ähnliches*) und bei einzelnen Szenen findest du
+- **Ähnliches finden:** Im Material-Detail (Reiter _Ähnliches_) und bei einzelnen Szenen findest du
   Aufnahmen, die so aussehen wie diese - praktisch für Alternativen zu einer Einstellung.
 - Erscheint der Hinweis, die semantische Suche sei nicht aktiv, zeigt Rushbase nur Volltext-Treffer.
   Das ist kein Fehler; die Suche wird besser, sobald die Modelle bereit sind.
@@ -90,9 +90,10 @@ Ein Klick öffnet die Detailseite.
 - **Player:** Du siehst eine Vorschau (Proxy). Das Original wird nie über den Server gestreamt.
 - **Szenen:** Unter dem Player stehen die erkannten Einstellungen mit Schlüsselbildern. Ein Klick
   springt dorthin.
-- **Reiter:** *Technik* (Codec, Auflösung, Kamera ...), *Dateien*, *Verlauf*, *Transkript*
-  (durchsuchbar, Klick auf einen Abschnitt springt zur Stelle), *Tags*, *Beschreibung* (KI-Text
-  auf Deutsch und Englisch) und *Ähnliches*.
+- **Reiter:** _Technik_ (Codec, Auflösung, Kamera ...), _Dateien_, _Verlauf_, _Transkript_
+  (durchsuchbar, Klick auf einen Abschnitt springt zur Stelle), _Tags_, _Beschreibung_ (KI-Text
+  auf Deutsch und Englisch), _Datenschutz_ (siehe Abschnitt 9), _Ton-Sync_ (nur wenn ein Vorschlag
+  existiert) und _Ähnliches_.
 - **Tags und ihre Herkunft:** Jeder Tag zeigt, woher er kommt: **KI** (automatisch erkannt),
   **Claude** (von Claude gesetzt) oder **Von Hand** (von einer Person). Von Hand schlägt Claude,
   Claude schlägt KI.
@@ -117,16 +118,16 @@ Wichtig zu wissen:
 - Was du **von Hand** setzt, wird nie von einer erneuten Analyse überschrieben.
 - Einen Tag, den du entfernst, setzt die KI nicht wieder.
 - Auch bei nicht gesperrtem Material bleiben deine Änderungen bestehen; die Sperre schützt
-  zusätzlich vor *allen* automatischen Änderungen.
+  zusätzlich vor _allen_ automatischen Änderungen.
 
 ### Taxonomie: neue Begriffe freigeben
 
-Tags kommen aus einem festen Vokabular (Feld → Werte, zum Beispiel *Ort → Hafen*). Entdeckt die KI
+Tags kommen aus einem festen Vokabular (Feld → Werte, zum Beispiel _Ort → Hafen_). Entdeckt die KI
 einen neuen Begriff, **schlägt** sie ihn nur vor. Unter **Taxonomie → Vorschläge** siehst du, wie
 oft er vorkam und an welchen Beispielen. Du kannst ihn
 
 - **freigeben** (wird ab dann für Suche und Filter genutzt),
-- **zusammenführen** mit einem vorhandenen Wert (zum Beispiel *Hafenbecken* → *Hafen*) oder
+- **zusammenführen** mit einem vorhandenen Wert (zum Beispiel _Hafenbecken_ → _Hafen_) oder
 - ignorieren.
 
 Freigeben dürfen Redakteure; Felder anlegen, umbenennen und zusammenführen darf nur ein
@@ -185,12 +186,12 @@ Clips oder einzelne Szenen in die **Auswahl** und kannst sie dann
 
 ### Resolve Studio oder kostenlose Version?
 
-| | Resolve Studio (21.1+) | Resolve kostenlos |
-| --- | --- | --- |
-| "An Resolve senden" | **Ja:** legt Ordner (Bins) an, importiert die Clips ins geöffnete Projekt, setzt Beschreibung, Stichwörter und Marker an den Szenen. Mehrfaches Senden erzeugt keine Dubletten. | Nein (die freie Version lässt sich nicht skripten). |
-| Export | Auch möglich. | **FCPXML** (Szenen als Clips auf einer Timeline), **EDL**, **Metadaten-CSV** zum Import in Resolve. |
+|                     | Resolve Studio (21.1+)                                                                                                                                                          | Resolve kostenlos                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| "An Resolve senden" | **Ja:** legt Ordner (Bins) an, importiert die Clips ins geöffnete Projekt, setzt Beschreibung, Stichwörter und Marker an den Szenen. Mehrfaches Senden erzeugt keine Dubletten. | Nein (die freie Version lässt sich nicht skripten).                                                 |
+| Export              | Auch möglich.                                                                                                                                                                   | **FCPXML** (Szenen als Clips auf einer Timeline), **EDL**, **Metadaten-CSV** zum Import in Resolve. |
 
-Voraussetzung für Studio: In Resolve unter *Einstellungen → System → Allgemein* "Externe
+Voraussetzung für Studio: In Resolve unter _Einstellungen → System → Allgemein_ "Externe
 Skripterstellung" auf "Lokal". Speichere dein Projekt vor dem ersten Senden.
 
 **Tipp für gemischte Teams:** Resolve speichert absolute Pfade. Nutzt auf allen Rechnern denselben
@@ -200,8 +201,8 @@ funktionieren.
 ## 8. Rushbase mit Claude nutzen
 
 Wenn dein Administrator den **Claude-Connector** eingerichtet hat, kannst du in claude.ai in
-normaler Sprache mit eurer Bibliothek arbeiten. Einmalig: in claude.ai unter *Einstellungen →
-Konnektoren → Benutzerdefinierten Konnektor hinzufügen* die Rushbase-Adresse eintragen
+normaler Sprache mit eurer Bibliothek arbeiten. Einmalig: in claude.ai unter _Einstellungen →
+Konnektoren → Benutzerdefinierten Konnektor hinzufügen_ die Rushbase-Adresse eintragen
 (`https://<euer-host>/mcp`), dann auf der Rushbase-Seite mit deinem normalen Konto anmelden und
 **Erlauben** klicken.
 
@@ -211,11 +212,11 @@ von selbst - es antwortet nur, wenn du fragst. Jeder Aufruf steht im Protokoll d
 
 Beispiele:
 
-- *"Welche Drohnenaufnahmen von Standort A haben wir aus diesem Jahr?"*
-- *"Erstelle eine Bedarfsliste für ein 60-Sekunden-Imagevideo und prüfe, was fehlt."*
-- *"Zeig mir ruhige Nahaufnahmen von Händen bei der Arbeit, nicht älter als sechs Monate."*
-- *"Gibt es zu 'Hafen bei Nacht' Alternativen zu diesem Clip?"*
-- *"Markiere alle Interviews vom Dreh am 12. Oktober als 'Zu prüfen'."*
+- _"Welche Drohnenaufnahmen von Standort A haben wir aus diesem Jahr?"_
+- _"Erstelle eine Bedarfsliste für ein 60-Sekunden-Imagevideo und prüfe, was fehlt."_
+- _"Zeig mir ruhige Nahaufnahmen von Händen bei der Arbeit, nicht älter als sechs Monate."_
+- _"Gibt es zu 'Hafen bei Nacht' Alternativen zu diesem Clip?"_
+- _"Markiere alle Interviews vom Dreh am 12. Oktober als 'Zu prüfen'."_
 
 Von Claude gesetzte Tags tragen die Herkunft **Claude**. Deine eigenen Korrekturen haben Vorrang.
 
@@ -226,9 +227,9 @@ Unbekannt) und, ob eine **Einwilligung** vorliegt (Ja / Nein / Unbekannt, option
 das Dokument).
 
 - Die KI schätzt "Person erkennbar" als Hinweis; **entscheiden tut ein Mensch**. Du siehst den Wert
-  im Reiter *Beschreibung* und kannst ihn korrigieren.
-- Die **Einwilligung** trägst du ein (oder lässt Claude eintragen: *"Setze die Einwilligung für alle
-  Clips vom Interview am 12. Oktober auf Ja, Verweis 'Vertrag 2026-14'"*).
+  im Reiter _Beschreibung_ und kannst ihn korrigieren.
+- Die **Einwilligung** trägst du ein (oder lässt Claude eintragen: _"Setze die Einwilligung für alle
+  Clips vom Interview am 12. Oktober auf Ja, Verweis 'Vertrag 2026-14'"_).
 - In der Bibliothek kannst du danach filtern, zum Beispiel "Person erkennbar = Ja und Einwilligung =
   Unbekannt", um zu sehen, was noch geklärt werden muss, bevor es veröffentlicht wird.
 - **Material einer Person wiederfinden:** Suche nach ihrem Namen, falls er im Transkript oder in
@@ -237,13 +238,51 @@ das Dokument).
   Personen anhand ihres Gesichts.
 - **Sperren schützt deine Einträge:** Ist Material gesperrt, ändert die Analyse weder Personenangabe
   noch Einwilligung.
-- **Löschen** geht nur über die Verwaltung (Administrator) und legt Dateien in einen Papierkorb mit
-  Aufbewahrungsfrist. Claude kann nichts löschen.
+- **Mehrere auf einmal:** Wähle in der Bibliothek mehrere Materialien aus und drücke
+  _Datenschutz_, um "Person erkennbar", Einwilligung und Nachweis für alle zu setzen. Im Reiter
+  _Datenschutz_ eines einzelnen Materials bearbeitest du dieselben Felder samt Sperre.
+- **Einen ganzen Batch oder eine Person sperren:** Öffne _Datenschutz_ in der Navigation. Wähle
+  einen Batch oder tippe den Namen einer Person. Bei einem Namen findet Rushbase Material, das mit
+  einem freigegebenen Wert des Taxonomie-Felds `person` (Wert, Bezeichnung oder Synonym) getaggt
+  ist, sowie Material, das den Namen in Titel, Beschreibung oder Transkript nennt. Du siehst
+  zuerst die Trefferzahl, sperrst dann alle und kannst im selben Schritt die Einwilligung samt
+  Nachweis setzen. Gesichtserkennung ist standardmäßig aus und nicht umgesetzt: Es ist eine
+  Textsuche, prüfe die Treffer.
+
+### Löschen: der Papierkorb
+
+- **Löschen** dürfen nur Administratoren in der Weboberfläche (nie über Claude oder die
+  Companion-App). Öffne ein Material und drücke _In den Papierkorb_ (bei einem Duplikat: _Duplikat
+  in den Papierkorb_) und bestätige den Dialog.
+- Die Dateien (bei Kamerakarten der ganze Kartenordner, dazu die Sidecars) werden **verschoben**,
+  nicht kopiert, nach `.rushbase/trash/<Asset-ID>/` mit ihrer Ordnerstruktur. Noch wird nichts
+  gelöscht. Duplikate verlassen dabei `Input/`.
+- _Verwaltung -> Papierkorb_ listet alles mit dem Datum der endgültigen Löschung (Standard 30
+  Tage; die Frist stellst du dort ein). _Wiederherstellen_ legt die Dateien zurück; ist der
+  ursprüngliche Pfad inzwischen belegt, nennt Rushbase ihn und verschiebt nichts.
+- Abgelaufene Einträge löscht der Wartungslauf des Servers endgültig. Das ist die einzige Stelle in
+  Rushbase, die Medien löscht, und jede Löschung steht im Audit-Log.
+
+### Ton, der zu einem Video gehört
+
+Überlappen sich die Datei eines Tonrekorders (BWF/iXML-Timecode) und ein Video desselben Batches
+zeitlich, erscheint am Material der Reiter _Ton-Sync_ mit einem **Vorschlag**: Versatz, Sicherheit
+und Grundlage (Timecode oder Aufnahmezeit). Verknüpft wird erst, wenn du _Bestätigen_ drückst;
+_Ablehnen_ blendet ihn aus. Bestätigte Paare stehen in beiden Sidecars.
+
+### Vorhandenes Material neu ablegen (optional)
+
+_Verwaltung -> Migration_ ist standardmäßig aus. Eingeschaltet wählst du einen Batch und eine neue
+Ablageregel, siehst eine Vorschau aller Verschiebungen und führst sie aus, indem du den angezeigten
+Bestätigungstext tippst. Die Dateien werden per Rename verschoben, im Journal festgehalten, ihre
+Sidecars ziehen mit, und du lädst eine **Relink-Liste** (CSV mit altem und neuem Pfad je
+Betriebssystem) herunter, um die Clips in DaVinci Resolve neu zu verbinden. Claude kann keine
+Migration starten.
 
 ## 10. Häufige Fragen und Probleme
 
 **Meine Datei liegt noch in `Input/` und taucht nicht in der Bibliothek auf.**
-Das ist normal, solange sie noch nicht analysiert wurde. Schau unter *Verarbeitung → Warteschlange*
+Das ist normal, solange sie noch nicht analysiert wurde. Schau unter _Verarbeitung → Warteschlange_
 nach: "Wartet" heißt, es fehlt ein laufender Worker - starte den Analyse-PC oder drücke in der
 Companion-App **Verarbeiten**. Wurde gerade noch kopiert, wartet Rushbase einige Minuten, bis sich
 die Datei nicht mehr ändert. Kamerakarten werden erst umsortiert, wenn die ganze Karte fertig ist.
@@ -255,7 +294,7 @@ Unter `Content/` im Pfad `Medientyp/Jahr/Datum_Bezeichnung/`, also zum Beispiel
 
 **Was bedeutet "Quarantäne"?**
 Die Datei konnte nicht gelesen oder verarbeitet werden (zum Beispiel unvollständig kopiert oder
-beschädigt). Sie bleibt unberührt in `Input/`. Unter *Verarbeitung → Quarantäne* kannst du es mit
+beschädigt). Sie bleibt unberührt in `Input/`. Unter _Verarbeitung → Quarantäne_ kannst du es mit
 **Erneut versuchen** nochmal anstoßen, nachdem du die Datei neu kopiert hast. Hilft das nicht,
 schau dir die Datei in einem Player an.
 
@@ -279,5 +318,5 @@ Bitte nicht. Rushbase verlässt sich darauf, dass einsortierte Dateien dort blei
 Organisiere stattdessen über Tags, Sammlungen und Filter.
 
 **Wen frage ich bei Problemen?**
-Deinen Administrator. Der findet unter *Verwaltung* Benutzer, Worker, Backups und das Protokoll
+Deinen Administrator. Der findet unter _Verwaltung_ Benutzer, Worker, Backups und das Protokoll
 (siehe [operations.md](../operations.md)).

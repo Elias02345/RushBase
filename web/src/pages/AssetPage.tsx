@@ -460,6 +460,11 @@ function AssetPageInner({ id }: { id: string }) {
               >
                 {t("similar.button")}
               </Button>
+              {detail.duplicate_of ? (
+                <Link to="/assets/$id" params={{ id: detail.duplicate_of }} className="link">
+                  {t("asset.duplicateOf")}
+                </Link>
+              ) : null}
               {isAdmin && (detail.status === "filed" || detail.status === "duplicate") ? (
                 <TrashButton detail={detail} />
               ) : null}

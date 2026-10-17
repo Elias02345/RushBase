@@ -446,7 +446,8 @@
     "tagsText": "Tags erscheinen nach der Analyse oder wenn du sie selbst vergibst.",
     "transcriptSearch": "Im Transkript suchen",
     "transcriptCount": "{{shown}} von {{total}} Abschnitten",
-    "audioEvents": "Tonereignisse"
+    "audioEvents": "Tonereignisse",
+    "duplicateOf": "Zum Original"
   },
   "processing": {
     "title": "Verarbeitung",
