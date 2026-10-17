@@ -37,7 +37,6 @@ export function WizardPage({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState(t("wizard.defaultName"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [root, setRoot] = useState("");
   const [checks, setChecks] = useState<Check[]>([]);
   const [modelsOpen, setModelsOpen] = useState(false);
 
@@ -101,7 +100,6 @@ export function WizardPage({ onDone }: { onDone: () => void }) {
   const verifyLibrary = (event: FormEvent) => {
     event.preventDefault();
     void run(async () => {
-      await save({ library_root: root.trim() });
       const fresh = await cliData<Overview>(bridge, ["overview"]);
       await refresh();
       if (fresh.mount && !fresh.mount.ok)
@@ -226,14 +224,18 @@ export function WizardPage({ onDone }: { onDone: () => void }) {
                   <Input
                     {...c}
                     className="dk-mono"
-                    value={root}
+                    value={settings?.library_root ?? ""}
                     placeholder="/mnt/rushbase"
-                    onChange={(e) => setRoot(e.target.value)}
+                    readOnly
                   />
                   <Button
                     variant="secondary"
                     icon={<FolderOpen size={16} />}
-                    onClick={() => void bridge.pickDirectory().then((dir) => dir && setRoot(dir))}
+                    onClick={() =>
+                      void bridge
+                        .pickLibraryRoot()
+                        .then(() => client.invalidateQueries({ queryKey: ["settings"] }))
+                    }
                   >
                     {t("common.browse")}
                   </Button>
@@ -241,7 +243,7 @@ export function WizardPage({ onDone }: { onDone: () => void }) {
               )}
             </Field>
             <div className="dk-actions">
-              <Button type="submit" loading={busy} disabled={!root.trim()}>
+              <Button type="submit" loading={busy} disabled={!settings?.library_root}>
                 {t("wizard.library.verify")}
               </Button>
             </div>

@@ -543,6 +543,10 @@ export function createMockBridge(scenario: Scenario = currentScenario()): Bridge
       return poster(Math.max(index, 0));
     },
     pickDirectory: async () => "/mnt/rushbase",
+    pickLibraryRoot: async () => {
+      settings = { ...settings, library_root: "/mnt/rushbase" };
+      return "/mnt/rushbase";
+    },
     autostart: { get: async () => false, set: async () => undefined },
     quit: async () => undefined,
   };

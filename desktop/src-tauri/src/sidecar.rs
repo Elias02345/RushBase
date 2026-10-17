@@ -7,10 +7,57 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
 
-/// Sub-commands the UI may run (anything else is rejected before spawning).
-pub const ALLOWED: &[&str] = &[
-    "version", "hardware", "overview", "doctor", "status", "models", "login", "enroll", "search",
-    "browse", "filters", "asset", "select", "paths", "export", "resolve",
+/// A sub-command the UI may run with the flags it may pass.
+struct Spec {
+    name: &'static str,
+    /// Flags without a value.
+    flags: &'static [&'static str],
+    /// Flags followed by exactly one value.
+    value_flags: &'static [&'static str],
+}
+
+const fn spec(
+    name: &'static str,
+    flags: &'static [&'static str],
+    value_flags: &'static [&'static str],
+) -> Spec {
+    Spec {
+        name,
+        flags,
+        value_flags,
+    }
+}
+
+/// Everything the UI may run (anything else is rejected before spawning): sub-command and flags.
+const SPECS: &[Spec] = &[
+    spec("version", &["--json"], &[]),
+    spec("hardware", &["--json"], &[]),
+    spec("overview", &["--json"], &[]),
+    spec("doctor", &["--json"], &[]),
+    spec("status", &["--json"], &[]),
+    spec("filters", &["--json"], &[]),
+    spec("paths", &["--json"], &[]),
+    spec("asset", &["--json"], &[]),
+    spec("models", &["--json", "--all"], &["--profile"]),
+    spec(
+        "login",
+        &["--json", "--password-stdin"],
+        &["--server", "--username"],
+    ),
+    spec("enroll", &["--json"], &["--server", "--token", "--name"]),
+    spec("search", &["--json"], &["--limit", "--offset", "--filter"]),
+    spec(
+        "browse",
+        &["--json"],
+        &["--limit", "--sort", "--cursor", "--filter"],
+    ),
+    spec("select", &["--json"], &["--shots"]),
+    spec("export", &["--json"], &["--out"]),
+    spec(
+        "resolve",
+        &["--json", "--yes", "--markers", "--metadata"],
+        &["--bin"],
+    ),
 ];
 
 /// Append-only log of CLI calls (used by the smoke test and for support).
@@ -87,10 +134,29 @@ pub fn base_command(settings: &Settings) -> Vec<String> {
     vec!["rushbase".to_string()]
 }
 
-/// Whether `args` start with an allowed sub-command.
-pub fn is_allowed(args: &[String]) -> bool {
-    args.first()
-        .is_some_and(|first| ALLOWED.contains(&first.as_str()))
+/// Check `args` against the allow-list: known sub-command, only its listed flags, and flags that
+/// take a value must have one. Anything else starting with `-` is rejected.
+pub fn validate(args: &[String]) -> Result<(), String> {
+    let first = args.first().ok_or("no command given")?;
+    let spec = SPECS
+        .iter()
+        .find(|s| s.name == first)
+        .ok_or_else(|| format!("command not allowed: {first}"))?;
+    let mut rest = args[1..].iter();
+    while let Some(arg) = rest.next() {
+        if arg.len() > 2000 {
+            return Err("argument too long".into());
+        }
+        if spec.flags.contains(&arg.as_str()) {
+            continue;
+        }
+        if spec.value_flags.contains(&arg.as_str()) {
+            rest.next().ok_or_else(|| format!("{arg} needs a value"))?;
+        } else if arg.starts_with('-') {
+            return Err(format!("flag not allowed for {first}: {arg}"));
+        }
+    }
+    Ok(())
 }
 
 /// Build the process for `args` with the configured environment.
@@ -122,12 +188,7 @@ pub fn run_cli(
     args: &[String],
     stdin: Option<String>,
 ) -> Result<CliOutput, String> {
-    if !is_allowed(args) {
-        return Err(format!(
-            "command not allowed: {}",
-            args.first().cloned().unwrap_or_default()
-        ));
-    }
+    validate(args)?;
     // Arguments may contain secrets only on stdin; the log shows the sub-command path only.
     log.line(&format!(
         "cli {}",
@@ -164,12 +225,37 @@ mod tests {
 
     #[test]
     fn only_listed_subcommands_are_allowed() {
-        assert!(is_allowed(&args(&["hardware", "--json"])));
-        assert!(is_allowed(&args(&["models", "list"])));
-        assert!(!is_allowed(&args(&["process", "--json"])));
-        assert!(!is_allowed(&args(&["mcp", "serve"])));
-        assert!(!is_allowed(&args(&[])));
-        assert!(!is_allowed(&args(&["; rm -rf /"])));
+        assert!(validate(&args(&["hardware", "--json"])).is_ok());
+        assert!(validate(&args(&["models", "list"])).is_ok());
+        assert!(validate(&args(&["process", "--json"])).is_err());
+        assert!(validate(&args(&["mcp", "serve"])).is_err());
+        assert!(validate(&args(&[])).is_err());
+        assert!(validate(&args(&["; rm -rf /"])).is_err());
+    }
+
+    #[test]
+    fn flags_are_allow_listed_per_subcommand() {
+        assert!(validate(&args(&[
+            "search", "harbour", "--limit", "40", "--filter", "a=b"
+        ]))
+        .is_ok());
+        assert!(validate(&args(&["select", "add", "abc", "--shots", "1,2", "--json"])).is_ok());
+        assert!(validate(&args(&[
+            "login",
+            "--server",
+            "http://s",
+            "--username",
+            "u",
+            "--password-stdin"
+        ]))
+        .is_ok());
+        // flags of other commands, global options and unknown flags are refused
+        assert!(validate(&args(&["search", "x", "--out", "/tmp/x"])).is_err());
+        assert!(validate(&args(&["overview", "--library", "/etc"])).is_err());
+        assert!(validate(&args(&["doctor", "--repair"])).is_err());
+        assert!(validate(&args(&["export", "csv", "--out"])).is_err()); // missing value
+        assert!(validate(&args(&["version", "--help"])).is_err());
+        assert!(validate(&args(&["asset", "get", "--config=/x"])).is_err());
     }
 
     #[test]

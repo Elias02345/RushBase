@@ -47,8 +47,6 @@ export function SettingsPage({ onWizard }: { onWizard: () => void }) {
     await bridge.setSettings({
       ...draft,
       server_url: clean(draft.server_url),
-      library_root: clean(draft.library_root),
-      cli_command: clean(draft.cli_command),
       language: i18n.language,
     });
     await client.invalidateQueries();
@@ -72,33 +70,20 @@ export function SettingsPage({ onWizard }: { onWizard: () => void }) {
           <Field label={t("settings.libraryRoot")} hint={t("settings.libraryRootHint")}>
             {(c) => (
               <div className="dk-inline">
-                <Input
-                  {...c}
-                  className="dk-mono"
-                  value={draft.library_root ?? ""}
-                  onChange={(e) => patch({ library_root: e.target.value })}
-                />
+                <Input {...c} className="dk-mono" value={draft.library_root ?? ""} readOnly />
                 <Button
                   variant="secondary"
                   icon={<FolderOpen size={16} />}
                   onClick={() =>
-                    void bridge.pickDirectory().then((d) => d && patch({ library_root: d }))
+                    void bridge
+                      .pickLibraryRoot()
+                      .then((d) => d && patch({ library_root: d }))
+                      .then(() => client.invalidateQueries({ queryKey: ["settings"] }))
                   }
                 >
                   {t("common.browse")}
                 </Button>
               </div>
-            )}
-          </Field>
-          <Field label={t("settings.cli")} hint={t("settings.cliHint")}>
-            {(c) => (
-              <Input
-                {...c}
-                className="dk-mono"
-                value={draft.cli_command ?? ""}
-                placeholder="rushbase"
-                onChange={(e) => patch({ cli_command: e.target.value })}
-              />
             )}
           </Field>
           <div className="dk-actions">
