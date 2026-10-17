@@ -6,6 +6,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (milestone M7)
+
+- Disaster-recovery drill `scripts/dr-drill.sh` (restore from backup on a fresh server, then rebuild
+  from sidecars; PASS/FAIL summary) and a nightly `dr-drill` CI job; "Disaster recovery" section in
+  `docs/operations.md`.
+- End-user guide in German and English (`docs/user-guide/`).
+
+### Fixed (milestone M7)
+
+- A replacement server no longer scans, files or backs up before the first user exists. Before,
+  it picked up the existing library immediately, so the restore from the share was refused
+  ("target database is not empty") and an empty backup could shadow the real ones.
+- `RUSHBASE_SERVER_LEASE_SECONDS` below twice the heartbeat interval is rejected (the lease would
+  expire between renewals and a second server could take over).
+
 ### Security (milestone M7)
 
 - Derived files are served only for media/JSON extensions with `Content-Security-Policy: sandbox`;

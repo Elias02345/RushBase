@@ -54,6 +54,6 @@ the maintainer.
 
 - [x] Operations (install, update, rollback, proxy/tunnel, hardening): `docs/operations.md`.
 - [x] Connector guide: `docs/mcp.md`. Companion: `docs/companion.md`. Worker: `docs/worker*.md`.
-- [ ] End-user guide (German + English): searching, reviewing, tagging, needs lists, sending to
-      Resolve.
+- [x] End-user guide (German + English): searching, reviewing, tagging, needs lists, sending to
+      Resolve: [`docs/user-guide/de.md`](user-guide/de.md), [`en.md`](user-guide/en.md).
 - [ ] `CHANGELOG.md` release section, `THIRD_PARTY.md` complete, version bumped everywhere.
