@@ -137,3 +137,14 @@ def test_purge_refuses_paths_outside_the_trash(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="refusing"):
             trash._remove_tree(tmp_path, bad)
     assert (tmp_path / "Content/a.mov").is_file()
+
+
+def test_purge_refuses_a_trash_folder_replaced_by_a_symlink(tmp_path: Path) -> None:
+    victim = tmp_path / "Content" / "victim"
+    victim.mkdir(parents=True)
+    (victim / "a.mov").write_bytes(b"x")
+    (tmp_path / ".rushbase").mkdir()
+    (tmp_path / ".rushbase/trash").symlink_to(tmp_path / "Content", target_is_directory=True)
+    with pytest.raises(ValueError, match="symbolic link"):
+        trash._remove_tree(tmp_path, ".rushbase/trash/victim")
+    assert (victim / "a.mov").is_file()

@@ -350,6 +350,15 @@ def _remove_tree(root: Path, rel_dir: str) -> int:
     if not rel_dir.startswith(allowed) or ".." in rel_dir.split("/"):
         raise ValueError(f"refusing to delete outside the trash: {rel_dir}")
     top = resolve_in_root(root, rel_dir)
+    # A share user could replace `.rushbase`, `trash` or the asset folder with a symlink to
+    # redirect the deletion: refuse unless every component below the root is a real directory.
+    current = root
+    for part in Path(rel_dir).parts:
+        current = current / part
+        if current.is_symlink():
+            raise ValueError(f"refusing to delete through a symbolic link: {current}")
+    if not top.resolve().is_relative_to(root.resolve()):
+        raise ValueError(f"refusing to delete outside the library: {rel_dir}")
     removed = 0
     for directory, subdirs, names in os.walk(top, topdown=False, followlinks=False):
         for name in names:
@@ -361,9 +370,7 @@ def _remove_tree(root: Path, rel_dir: str) -> int:
                 link.unlink()
             else:
                 link.rmdir()
-    if top.is_symlink():
-        top.unlink()
-    elif top.exists():
+    if top.exists():
         top.rmdir()
     return removed
 
