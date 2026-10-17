@@ -12,6 +12,7 @@ from rushbase_core import LibraryMismatchError
 from rushbase_server import get_version
 from rushbase_server.api import (
     admin,
+    audit,
     auth,
     catalog,
     dashboard,
@@ -114,6 +115,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(system.router)
     app.include_router(auth.router)
     app.include_router(admin.router)
+    app.include_router(audit.router)
     app.include_router(worker.router)
     app.include_router(catalog.router)
     app.include_router(dashboard.router)
