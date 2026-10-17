@@ -363,6 +363,9 @@ class TokenIn(BaseModel):
         default_factory=list,
         description="Empty: full access of the user's role. Only 'read': safe methods only.",
     )
+    expires_in_days: int | None = Field(
+        default=None, ge=1, le=3650, description="Lifetime in days; omitted: never expires."
+    )
 
 
 class TokenOut(BaseModel):
@@ -374,6 +377,7 @@ class TokenOut(BaseModel):
     scopes: list[str]
     last_used_at: datetime | None
     revoked_at: datetime | None
+    expires_at: datetime | None
     created_at: datetime
 
 
@@ -387,7 +391,7 @@ class TokenCreated(TokenOut):
     "/tokens", response_model=TokenCreated, status_code=status.HTTP_201_CREATED, tags=["tokens"]
 )
 async def create_token(
-    body: TokenIn, principal: PrincipalDep, request: Request, db: DbDep
+    body: TokenIn, principal: PrincipalDep, runtime: RuntimeDep, request: Request, db: DbDep
 ) -> TokenCreated:
     """Create a personal API token for the signed-in user (stored hashed)."""
     secret = new_token(PERSONAL_TOKEN_PREFIX)
@@ -398,6 +402,11 @@ async def create_token(
         token_hash=secret.token_hash,
         prefix=secret.prefix,
         scopes=body.scopes,
+        expires_at=(
+            runtime.clock.now() + timedelta(days=body.expires_in_days)
+            if body.expires_in_days
+            else None
+        ),
     )
     db.add(token)
     await db.flush()
