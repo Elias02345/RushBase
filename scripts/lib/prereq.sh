@@ -494,7 +494,7 @@ update_interval() {
 
 # render_unit TEMPLATE: print the unit with all @PLACEHOLDERS@ substituted.
 render_unit() {
-  local tpl="$1" lib mounts db_wants
+  local tpl="$1" lib mounts db_wants rw_paths
   lib="$(env_get RUSHBASE_LIBRARY_ROOT)"
   if [[ -z "${lib}" ]]; then
     lib="$(env_get RUSHBASE_LIBRARY_HOST_PATH)"
@@ -502,6 +502,10 @@ render_unit() {
   mounts=""
   if [[ -n "${lib}" && "${lib}" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
     mounts="RequiresMountsFor=${lib}"
+  fi
+  rw_paths="-${RB_STATE_DIR} -${RB_LOG_DIR} -/var/cache/rushbase"
+  if [[ -n "${lib}" && "${lib}" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+    rw_paths+=" -${lib}"
   fi
   db_wants=""
   if [[ "${DB_MODE}" == "local" ]]; then
@@ -515,6 +519,7 @@ render_unit() {
     -e "s|@RUN_DIR@|${RB_RUN_DIR}|g" \
     -e "s|@UPDATE_INTERVAL@|$(update_interval)|g" \
     -e "s|@MOUNTS_FOR_LINE@|${mounts}|g" \
+    -e "s|@RW_PATHS@|${rw_paths}|g" \
     -e "s|@DB_UNIT@|${db_wants}|g" \
     -e "s|@SERVER_SERVICE@|$(svc_name).service|g" \
     "${tpl}"

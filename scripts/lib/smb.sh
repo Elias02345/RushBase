@@ -12,7 +12,7 @@ RB_SMB_END="# <<< rushbase smb <<<"
 smb_options() {
   local uid="$1" gid="$2" extra="${3:-}" opts
   opts="credentials=${RB_SMB_CRED},vers=3.1.1,cache=strict,actimeo=1,uid=${uid},gid=${gid}"
-  opts+=",file_mode=0664,dir_mode=0775,noperm,_netdev,nofail,x-systemd.requires=network-online.target"
+  opts+=",file_mode=0660,dir_mode=0770,noperm,_netdev,nofail,x-systemd.requires=network-online.target"
   if [[ -n "${extra}" ]]; then
     opts+=",${extra}"
   fi

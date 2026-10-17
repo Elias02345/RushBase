@@ -203,7 +203,7 @@ sudo bash install.sh --mode bare --yes --smb //nas/media --smb-user rushbase \
 
 This writes `/etc/rushbase/smb.credentials` (mode 600) and a managed block in `/etc/fstab` with
 the options from [ADR-0005](adr/0005-smb-semantics.md):
-`vers=3.1.1,cache=strict,actimeo=1,uid=<svc>,gid=<svc>,file_mode=0664,dir_mode=0775,noperm`
+`vers=3.1.1,cache=strict,actimeo=1,uid=<svc>,gid=<svc>,file_mode=0660,dir_mode=0770,noperm`
 (plus `_netdev,nofail`). The server unit declares `RequiresMountsFor=` for the library path.
 Unprivileged LXC containers cannot mount cifs; see `deploy/lxc/README.md`.
 

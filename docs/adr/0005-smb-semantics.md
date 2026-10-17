@@ -34,7 +34,7 @@ Server, workers and companion apps access the same SMB share through their own m
 6. Generated names pass a sanitiser (reserved characters/names, trailing dot/space, component ≤ 255,
    full relative path budget so that typical roots stay < 240 chars on Windows).
 7. Recommended mount (server, rw):
-   `vers=3.1.1,cache=strict,actimeo=1,uid=<svc>,gid=<svc>,file_mode=0664,dir_mode=0775,noperm`.
+   `vers=3.1.1,cache=strict,actimeo=1,uid=<svc>,gid=<svc>,file_mode=0660,dir_mode=0770,noperm`.
    Workers may mount read-only except `.rushbase/derived/` where the NAS permits. `doctor.sh` warns on
    `cache=loose`, `vers<3`, `actimeo>5`.
 
