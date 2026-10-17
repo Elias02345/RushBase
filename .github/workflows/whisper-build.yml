@@ -24,7 +24,7 @@ jobs:
       matrix:
         backend: [cpu, vulkan, cuda]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build in a CUDA devel container
         run: |
           out="$PWD/out/whisper.cpp-${WHISPER_TAG}-linux-x64-${{ matrix.backend }}"
@@ -41,7 +41,7 @@ jobs:
   macos:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build (Metal)
         run: |
           out="$PWD/out/whisper.cpp-${WHISPER_TAG}-macos-arm64-metal"
@@ -59,7 +59,7 @@ jobs:
       matrix:
         backend: [cpu, vulkan, cuda]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: Jimver/cuda-toolkit@v0.2.36
         if: matrix.backend == 'cuda'
         with:
