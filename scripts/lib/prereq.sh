@@ -39,6 +39,7 @@ RB_LOCK_FILE="${RB_RUN_DIR}/update.lock"
 RB_SOCKET="${RB_RUN_DIR}/updater.sock"
 RB_DEFAULT_REPO="https://github.com/Elias02345/RushBase.git"
 RB_UV_VERSION="${RUSHBASE_UV_VERSION:-0.12.17}"
+RB_UV_RELEASE_BASE="https://github.com/astral-sh/uv/releases/download"
 RB_NODE_MAJOR="${RUSHBASE_NODE_MAJOR:-24}"
 RB_PNPM_VERSION="${RUSHBASE_PNPM_VERSION:-9.15.9}"
 RB_PG_MAJOR=16
@@ -270,16 +271,35 @@ setup_tool_env() {
 # --- Tool installation ---------------------------------------------------------------------
 download() { curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 20 -o "$2" "$1"; }
 
+# SHA-256 of the pinned uv release archives (version 0.12.17). Overriding RUSHBASE_UV_VERSION
+# requires RUSHBASE_UV_SHA256 for the archive of this machine's architecture.
+RB_UV_PINNED_VERSION="0.12.17"
+RB_UV_SHA256_X86_64="fa82fd8dde8e8eefdecada6aa0889666556cfceb690d06e0c3bca49eb3070a63"
+RB_UV_SHA256_AARCH64="d636d1b678e9e7f367ecb22b46bd1cabbed234d6bc3b4d96365d2b507f72f86c"
+
 install_uv() {
   if command_exists uv; then
     return 0
   fi
-  log "Installing uv ${RB_UV_VERSION}"
-  local tmp
-  tmp="$(mktemp)"
-  download "https://astral.sh/uv/${RB_UV_VERSION}/install.sh" "${tmp}"
-  UV_UNMANAGED_INSTALL=/usr/local/bin sh "${tmp}" >/dev/null
-  rm -f "${tmp}"
+  local arch expected tmp archive
+  case "$(uname -m)" in
+    x86_64) arch=x86_64; expected="${RB_UV_SHA256_X86_64}" ;;
+    aarch64|arm64) arch=aarch64; expected="${RB_UV_SHA256_AARCH64}" ;;
+    *) fail "Unsupported CPU architecture for uv: $(uname -m)" ;;
+  esac
+  if [[ "${RB_UV_VERSION}" != "${RB_UV_PINNED_VERSION}" ]]; then
+    expected="${RUSHBASE_UV_SHA256:-}"
+    [[ -n "${expected}" ]] || fail "RUSHBASE_UV_VERSION=${RB_UV_VERSION} needs RUSHBASE_UV_SHA256 (archive checksum)."
+  fi
+  log "Installing uv ${RB_UV_VERSION} (checksum verified)"
+  tmp="$(mktemp -d)"
+  archive="uv-${arch}-unknown-linux-gnu.tar.gz"
+  download "${RB_UV_RELEASE_BASE}/${RB_UV_VERSION}/${archive}" "${tmp}/${archive}"
+  printf '%s  %s\n' "${expected}" "${archive}" | (cd "${tmp}" && sha256sum -c --quiet -) \
+    || { rm -rf "${tmp}"; fail "uv checksum mismatch."; }
+  tar -xzf "${tmp}/${archive}" -C "${tmp}" --strip-components=1
+  install -m 0755 "${tmp}/uv" "${tmp}/uvx" /usr/local/bin/
+  rm -rf "${tmp}"
   command_exists uv || fail "uv installation failed."
 }
 
