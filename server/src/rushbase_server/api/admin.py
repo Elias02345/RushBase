@@ -12,6 +12,7 @@ from rushbase_core import Stage
 from rushbase_server.api.deps import AdminDep, DbDep, EditorDep, RuntimeDep, ViewerDep, client_ip
 from rushbase_server.models import ApiToken, Batch, EnrollmentToken, Worker
 from rushbase_server.services import audit, backup, queue
+from rushbase_server.services import reprocess as reprocessing
 from rushbase_server.services.security import hash_token, new_secret
 from rushbase_server.services.settings_store import PIPELINE_STAGES_KEY, set_setting
 
@@ -334,6 +335,88 @@ async def reprocess(
     )
     await db.commit()
     return ReprocessOut(enqueued=len(assets), asset_ids=assets)
+
+
+class ModelUseOut(BaseModel):
+    """Assets whose latest result of ``stage`` came from one model."""
+
+    stage: Stage
+    model_id: str | None
+    model_version: str | None
+    profile: str | None
+    assets: int
+
+
+class ByModelIn(BaseModel):
+    """Queue ``stage`` again where the latest result's model attribute is older / different."""
+
+    stage: Stage
+    field: reprocessing.ModelField
+    op: reprocessing.ModelOp
+    value: str = Field(min_length=1, max_length=200)
+    dry_run: bool = Field(default=True, description="Only count; create no jobs.")
+
+
+class ModelValueCount(BaseModel):
+    """A current value of the compared attribute and how many matching assets have it."""
+
+    value: str | None
+    assets: int
+
+
+class ByModelOut(BaseModel):
+    """What matched and, unless it was a dry run, what was queued."""
+
+    dry_run: bool
+    matched: int
+    queued: int
+    skipped: int
+    truncated: bool
+    by_value: list[ModelValueCount]
+
+
+@router.get("/reprocess/models", response_model=list[ModelUseOut], tags=["queue"])
+async def reprocess_models(_: AdminDep, db: DbDep) -> list[ModelUseOut]:
+    """Current model, version and profile per stage with asset counts."""
+    return [
+        ModelUseOut(
+            stage=Stage(u.stage),
+            model_id=u.model_id,
+            model_version=u.model_version,
+            profile=u.profile,
+            assets=u.assets,
+        )
+        for u in await reprocessing.model_usage(db)
+    ]
+
+
+@router.post("/reprocess/by-model", response_model=ByModelOut, tags=["queue"])
+async def reprocess_by_model(
+    body: ByModelIn, admin: AdminDep, runtime: RuntimeDep, db: DbDep
+) -> ByModelOut:
+    """Re-enqueue a stage for assets whose latest result is older than / differs from a model."""
+    selection = await reprocessing.select_by_model(db, body.stage, body.field, body.op, body.value)
+    queued = skipped = 0
+    if not body.dry_run and selection.asset_ids:
+        queued, skipped = await reprocessing.enqueue_stage(
+            db,
+            body.stage,
+            selection.asset_ids,
+            runtime.clock.now(),
+            runtime.queue_config,
+            "user",
+            admin.user.id,
+            {"field": body.field, "op": body.op, "value": body.value},
+        )
+        await db.commit()
+    return ByModelOut(
+        dry_run=body.dry_run,
+        matched=selection.matched,
+        queued=queued,
+        skipped=skipped,
+        truncated=selection.truncated,
+        by_value=[ModelValueCount(value=v, assets=n) for v, n in selection.by_value],
+    )
 
 
 # --- backups -----------------------------------------------------------------------------

@@ -459,6 +459,14 @@ async def test_taxonomy_rules_and_reprocess(env: Fixture) -> None:
         assert by_filter["queued"] == 2
         both = await client.call_tool("reprocess", {"stage": "embed"})
         assert both.is_error
+        by_model, _ = await call(
+            client,
+            "reprocess",
+            stage="classify",
+            model={"field": "model_version", "op": "lt", "value": "9.0"},
+            dry_run=True,
+        )
+        assert by_model == {"stage": "classify", "dry_run": True, "matched": 0}
     assert not list((env.root / "Content").rglob("*"))  # MCP never creates or moves content
 
 

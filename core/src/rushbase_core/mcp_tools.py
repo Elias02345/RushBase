@@ -284,6 +284,16 @@ class ProcessingStatus(Strict):
     """Input of ``processing_status`` (no arguments)."""
 
 
+class ModelSelector(Strict):
+    """Select assets by the model of their latest result of the stage."""
+
+    field: Literal["model_version", "model_id", "profile"]
+    op: Literal["lt", "ne"] = Field(
+        description="`lt`: older than `value` (versions compare numerically); `ne`: different."
+    )
+    value: str = Field(min_length=1, max_length=200)
+
+
 class Reprocess(Strict):
     """Input of ``reprocess``: queues a stage again. Files are never touched."""
 
@@ -292,6 +302,11 @@ class Reprocess(Strict):
     filters: MediaFilters | None = Field(
         default=None, description="Select by filter instead of ids (max 500 assets)."
     )
+    model: ModelSelector | None = Field(
+        default=None,
+        description="Select by the model of the latest result, e.g. version below Y (max 100000).",
+    )
+    dry_run: bool = Field(default=False, description="Only count what would be queued.")
 
 
 @dataclass(frozen=True)
@@ -483,8 +498,8 @@ TOOLS: Final[tuple[ToolSpec, ...]] = (
         "reprocess",
         "processing",
         Reprocess,
-        "Queue an analysis stage again for given assets or a filter selection. Never touches "
-        "or moves files.",
+        "Queue an analysis stage again for given assets, a filter selection or by the model "
+        "version of the latest result (with dry run). Never touches or moves files.",
         True,
     ),
 )
