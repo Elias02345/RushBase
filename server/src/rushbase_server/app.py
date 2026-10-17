@@ -27,6 +27,7 @@ from rushbase_server.api import (
     system,
     taxonomy,
     trash,
+    usage,
     worker,
 )
 from rushbase_server.api.oauth import REGISTER_PER_HOUR
@@ -117,6 +118,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app.include_router(filing.router)
     app.include_router(trash.router)
     app.include_router(privacy.router)
+    app.include_router(usage.router)
     app.include_router(migration.router)
     app.include_router(sync.router)
     app.include_router(taxonomy.router)

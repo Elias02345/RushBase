@@ -91,6 +91,11 @@ def server_handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(204)
     if not auth.startswith("Bearer "):
         return httpx.Response(401, json={"detail": "authentication required"})
+    if path == "/api/v1/usage/report":
+        body = json.loads(request.content)
+        return httpx.Response(
+            200, json={"recorded": len(body["items"]), "cleared": 0, "unknown": 0}
+        )
     if path == "/api/v1/search":
         hit = {
             "asset": {"id": ASSET_ID, "filename": "A001_C002.mov", "summary": "Nachtaufnahme"},

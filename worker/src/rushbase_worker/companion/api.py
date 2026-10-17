@@ -108,6 +108,16 @@ class UserApi:
         """GET ``path`` and return the decoded JSON body."""
         return self._send(path, params).json()
 
+    def post(self, path: str, body: dict[str, Any]) -> Any:
+        """POST ``body`` as JSON and return the decoded JSON response."""
+        try:
+            response = self._http.post(path, json=body)
+        except httpx.HTTPError as exc:
+            raise UserApiError(0, f"server unreachable: {exc}") from exc
+        if response.status_code >= 400:
+            raise UserApiError(response.status_code, _detail(response))
+        return response.json()
+
     def get_bytes(self, path: str) -> bytes:
         """GET a binary resource (derived images)."""
         return self._send(path).content
@@ -154,6 +164,30 @@ def fetch_backlog(
         raise UserApiError(0, "not enrolled and no personal token")
     with UserApi(url, key, transport=transport) as api:
         return dict(api.get("/api/v1/worker/status"))
+
+
+def report_usage(
+    settings: WorkerSettings,
+    project_name: str,
+    machine: str,
+    items: list[dict[str, Any]],
+    *,
+    transport: httpx.BaseTransport | None = None,
+) -> dict[str, Any]:
+    """Send a usage report; personal token first (editor), else the enrolled worker key."""
+    url = resolve_server_url(settings)
+    if url is None:
+        raise UserApiError(0, "no server configured: run `rushbase enroll` or `rushbase login`")
+    body = {"project_name": project_name, "machine": machine, "items": items}
+    token = load_user_token(settings)
+    if token:
+        with UserApi(url, token, transport=transport) as api:
+            return dict(api.post("/api/v1/usage/report", body))
+    key = load_api_key(settings)
+    if key is None:
+        raise UserApiError(0, "not enrolled and no personal token")
+    with UserApi(url, key, transport=transport) as api:
+        return dict(api.post("/api/v1/worker/usage", body))
 
 
 def login_and_create_token(

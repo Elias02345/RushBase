@@ -38,10 +38,13 @@ class Item:
         return _load()["items"][self.path][key]
 
     def GetClipProperty(self, name: str | None = None) -> Any:
-        return self.path if name == "File Path" else {"File Path": self.path}
+        usage = str(_load()["items"][self.path].get("usage", 0))
+        props = {"File Path": self.path, "Usage": usage}
+        return props.get(name, "") if name else props
 
     def GetMetadata(self, key: str | None = None) -> Any:
-        return self._get("metadata")
+        stored = self._get("metadata")
+        return stored.get(key, "") if key else stored
 
     def SetMetadata(self, values: dict[str, str]) -> bool:
         if MODE == "reject-metadata":

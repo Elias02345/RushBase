@@ -233,3 +233,17 @@ def test_process_records_throughput(monkeypatch: pytest.MonkeyPatch) -> None:
     estimate = throughput.estimate({"stages": {"preview": {"pending_jobs": 8}}}, history, 4)
     assert estimate["stages"]["preview"]["seconds"] == 4
     assert re.fullmatch(r"\d+", str(estimate["total_seconds"]))
+
+
+def test_resolve_sync_usage_reports_to_the_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    from rushbase_worker.companion.resolve import client as resolve_client
+
+    monkeypatch.setattr(
+        resolve_client,
+        "read_usage",
+        lambda _s: {"project": "Harbour", "items": [{"asset_id": ASSET_ID, "uses": 2}]},
+    )
+    data = run("resolve", "sync-usage")["data"]
+    assert data["project"] == "Harbour" and data["server"]["recorded"] == 1
+    dry = run("resolve", "sync-usage", "--dry-run")["data"]
+    assert dry["dry_run"] is True and dry["server"] == {}

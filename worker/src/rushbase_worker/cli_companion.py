@@ -1,5 +1,6 @@
 """CLI commands of the companion: login, search, asset, select, paths, resolve, export, mcp."""
 
+import socket
 import sys
 from pathlib import Path
 from typing import Annotated, Any
@@ -10,6 +11,7 @@ from rushbase_worker.companion import service
 from rushbase_worker.companion.api import (
     UserApiError,
     login_and_create_token,
+    report_usage,
     save_user_token,
 )
 from rushbase_worker.companion.clips import local_path
@@ -272,6 +274,31 @@ def resolve_send(
         for error in result["errors"]:
             typer.echo(f"error: {error}", err=True)
     raise typer.Exit(0 if ok else EXIT_FAILED)
+
+
+@resolve_app.command("sync-usage")
+def resolve_sync_usage(
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Read from Resolve, report nothing.")
+    ] = False,
+    as_json: JsonOption = False,
+) -> None:
+    """Report which Rushbase clips the open project uses (read-only in Resolve)."""
+    settings = WorkerSettings()
+    read = _guard("resolve sync-usage", as_json, lambda: resolve_client.read_usage(settings))
+    reply: dict[str, Any] = {}
+    if not dry_run:
+        try:
+            reply = report_usage(settings, read["project"], socket.gethostname(), read["items"])
+        except UserApiError as exc:
+            raise _fail("resolve sync-usage", str(exc), as_json, EXIT_SERVER) from exc
+    data = {**read, "dry_run": dry_run, "server": reply}
+    if as_json:
+        emit_json(envelope("resolve sync-usage", ok=True, data=data))
+    else:
+        used = sum(1 for i in read["items"] if i["uses"] > 0)
+        typer.echo(f"project {read['project']!r}: {len(read['items'])} Rushbase clips, {used} used"
+                   + (" (dry run)" if dry_run else f"; server: {reply}"))  # fmt: skip
 
 
 @resolve_app.command("selftest")

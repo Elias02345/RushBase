@@ -211,3 +211,8 @@ def push_clips(
     save_known_keys(result.get("keys", []), settings.data_dir)
     result["skipped"] = skipped
     return result
+
+
+def read_usage(settings: WorkerSettings, *, runner: Runner = subprocess.run) -> dict[str, Any]:
+    """Rushbase clips of the open project and how often each is used on a timeline (read-only)."""
+    return run_bridge(settings, {"op": "usage"}, runner=runner)
