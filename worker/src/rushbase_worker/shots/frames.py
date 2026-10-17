@@ -9,6 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from rushbase_worker.tools.process import ToolError
+from rushbase_worker.tools.safe_input import input_args
 from rushbase_worker.tools.toolbox import Toolbox
 
 
@@ -46,8 +47,7 @@ async def stream_frames(
         "error",
         "-nostdin",
         *pre,
-        "-i",
-        str(source),
+        *input_args(source),
         "-an",
         "-sn",
         "-dn",
