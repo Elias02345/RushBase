@@ -24,7 +24,10 @@
     ],
     "security": {
       "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost",
-      "assetProtocol": { "enable": true, "scope": [] }
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      }
     }
   },
   "bundle": {
@@ -39,6 +42,9 @@
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
+      "icons/64x64.png",
+      "icons/256x256.png",
+      "icons/512x512.png",
       "icons/icon.icns",
       "icons/icon.ico"
     ],
@@ -48,29 +54,27 @@
         "depends": ["libayatana-appindicator3-1"],
         "desktopTemplate": "rushbase.desktop",
         "files": {
-          "/usr/share/icons/hicolor/32x32/apps/rushbase.png": "icons/32x32.png",
-          "/usr/share/icons/hicolor/64x64/apps/rushbase.png": "icons/64x64.png",
-          "/usr/share/icons/hicolor/128x128/apps/rushbase.png": "icons/128x128.png",
-          "/usr/share/icons/hicolor/256x256/apps/rushbase.png": "icons/256x256.png",
-          "/usr/share/icons/hicolor/512x512/apps/rushbase.png": "icons/512x512.png",
-          "/usr/share/icons/hicolor/scalable/apps/rushbase.svg": "icons/icon.svg"
+          "/usr/share/icons/hicolor/scalable/apps/rushbase-desktop.svg": "icons/icon.svg"
         }
       },
       "rpm": {
         "desktopTemplate": "rushbase.desktop",
         "files": {
-          "/usr/share/icons/hicolor/32x32/apps/rushbase.png": "icons/32x32.png",
-          "/usr/share/icons/hicolor/64x64/apps/rushbase.png": "icons/64x64.png",
-          "/usr/share/icons/hicolor/128x128/apps/rushbase.png": "icons/128x128.png",
-          "/usr/share/icons/hicolor/256x256/apps/rushbase.png": "icons/256x256.png",
-          "/usr/share/icons/hicolor/512x512/apps/rushbase.png": "icons/512x512.png",
-          "/usr/share/icons/hicolor/scalable/apps/rushbase.svg": "icons/icon.svg"
+          "/usr/share/icons/hicolor/scalable/apps/rushbase-desktop.svg": "icons/icon.svg"
         }
       },
-      "appimage": { "bundleMediaFramework": false }
+      "appimage": {
+        "bundleMediaFramework": false
+      }
     },
-    "macOS": { "minimumSystemVersion": "11.0" },
-    "windows": { "nsis": { "installMode": "currentUser" } }
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
   },
   "plugins": {
     "updater": {

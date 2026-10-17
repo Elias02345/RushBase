@@ -183,7 +183,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: desktop
-          args: ${{ matrix.args }}
+          # MSI only accepts numeric pre-release identifiers, so "-rc.N" versions ship NSIS only.
+          args: ${{ (runner.os == 'Windows' && contains(needs.verify.outputs.version, '-')) && '--bundles nsis' || matrix.args }}
           # An empty tagName means "build only"; with a tag everything goes into the draft release
           # created by the verify job (latest.json is uploaded there as well when the updater key exists).
           tagName: ${{ env.IS_RELEASE == 'true' && needs.verify.outputs.tag || '' }}

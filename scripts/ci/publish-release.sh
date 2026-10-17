@@ -45,7 +45,10 @@ ARCH_PKG="$(pick 'rushbase-bin-*.pkg.tar.zst')"
 CLI_LINUX="$(pick "rushbase-${VERSION}-linux-*")"
 CLI_MAC="$(pick "rushbase-${VERSION}-macos-*")"
 CLI_WIN="$(pick "rushbase-${VERSION}-windows-*.exe")"
-for pair in AppImage:"${APPIMAGE}" deb:"${DEB}" rpm:"${RPM}" dmg:"${DMG}" msi:"${MSI}" \
+# MSI cannot carry a "-rc.N" version: pre-release tags ship the NSIS installer only.
+MSI_REQUIRED="${MSI}"
+if [[ "${VERSION}" == *-* ]]; then MSI_REQUIRED="not-built-for-pre-releases"; fi
+for pair in AppImage:"${APPIMAGE}" deb:"${DEB}" rpm:"${RPM}" dmg:"${DMG}" msi:"${MSI_REQUIRED}" \
   nsis:"${NSIS}" arch:"${ARCH_PKG}" cli-linux:"${CLI_LINUX}" cli-macos:"${CLI_MAC}" cli-windows:"${CLI_WIN}"; do
   [[ -n "${pair#*:}" ]] || fail "Release ${TAG} is missing its ${pair%%:*} asset; not publishing."
 done
@@ -56,6 +59,11 @@ sha256sum -- * >../SHA256SUMS
 mv ../SHA256SUMS SHA256SUMS
 gh release upload "${TAG}" --repo "${REPO}" --clobber SHA256SUMS
 ok "Uploaded SHA256SUMS ($(wc -l <SHA256SUMS) files)"
+
+WINDOWS_CELL="[\`${NSIS}\`](https://github.com/${REPO}/releases/download/${TAG}/${NSIS}) (setup, per user)"
+if [[ -n "${MSI}" ]]; then
+  WINDOWS_CELL="[\`${MSI}\`](https://github.com/${REPO}/releases/download/${TAG}/${MSI}) (MSI) or ${WINDOWS_CELL}"
+fi
 
 # --- notes ---------------------------------------------------------------------------------------
 changelog="$(awk -v h="## [${VERSION}]" '
@@ -75,7 +83,7 @@ IMG_WORKER="ghcr.io/${OWNER_LC}/rushbase-worker"
 
 | Platform | Download |
 | --- | --- |
-| Windows | [\`${MSI}\`](https://github.com/${REPO}/releases/download/${TAG}/${MSI}) (MSI) or [\`${NSIS}\`](https://github.com/${REPO}/releases/download/${TAG}/${NSIS}) (NSIS, per user) |
+| Windows | ${WINDOWS_CELL} |
 | macOS (Apple Silicon) | [\`${DMG}\`](https://github.com/${REPO}/releases/download/${TAG}/${DMG}) |
 | Linux | [\`${APPIMAGE}\`](https://github.com/${REPO}/releases/download/${TAG}/${APPIMAGE}), [\`${DEB}\`](https://github.com/${REPO}/releases/download/${TAG}/${DEB}) or [\`${RPM}\`](https://github.com/${REPO}/releases/download/${TAG}/${RPM}) |
 | Arch Linux / CachyOS / Manjaro | \`sudo pacman -U https://github.com/${REPO}/releases/download/${TAG}/${ARCH_PKG}\` (adds Rushbase to the KDE/GNOME menu) |
