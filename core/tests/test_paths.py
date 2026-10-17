@@ -28,9 +28,15 @@ def test_resolve_in_root_round_trip(tmp_path: Path) -> None:
     assert relative_to_root(tmp_path, resolve_in_root(tmp_path, rel)) == rel
 
 
-def test_resolve_in_root_accepts_backslashes_and_dots(tmp_path: Path) -> None:
-    assert resolve_in_root(tmp_path, "Content\\a\\.\\b.mov") == tmp_path / "Content" / "a" / "b.mov"
+def test_resolve_in_root_normalises_dots(tmp_path: Path) -> None:
     assert resolve_in_root(tmp_path, "Content/a/../b.mov") == tmp_path / "Content" / "b.mov"
+
+
+@pytest.mark.parametrize("bad", ["Content\\a\\b.mov", "a/b\\..\\..\\x", "a/b\x00c"])
+def test_resolve_in_root_rejects_backslashes_and_nul(tmp_path: Path, bad: str) -> None:
+    """Stored paths use ``/`` only: a ``\\`` is part of a POSIX file name, never a separator."""
+    with pytest.raises(PathOutsideLibraryError):
+        resolve_in_root(tmp_path, bad)
 
 
 @pytest.mark.parametrize("bad", ["/etc/passwd", "\\\\nas\\share", "C:\\x", "../x", "a/../../x"])
