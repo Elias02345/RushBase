@@ -176,6 +176,28 @@ if [[ "${DB_MODE}" == "local" ]]; then
   fi
 fi
 
+# --- Query-encoder models (hybrid search) --------------------------------------------------------
+if (( INSTALLED == 1 )); then
+  models_dir="$(env_get RUSHBASE_MODELS_DIR)"
+  if [[ -z "${models_dir}" ]]; then
+    check warn models "RUSHBASE_MODELS_DIR is not set: search is full-text only (install.sh --with-models)"
+  else
+    missing=()
+    for f in siglip2-base-patch16-256/text_model_fp16.onnx siglip2-base-patch16-256/tokenizer.json \
+             multilingual-e5-base/model_quantized.onnx multilingual-e5-base/tokenizer.json; do
+      [[ -s "${models_dir}/${f}" ]] || missing+=("${f}")
+    done
+    if (( ${#missing[@]} == 0 )); then
+      check ok models "query-encoder models present in ${models_dir}"
+    else
+      check error models "missing in ${models_dir}: ${missing[*]} (fix: install.sh --with-models)"
+    fi
+    if encoders="$(curl -fsS --max-time 5 "$(health_url)" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("encoders",{}))' 2>/dev/null)"; then
+      check ok encoders "server reports ${encoders}"
+    fi
+  fi
+fi
+
 # as_service_user CMD...: run a command as the account the server uses to access the library.
 as_service_user() {
   if [[ "${MODE}" == "docker" ]]; then

@@ -746,6 +746,19 @@ uv_sync() {
   (cd "${APP_DIR}" && uv "${args[@]}")
 }
 
+# pull_server_models: the text towers the server needs for hybrid search (no GPU models, no
+# inference binaries), into ${RB_STATE_DIR}/models via the worker's model manager.
+pull_server_models() {
+  setup_tool_env
+  (cd "${APP_DIR}" && uv sync --frozen --no-dev --package rushbase-worker)
+  install -d -m 0755 "${RB_STATE_DIR}/models"
+  (cd "${APP_DIR}" && RUSHBASE_DATA_DIR="${RB_STATE_DIR}" retry 3 20 \
+    uv run --frozen --no-dev --package rushbase-worker rushbase models pull \
+      --only "siglip2-base-patch16-256:text-fp16,tokenizer" \
+      --only "multilingual-e5-base:model,tokenizer")
+  chmod -R a+rX "${RB_STATE_DIR}/models"
+}
+
 web_build() {
   if [[ "${WEB}" != "1" || ! -f "${APP_DIR}/web/package.json" ]]; then
     return 0
