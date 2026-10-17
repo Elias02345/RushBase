@@ -30,6 +30,7 @@ for (const scheme of ["light", "dark"] as const) {
       );
       await page.goto("/setup");
       await page.getByRole("button", { name: "Weiter" }).click();
+      await page.getByLabel("Setup-Code").fill("setup-code-from-installer");
       await page.getByLabel("Benutzername").fill("elias");
       await page.getByLabel("Passwort", { exact: true }).fill("a-long-password-1");
       await page.getByLabel("Passwort wiederholen").fill("a-long-password-1");
