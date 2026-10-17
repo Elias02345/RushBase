@@ -37,7 +37,7 @@ jobs:
       RUSHBASE_TEST_DATABASE_URL: postgresql+psycopg://rushbase:ci-only-password@127.0.0.1:5432/rushbase
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install dependencies
@@ -188,7 +188,7 @@ jobs:
       RUSHBASE_DATABASE_URL: postgresql+psycopg://rushbase:ci-only-password@127.0.0.1:5432/rushbase
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - run: uv sync --frozen
