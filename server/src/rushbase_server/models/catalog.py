@@ -304,6 +304,61 @@ class MoveJournal(Base):
     __table_args__ = (Index("ix_move_journal_asset_id", "asset_id"),)
 
 
+class TrashItem(Base):
+    """A trashed asset: its files rest in ``.rushbase/trash/<asset-id>/`` until restored or expired."""
+
+    __tablename__ = "trash_item"
+
+    asset_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("asset.id", ondelete="CASCADE"), primary_key=True
+    )
+    trashed_at: Mapped[datetime] = now_column()
+    trashed_by: Mapped[UUID | None] = mapped_column(
+        Uuid, ForeignKey("user.id", ondelete="SET NULL")
+    )
+    prior_status: Mapped[str] = mapped_column(String(16))
+    # ``moves`` (kind, src, dst) and ``files`` (file id -> rel_path/card_structure_root before).
+    manifest: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb"), default=dict
+    )
+
+    __table_args__ = (Index("ix_trash_item_trashed_at", "trashed_at"),)
+
+
+SYNC_STATUSES = ("suggested", "confirmed", "rejected")
+
+
+class SyncSuggestion(Base):
+    """A suggested link between an audio recording (``asset_a``) and a video (``asset_b``).
+
+    ``offset_ms`` is the start of the audio relative to the start of the video. A suggestion
+    never links anything by itself; only a person's confirmation does.
+    """
+
+    __tablename__ = "sync_suggestion"
+
+    id: Mapped[UUID] = pk()
+    asset_a: Mapped[UUID] = mapped_column(Uuid, ForeignKey("asset.id", ondelete="CASCADE"))
+    asset_b: Mapped[UUID] = mapped_column(Uuid, ForeignKey("asset.id", ondelete="CASCADE"))
+    offset_ms: Mapped[int] = mapped_column(BigInteger)
+    confidence: Mapped[float] = mapped_column(Double)
+    basis: Mapped[str] = mapped_column(String(16))
+    status: Mapped[str] = mapped_column(String(10), server_default="suggested", default="suggested")
+    decided_by: Mapped[UUID | None] = mapped_column(
+        Uuid, ForeignKey("user.id", ondelete="SET NULL")
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = now_column()
+
+    __table_args__ = (
+        enum_check("status", SYNC_STATUSES),
+        enum_check("basis", ("timecode", "capture_at")),
+        UniqueConstraint("asset_a", "asset_b", name="uq_sync_suggestion_pair"),
+        Index("ix_sync_suggestion_asset_a", "asset_a"),
+        Index("ix_sync_suggestion_asset_b", "asset_b"),
+    )
+
+
 __all__ = [
     "Asset",
     "AssetFile",
@@ -311,4 +366,6 @@ __all__ = [
     "FilingRule",
     "MoveJournal",
     "Shot",
+    "SyncSuggestion",
+    "TrashItem",
 ]
