@@ -229,4 +229,5 @@ async def test_edits_refresh_the_rushbase_xmp_but_never_a_camera_xmp(
         assert "xmp:Rating>4<" in (alone / "IMG_2.xmp").read_text()
         assert "Title of IMG_1.JPG" in (with_camera / "IMG_1.rushbase.xmp").read_text()
         assert (with_camera / "IMG_1.xmp").read_bytes() == b"<camera-xmp/>"
-        assert not list(alone.glob("*.tmp*")) and not list(with_camera.glob("*.tmp*"))
+        assert not list(alone.glob("*.tmp*"))
+        assert not list(with_camera.glob("*.tmp*"))

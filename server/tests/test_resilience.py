@@ -11,7 +11,7 @@ from pipeline import put_file
 from rushbase_server.models import Asset, InputFile
 from support import Server
 
-pytestmark = pytest.mark.postgres
+pytestmark = [pytest.mark.postgres]
 
 ServerFactory = Callable[..., AbstractAsyncContextManager[Server]]
 
@@ -36,7 +36,7 @@ async def test_library_mount_disappears_and_returns(
         assert (await server.client.get("/health")).status_code == 200
 
         gone = library_root.with_name(library_root.name + "-unmounted")
-        library_root.rename(gone)
+        library_root.rename(gone)  # noqa: ASYNC240
         try:
             await server.runtime.binding.heartbeat()
             health = await server.client.get("/health")
