@@ -16,9 +16,15 @@ JSON lines of `rushbase process --json`. There are no GUI-only features.
 
 | OS | Package | Notes |
 | --- | --- | --- |
-| Linux | `Rushbase_<version>_amd64.AppImage`, `.deb`, `.rpm`, AUR `rushbase-bin` (`deploy/aur/PKGBUILD`) | needs `webkit2gtk-4.1`, `gtk3`, `libsoup3`; `libayatana-appindicator` for the tray (the app works without it) |
+| Linux | `Rushbase_<version>_amd64.AppImage`, `.deb`, `.rpm`, Arch `rushbase-bin-<version>-1-x86_64.pkg.tar.zst` (`sudo pacman -U <url>`; PKGBUILD in `deploy/aur/`) | needs `webkit2gtk-4.1`, `gtk3`, `libsoup3`; `libayatana-appindicator` for the tray (the app works without it) |
 | Windows | `.msi` or `-setup.exe` (NSIS, per user) | the app is unsigned until the signing secrets exist (SmartScreen warning) |
 | macOS | `.dmg` for Apple Silicon (Intel Macs: not supported, see ADR-0004) | unsigned until the Apple secrets exist (right click, Open) |
+
+The deb, rpm and Arch packages install a desktop entry (`rushbase.desktop`) and hicolor icons, so
+Rushbase shows up in the KDE/GNOME launcher. An AppImage does not integrate itself: use
+AppImageLauncher or Gear Lever. All release assets are listed in `SHA256SUMS`; see
+[releasing.md](releasing.md). For a GUI-less server or PC download the headless
+`rushbase-<version>-<os>-<arch>` binary and run `rushbase enroll` / `rushbase process`.
 
 The installers contain the worker as a sidecar (a frozen `rushbase`, about 140 MB). AI models and the
 pinned llama.cpp / whisper.cpp builds are **not** inside: the app downloads them on demand with

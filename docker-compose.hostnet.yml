@@ -48,7 +48,8 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/server.Dockerfile
-    image: rushbase-server:local
+    # Published image for the installed release (compose-up.sh sets it on a tag checkout); local build otherwise.
+    image: ${RUSHBASE_SERVER_IMAGE:-rushbase-server:local}
     network_mode: host
     environment:
       RUSHBASE_SECRET_KEY: ${RUSHBASE_SECRET_KEY:?RUSHBASE_SECRET_KEY is missing; run install.sh}

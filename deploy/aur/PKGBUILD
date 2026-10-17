@@ -1,15 +1,19 @@
 # Maintainer: Rushbase contributors
-# Repackages the official AppImage of a release for Arch-based distributions.
-# After a release: bump pkgver, run `updpkgsums`, `makepkg -si` (or push to the AUR).
+# Repackages the official .deb of a release (it carries the desktop entry and hicolor icons) for
+# Arch-based distributions. CI builds this on every release tag and attaches the resulting
+# rushbase-bin-<ver>-1-x86_64.pkg.tar.zst to the GitHub release (sudo pacman -U <url>).
+# By hand after a release: bump pkgver, run `updpkgsums`, `makepkg -si` (or push to the AUR).
+# A pre-release version uses '_' here (0.9.0_rc.1) and maps back to '-' for the download URL.
 pkgname=rushbase-bin
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="Rushbase companion: process footage on your own GPU and browse the library with local originals"
 arch=('x86_64')
-url="https://github.com/Elias02345/Rushbase"
+url="https://github.com/Elias02345/RushBase"
 license=('Apache-2.0')
-depends=('webkit2gtk-4.1' 'gtk3' 'libsoup3' 'libayatana-appindicator' 'ffmpeg')
+depends=('webkit2gtk-4.1' 'gtk3' 'libsoup3' 'ffmpeg')
 optdepends=(
+  'libayatana-appindicator: tray icon'
   'nvidia-utils: GPU temperature and power readout (nvidia-smi)'
   'davinci-resolve-studio: "Send to Resolve" (Studio edition only)'
   'xprintidle: "only while idle" on X11'
@@ -17,27 +21,14 @@ optdepends=(
 provides=('rushbase')
 conflicts=('rushbase')
 options=('!strip' '!debug')
-_appimage="Rushbase_${pkgver}_amd64.AppImage"
-source=("${_appimage}::${url}/releases/download/v${pkgver}/${_appimage}"
-        "rushbase.desktop"
-        "rushbase.png")
-noextract=("${_appimage}")
-sha256sums=('SKIP'
-            'SKIP'
-            'SKIP')
+_tagver="${pkgver//_/-}"
+_deb="Rushbase_${_tagver}_amd64.deb"
+source=("${_deb}::${url}/releases/download/v${_tagver}/${_deb}")
+noextract=("${_deb}")
+sha256sums=('SKIP')
 
 package() {
-  install -Dm755 "${srcdir}/${_appimage}" "${pkgdir}/opt/rushbase/Rushbase.AppImage"
-  # webkit2gtk on Wayland with NVIDIA often shows a blank window without this (docs/companion.md);
-  # the launcher also runs the AppImage extracted, so no FUSE is needed.
-  install -d "${pkgdir}/usr/bin"
-  cat > "${pkgdir}/usr/bin/rushbase-desktop" <<'EOF'
-#!/bin/sh
-export WEBKIT_DISABLE_DMABUF_RENDERER="${WEBKIT_DISABLE_DMABUF_RENDERER:-1}"
-export APPIMAGE_EXTRACT_AND_RUN=1
-exec /opt/rushbase/Rushbase.AppImage "$@"
-EOF
-  chmod 755 "${pkgdir}/usr/bin/rushbase-desktop"
-  install -Dm644 "${srcdir}/rushbase.desktop" "${pkgdir}/usr/share/applications/rushbase.desktop"
-  install -Dm644 "${srcdir}/rushbase.png" "${pkgdir}/usr/share/pixmaps/rushbase.png"
+  # data.tar.* holds /usr/bin/rushbase{,-desktop}, the .desktop entry and the hicolor icons.
+  bsdtar -xf "${srcdir}/${_deb}" -C "${srcdir}" 'data.tar.*'
+  bsdtar -xf "${srcdir}"/data.tar.* -C "${pkgdir}"
 }
