@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (worker)
+
+- `rushbase models pull` installs the pinned, CI-built whisper.cpp release build for the detected
+  hardware (CUDA, Vulkan, CPU, Metal) with SHA-256 verification; the upstream CPU build is only a
+  fallback. `update-lock.py binaries` fills `whisper.cpp.platforms` from the release. On Windows the
+  backend libraries are put on `PATH`.
+
 ### Added (spec gaps)
 
 - Delete to trash: administrators move a filed asset or duplicate (card folders whole, with

@@ -71,8 +71,7 @@ uv run rushbase analyze clip.mp4 --stages probe,preview,shots,audio,embed,vision
 ```
 
 Open: server endpoint `GET /api/v1/worker/taxonomy` (the client falls back to an empty snapshot),
-CI run of `whisper-build.yml` (the CUDA binary in use was built locally in Docker), Parakeet and
-Granite-Speech pilots (ADR-0011), Harrier text-embedding benchmark, musical key detection.
+Parakeet and Granite-Speech pilots (ADR-0011), Harrier text-embedding benchmark, musical key detection.
 
 ## M2 worker (engine part)
 
