@@ -67,7 +67,7 @@ class Runtime:
 
     async def filing_env(self) -> filing.FilingEnv | None:
         """Settings of the filing service; ``None`` when no library is mounted."""
-        if self.binding.root is None:
+        if self.binding.root is None or not self.binding.mounted:
             return None
         async with self.session_factory() as session:
             central = bool(await get_setting(session, CENTRAL_META_KEY, False))
@@ -83,7 +83,7 @@ class Runtime:
 
     async def scan_once(self) -> scanner.ScanReport | None:
         """One scanner pass; ``None`` when the server is not the active coordinator."""
-        if not self.binding.held or self.binding.root is None:
+        if not self.binding.held or not self.binding.mounted or self.binding.root is None:
             return None
         stages = await self.enabled_stages()
         async with self.session_factory() as session:
@@ -121,7 +121,7 @@ class Runtime:
             await filing.run_finalize(
                 self.session_factory, env, self.clock.now, on_filed=self.match_needs
             )
-        if self.settings.inprocess and self.binding.root is not None:
+        if self.settings.inprocess and self.binding.root is not None and self.binding.mounted:
             await inprocess.run_one(
                 self.session_factory,
                 self.binding.root,
@@ -145,7 +145,10 @@ class Runtime:
     async def backup_if_due(self) -> backup.BackupInfo | None:
         """Create a backup when the newest one is older than the configured interval."""
         root = self.binding.root
-        if not (self.settings.backup_enabled and self.binding.held and root is not None):
+        mounted = self.binding.mounted
+        if not (
+            self.settings.backup_enabled and self.binding.held and mounted and root is not None
+        ):
             return None
         now = self.clock.now()
         directory = backup.backup_dir(root)
