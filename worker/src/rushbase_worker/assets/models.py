@@ -83,18 +83,30 @@ class ModelStore:
         return [self.status(spec) for spec in load_models_lock().all()]
 
     def pull(
-        self, spec: ModelSpec, emit: ProgressSink, client: httpx.Client | None = None
+        self,
+        spec: ModelSpec,
+        emit: ProgressSink,
+        client: httpx.Client | None = None,
+        roles: tuple[str, ...] | None = None,
     ) -> ModelStatus:
-        """Download every file of ``spec`` (resumable) and write the install marker last."""
+        """Download the files of ``spec`` (resumable) and write the install marker last.
+
+        ``roles`` limits the download to some files (the server needs only the text towers of the
+        embedding models); the model then shows as ``partial`` until the rest is pulled.
+        """
+        wanted = tuple(f for f in spec.files if roles is None or f.role in roles)
+        missing_roles = set(roles or ()) - {f.role for f in spec.files}
+        if missing_roles:
+            raise KeyError(f"{spec.id} has no file with role(s) {', '.join(sorted(missing_roles))}")
         directory = self.path(spec.id)
         directory.mkdir(parents=True, exist_ok=True)
-        emit({"event": "model_started", "id": spec.id, "size": spec.size})
-        for file in spec.files:
+        emit({"event": "model_started", "id": spec.id, "size": sum(f.size for f in wanted)})
+        for file in wanted:
             download(file.url, directory / file.local_name, sha256=file.sha256, size=file.size,
                      label=f"{spec.id}/{file.local_name}", emit=emit, client=client)  # fmt: skip
         (directory / MARKER).write_text(
             json.dumps({"id": spec.id, "revision": spec.revision,
-                        "files": {f.local_name: f.sha256 for f in spec.files}}, indent=2)
+                        "files": {f.local_name: f.sha256 for f in wanted}}, indent=2)
         )  # fmt: skip
         emit({"event": "model_done", "id": spec.id})
         return self.status(spec)

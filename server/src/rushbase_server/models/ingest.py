@@ -66,6 +66,7 @@ class EnrollmentToken(Base):
     used_by_worker: Mapped[UUID | None] = mapped_column(
         Uuid, ForeignKey("worker.id", ondelete="SET NULL")
     )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = now_column()
 
 

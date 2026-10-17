@@ -157,28 +157,20 @@ def sidecar_tasks(
     for asset in unit:
         asset_files = files[asset.id]
         primary = next((f for f in asset_files if f.id == asset.primary_file_id), asset_files[0])
-        name = PurePosixPath(primary.rel_path)
-        task = sidecars.SidecarTask(
-            asset_id=asset.id,
-            sidecar=documents[asset.id],
-            meta_directory=asset.content_rel_dir or directory,
-            filename=name.name,
-        )
         if asset.media_type == "photo":
-            camera_xmp = any(
-                f.role == "sidecar"
-                and PurePosixPath(f.rel_path).suffix.lower() == ".xmp"
-                and PurePosixPath(f.rel_path).stem == name.stem
-                for f in asset_files
+            task = sidecars.photo_xmp_task(
+                asset,
+                asset_files,
+                documents[asset.id],
+                primary,
+                asset.content_rel_dir or directory,
             )
+        else:
             task = sidecars.SidecarTask(
-                asset_id=task.asset_id,
-                sidecar=task.sidecar,
-                meta_directory=task.meta_directory,
-                filename=task.filename,
-                xmp_directory=str(name.parent),
-                xmp_stem=name.stem,
-                camera_xmp_present=camera_xmp,
+                asset_id=asset.id,
+                sidecar=documents[asset.id],
+                meta_directory=asset.content_rel_dir or directory,
+                filename=PurePosixPath(primary.rel_path).name,
             )
         tasks.append(task)
     return tasks

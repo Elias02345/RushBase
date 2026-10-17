@@ -199,3 +199,34 @@ async def test_existing_folder_spelling_is_adopted_case_insensitively(
         files = await files_of(server)
         assert files["Input/shoot/clip.mov"].rel_path.startswith("Content/VIDEO/2026/")
         assert [p.name for p in (library_root / "Content").iterdir()] == ["VIDEO"]
+
+
+async def test_edits_refresh_the_rushbase_xmp_but_never_a_camera_xmp(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        admin = await server.setup_admin()
+        put_file(library_root, "Input/Day/IMG_1.JPG", b"jpg-with-camera-xmp")
+        put_file(library_root, "Input/Day/IMG_1.xmp", b"<camera-xmp/>")
+        put_file(library_root, "Input/Day/IMG_2.JPG", b"jpg-alone")
+        await scan(server)
+        worker = await enroll(server, admin)
+        await run_workers(server, worker, library_root)
+        await finalize_all(server)
+        files = await files_of(server)
+        with_camera = (library_root / files["Input/Day/IMG_1.JPG"].rel_path).parent
+        alone = (library_root / files["Input/Day/IMG_2.JPG"].rel_path).parent
+        assert "Plain title" not in (alone / "IMG_2.xmp").read_text()
+        for name in ("IMG_1.JPG", "IMG_2.JPG"):
+            asset_id = files[f"Input/Day/{name}"].asset_id
+            response = await server.client.patch(
+                f"/api/v1/assets/{asset_id}",
+                json={"title": f"Title of {name}", "rating": 4},
+                headers=admin,
+            )
+            assert response.status_code == 200, response.text
+        assert "Title of IMG_2.JPG" in (alone / "IMG_2.xmp").read_text()
+        assert "xmp:Rating>4<" in (alone / "IMG_2.xmp").read_text()
+        assert "Title of IMG_1.JPG" in (with_camera / "IMG_1.rushbase.xmp").read_text()
+        assert (with_camera / "IMG_1.xmp").read_bytes() == b"<camera-xmp/>"
+        assert not list(alone.glob("*.tmp*")) and not list(with_camera.glob("*.tmp*"))

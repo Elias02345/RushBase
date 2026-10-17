@@ -206,6 +206,11 @@ async def refresh_sidecar(
         await asyncio.to_thread(_write, root, rel, data)
         if central_copy:
             await asyncio.to_thread(_write, root, sidecars.central_rel(asset_id), data)
+        if asset.media_type == "photo":
+            xmp_task = sidecars.photo_xmp_task(
+                asset, files, document, primary, asset.content_rel_dir
+            )
+            await asyncio.to_thread(sidecars.refresh_xmp, root, xmp_task)
     except OSError:
         logger.warning("sidecar refresh failed", extra={"asset": str(asset_id)}, exc_info=True)
         return False

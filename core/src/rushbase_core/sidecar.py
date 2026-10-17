@@ -17,6 +17,8 @@ META_DIR_NAME: Final = "_meta"
 SIDECAR_SCHEMA: Final = "rushbase.sidecar/1"
 XMP_EXTENSION: Final = ".xmp"
 RUSHBASE_XMP_SUFFIX: Final = ".rushbase.xmp"
+RUSHBASE_XMP_MARKER: Final = b'xmp:CreatorTool="Rushbase"'
+"""Present in every XMP packet Rushbase writes; files without it are never overwritten."""
 
 
 class _Model(BaseModel):
@@ -199,7 +201,8 @@ def render_xmp(
         ' <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n'
         '  <rdf:Description rdf:about=""\n'
         '    xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
-        '    xmlns:xmp="http://ns.adobe.com/xap/1.0/">\n'
+        '    xmlns:xmp="http://ns.adobe.com/xap/1.0/"\n'
+        '    xmp:CreatorTool="Rushbase">\n'
         f"{body}"
         "  </rdf:Description>\n"
         " </rdf:RDF>\n"
