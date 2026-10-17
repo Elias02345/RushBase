@@ -1,6 +1,6 @@
 [project]
 name = "rushbase-worker"
-version = "0.9.0rc4"
+version = "0.9.0rc5"
 description = "Rushbase worker engine and the `rushbase` command line interface."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
