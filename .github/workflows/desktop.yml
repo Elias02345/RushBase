@@ -37,16 +37,12 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             args: "--bundles appimage,deb,rpm"
-          # One DMG per architecture: the PyInstaller sidecar is built natively on each runner,
-          # which a universal bundle cannot do (it needs both sidecars on one machine).
+          # Apple Silicon only: onnxruntime ships no macOS x86_64 wheels any more, so the worker
+          # sidecar cannot be built for Intel Macs (ADR-0004, update 2026-10-17).
           - name: macOS (Apple Silicon)
             os: macos-14
             args: "--target aarch64-apple-darwin --bundles dmg"
             triple: aarch64-apple-darwin
-          - name: macOS (Intel)
-            os: macos-15-intel
-            args: "--target x86_64-apple-darwin --bundles dmg"
-            triple: x86_64-apple-darwin
           - name: Windows
             os: windows-latest
             args: "--bundles msi,nsis"

@@ -43,7 +43,7 @@ the maintainer.
 ## Manual test matrix (maintainer)
 
 - [ ] Companion app: Linux + NVIDIA (reference), Windows + NVIDIA/AMD/Intel, macOS Apple
-      Silicon, CPU-only — first run, model download, "Verarbeiten", library playback.
+      Silicon (Intel Macs unsupported, ADR-0004), CPU-only — first run, model download, "Verarbeiten", library playback.
 - [ ] DaVinci Resolve Studio: `rushbase resolve selftest --project rushbase-test`, then
       "An Resolve senden" (bins, metadata, markers) on a throwaway project.
 - [ ] Free Resolve: FCPXML 1.10, metadata CSV and EDL import.

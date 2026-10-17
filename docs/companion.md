@@ -18,7 +18,7 @@ JSON lines of `rushbase process --json`. There are no GUI-only features.
 | --- | --- | --- |
 | Linux | `Rushbase_<version>_amd64.AppImage`, `.deb`, `.rpm`, AUR `rushbase-bin` (`deploy/aur/PKGBUILD`) | needs `webkit2gtk-4.1`, `gtk3`, `libsoup3`; `libayatana-appindicator` for the tray (the app works without it) |
 | Windows | `.msi` or `-setup.exe` (NSIS, per user) | the app is unsigned until the signing secrets exist (SmartScreen warning) |
-| macOS | `.dmg` for Apple Silicon and for Intel | unsigned until the Apple secrets exist (right click, Open) |
+| macOS | `.dmg` for Apple Silicon (Intel Macs: not supported, see ADR-0004) | unsigned until the Apple secrets exist (right click, Open) |
 
 The installers contain the worker as a sidecar (a frozen `rushbase`, about 140 MB). AI models and the
 pinned llama.cpp / whisper.cpp builds are **not** inside: the app downloads them on demand with

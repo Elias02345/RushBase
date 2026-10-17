@@ -35,3 +35,11 @@ Linux gets a slightly degraded drag experience; known plugin bugs are fenced off
 - https://v2.tauri.app/plugin/updater/
 - https://v2.tauri.app/learn/system-tray/
 - https://v2.tauri.app/plugin/autostart/
+
+## Update 2026-10-17: macOS packaging
+- The spec asked for a universal macOS DMG. The worker sidecar (PyInstaller) must be built natively
+  per architecture, and **onnxruntime no longer publishes macOS x86_64 wheels** (1.31.0), so an Intel
+  build of the worker engine is not possible. The companion app is therefore shipped for **Apple
+  Silicon only** (`aarch64-apple-darwin` DMG). Intel Macs can still use the web UI and, for
+  processing, a headless worker on another machine (Linux/Windows) or the Docker worker image.
+- Revisit if onnxruntime x86_64 macOS wheels return or the AI stages become optional per platform.
