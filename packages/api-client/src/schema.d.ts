@@ -143,7 +143,7 @@ export interface paths {
         put?: never;
         /**
          * Revoke an unused enrollment token
-         * @description Expire an unused token immediately (idempotent). Used tokens cannot be revoked.
+         * @description Revoke an unused token (idempotent, keeps its expiry). Used tokens cannot be revoked.
          */
         post: operations["revoke_enrollment_token_api_v1_admin_enrollment_tokens__token_id__revoke_post"];
         delete?: never;
@@ -2485,6 +2485,8 @@ export interface components {
             id: string;
             /** Note */
             note: string;
+            /** Revoked At */
+            revoked_at: string | null;
             /** Used At */
             used_at: string | null;
         };
@@ -2777,6 +2779,13 @@ export interface components {
         HealthResponse: {
             /** Database */
             database: boolean;
+            /**
+             * Encoders
+             * @default {}
+             */
+            encoders: {
+                [key: string]: string;
+            };
             /** Lease Held */
             lease_held?: boolean | null;
             /** Library Mounted */
@@ -3704,6 +3713,11 @@ export interface components {
             vectors_compatible: number;
             /** Vectors Mismatched */
             vectors_mismatched: number;
+            /**
+             * Warming
+             * @default false
+             */
+            warming: boolean;
         };
         /**
          * Stage
@@ -3885,8 +3899,11 @@ export interface components {
         TokenIn: {
             /** Name */
             name: string;
-            /** Scopes */
-            scopes?: string[];
+            /**
+             * Scopes
+             * @description Empty: full access of the user's role. Only 'read': safe methods only.
+             */
+            scopes?: ("read" | "write")[];
         };
         /**
          * TokenOut

@@ -2215,6 +2215,18 @@
             "title": "Note",
             "type": "string"
           },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
           "used_at": {
             "anyOf": [
               {
@@ -2233,7 +2245,8 @@
           "note",
           "created_at",
           "expires_at",
-          "used_at"
+          "used_at",
+          "revoked_at"
         ],
         "title": "EnrollmentTokenOut",
         "type": "object"
@@ -2914,6 +2927,14 @@
           "database": {
             "title": "Database",
             "type": "boolean"
+          },
+          "encoders": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Encoders",
+            "type": "object"
           },
           "lease_held": {
             "anyOf": [
@@ -5308,6 +5329,11 @@
           "vectors_mismatched": {
             "title": "Vectors Mismatched",
             "type": "integer"
+          },
+          "warming": {
+            "default": false,
+            "title": "Warming",
+            "type": "boolean"
           }
         },
         "required": [
@@ -5741,7 +5767,12 @@
             "type": "string"
           },
           "scopes": {
+            "description": "Empty: full access of the user's role. Only 'read': safe methods only.",
             "items": {
+              "enum": [
+                "read",
+                "write"
+              ],
               "type": "string"
             },
             "title": "Scopes",
@@ -6867,7 +6898,7 @@
     },
     "/api/v1/admin/enrollment-tokens/{token_id}/revoke": {
       "post": {
-        "description": "Expire an unused token immediately (idempotent). Used tokens cannot be revoked.",
+        "description": "Revoke an unused token (idempotent, keeps its expiry). Used tokens cannot be revoked.",
         "operationId": "revoke_enrollment_token_api_v1_admin_enrollment_tokens__token_id__revoke_post",
         "parameters": [
           {

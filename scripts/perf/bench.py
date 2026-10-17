@@ -311,8 +311,8 @@ async def needs_matching(
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
     from rushbase_server.search.encoder import NullEncoder, build_encoder
-    from rushbase_server.services.cache import TtlCache
     from rushbase_server.services import needs
+    from rushbase_server.services.cache import TtlCache
     from rushbase_server.settings import Settings
 
     settings = Settings(
