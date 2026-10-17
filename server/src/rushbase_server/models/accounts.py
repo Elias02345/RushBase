@@ -150,4 +150,5 @@ class AuditLog(Base):
         enum_check("actor_kind", ACTOR_KINDS),
         Index("ix_audit_log_at", text("at DESC")),
         Index("ix_audit_log_actor", "actor_kind", "actor_id"),
+        Index("ix_audit_log_target", "target_kind", "target_id"),
     )

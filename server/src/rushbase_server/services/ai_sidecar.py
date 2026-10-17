@@ -11,7 +11,7 @@ from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_core import resolve_in_root
@@ -22,6 +22,7 @@ from rushbase_server.models import (
     AssetFile,
     AssetMetadata,
     AssetTag,
+    AudioEvent,
     Batch,
     FilingRule,
     Shot,
@@ -62,14 +63,30 @@ async def load_sections(
         shots = list(
             (await session.execute(select(Shot).where(Shot.asset_id == asset.id))).scalars()
         )
-    segments = (
+    transcript = (
         await session.execute(
-            select(func.count(), func.min(TranscriptSegment.language)).where(
-                TranscriptSegment.asset_id == asset.id
-            )
+            select(TranscriptSegment)
+            .where(TranscriptSegment.asset_id == asset.id)
+            .order_by(TranscriptSegment.idx)
         )
-    ).one()
-    has_ai = bool(asset.ai_details or asset.audio_info or asset.summary_short_en or tags)
+    ).scalars()
+    segment_rows = list(transcript)
+    events = (
+        await session.execute(
+            select(AudioEvent)
+            .where(AudioEvent.asset_id == asset.id)
+            .order_by(AudioEvent.start_ms, AudioEvent.tag)
+        )
+    ).scalars()
+    event_rows = list(events)
+    has_ai = bool(
+        asset.ai_details
+        or asset.audio_info
+        or asset.summary_short_en
+        or tags
+        or segment_rows
+        or event_rows
+    )
     if not has_ai:
         return tags, None
     ai = SidecarAI(
@@ -87,9 +104,12 @@ async def load_sections(
                 "interior_exterior": s.interior_exterior,
                 "time_of_day": s.time_of_day,
                 "people_count": s.people_count,
+                "person_identifiable": s.person_identifiable,
+                "ai_details": s.ai_details,
+                "human_fields": list(s.human_fields),
             }
             for s in sorted(shots, key=lambda x: x.idx)
-            if s.description_short_de or s.description_long_de
+            if s.description_short_de or s.description_long_de or s.ai_details
         ],
         attributes={
             "shot_size": asset.shot_size,
@@ -99,11 +119,35 @@ async def load_sections(
             "people_count": asset.people_count,
         },
         audio=asset.audio_info,
-        transcript_segments=int(segments[0]),
-        transcript_language=segments[1],
+        transcript_segments=len(segment_rows),
+        transcript_language=next((r.language for r in segment_rows if r.language), None),
+        transcript=[
+            {
+                "idx": r.idx,
+                "start_ms": r.start_ms,
+                "end_ms": r.end_ms,
+                "text": r.text,
+                "language": r.language,
+                "speaker": r.speaker,
+                "words": r.words,
+            }
+            for r in segment_rows
+        ],
+        audio_events=[
+            {
+                "tag": e.tag,
+                "start_ms": e.start_ms,
+                "end_ms": e.end_ms,
+                "confidence": e.confidence,
+                "raw_top": e.raw_top,
+            }
+            for e in event_rows
+        ],
         review_state=asset.review_state,
         review_reasons=list(asset.review_reasons),
         models=asset.ai_details.get("models", {}),
+        ai_details=asset.ai_details,
+        human_fields=list(asset.human_fields),
     )
     return tags, ai
 
@@ -162,6 +206,11 @@ async def refresh_sidecar(
         await asyncio.to_thread(_write, root, rel, data)
         if central_copy:
             await asyncio.to_thread(_write, root, sidecars.central_rel(asset_id), data)
+        if asset.media_type == "photo":
+            xmp_task = sidecars.photo_xmp_task(
+                asset, files, document, primary, asset.content_rel_dir
+            )
+            await asyncio.to_thread(sidecars.refresh_xmp, root, xmp_task)
     except OSError:
         logger.warning("sidecar refresh failed", extra={"asset": str(asset_id)}, exc_info=True)
         return False

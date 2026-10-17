@@ -136,7 +136,12 @@ async def enroll(body: EnrollIn, request: Request, runtime: RuntimeDep, db: DbDe
             .with_for_update()
         )
     ).scalar_one_or_none()
-    if token is None or token.used_at is not None or token.expires_at <= now:
+    if (
+        token is None
+        or token.used_at is not None
+        or token.revoked_at is not None
+        or token.expires_at <= now
+    ):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "enrollment token invalid or already used")
     worker = Worker(
         name=body.name,

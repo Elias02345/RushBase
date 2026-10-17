@@ -234,6 +234,9 @@ async def test_enrollment_tokens_list_never_exposes_secrets_and_can_be_revoked(
         revoke_url = f"/api/v1/admin/enrollment-tokens/{token['id']}/revoke"
         assert (await client.post(revoke_url, headers=csrf)).status_code == 204
         assert (await client.post(revoke_url, headers=csrf)).status_code == 204
+        revoked = (await client.get("/api/v1/admin/enrollment-tokens")).json()[0]
+        assert revoked["revoked_at"] is not None
+        assert revoked["expires_at"] == listed[0]["expires_at"]  # revoking does not touch expiry
         enroll = await client.post(
             "/api/v1/worker/enroll",
             json={"token": token["token"], "name": "w", "capabilities": {}},

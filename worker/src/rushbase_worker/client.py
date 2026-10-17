@@ -15,6 +15,8 @@ from rushbase_worker.taxonomy import EMPTY_SNAPSHOT, TaxonomySnapshot
 
 log = logging.getLogger(__name__)
 
+DEFAULT_RETRIES = 8
+"""Backoff 1, 2, 4, 8, 16, 30, 30, 30 s (about two minutes): rides out a server restart."""
 RETRY_STATUS = frozenset({429, 502, 503, 504})
 API = "/api/v1/worker"
 
@@ -85,7 +87,7 @@ class WorkerClient:
         base_url: str,
         api_key: str | None = None,
         *,
-        retries: int = 4,
+        retries: int = DEFAULT_RETRIES,
         timeout: float = 30.0,
         transport: httpx.AsyncBaseTransport | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,

@@ -35,6 +35,33 @@ All notable changes to this project are documented here. The format follows
   builds fail while the updater key is the placeholder.
 - Docs: threat model in `SECURITY.md`, hardening settings in `docs/operations.md`.
 
+### Added (milestone M7, hardening part 1)
+
+- Scale test (`scripts/perf/seed.py`, `bench.py`, report `docs/eval/2026-10-perf.md`): 100 000
+  assets / 50 TB / 2.3 M vectors; search p95 for a single user 1.4 s -> 0.29 s (scenes 2.3 s ->
+  0.50 s), facets 1.5 s -> 3 ms (cached), needs matching 27 s -> 17 ms per asset.
+- Migration 0007 (additive): `enrollment_token.revoked_at` (revoking no longer changes the expiry),
+  keyset sort indexes `ix_asset_sort_*`, `ix_audit_log_target`, HNSW indexes on `halfvec` (half the
+  size) replacing the full-precision ones.
+- Query encoders warm up in the background; `/search/capabilities` shows `warming`, `/health`
+  reports `encoders`; query vectors are cached; encoding no longer blocks the event loop.
+- `rebuild-from-sidecars` restores the AI section (tags with source and confidence, descriptions,
+  transcript, audio events, review state, human-edited fields). Sidecars carry the transcript and
+  audio events from now on.
+- The Rushbase XMP of a filed photo is rewritten (temp + rename) when AI results or edits change
+  title, description, rating or keywords; a camera's XMP is never touched.
+- `install.sh --with-models` and `rushbase models pull --only MODEL:ROLE,...` (server text towers
+  only); `doctor.sh` checks the models. PostgreSQL settings tuned in both compose files.
+- Settings `RUSHBASE_QUERY_CACHE_SECONDS` (15) and `RUSHBASE_STATEMENT_TIMEOUT_SECONDS` (30).
+- The server pauses scanning and filing while the library mount is gone and resumes by itself; the
+  worker client retries for about two minutes (survives a server restart).
+
+### Changed (milestone M7)
+
+- Facets and statistics run as single grouped passes; ranked full-text search of shots and
+  transcripts ranks a pool of 5000 matches; the tag filter is a semi-join; needs auto-matching
+  shares the searches of an item between assets of a filing burst.
+
 ### Added (milestone M5, MCP server and needs lists)
 
 - OAuth 2.1 authorization server in the FastAPI app (ADR-0010): discovery documents,

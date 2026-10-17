@@ -85,6 +85,7 @@ function freshState(): MockState {
         created_at: "2026-10-01T09:00:00Z",
         expires_at: "2026-10-02T09:00:00Z",
         used_at: "2026-10-01T09:12:00Z",
+        revoked_at: null,
       },
     ],
     settings: { path_roots: defaultPathRoots(), central_meta: false },
@@ -507,6 +508,7 @@ export const handlers = [
         created_at: new Date(now).toISOString(),
         expires_at: new Date(now + 24 * 3_600_000).toISOString(),
         used_at: null,
+        revoked_at: null,
       };
       state.tokens.unshift(info);
       const token = `rbe_${btoa(id).replaceAll("=", "").slice(0, 40)}mockOnlyToken`;
@@ -521,7 +523,7 @@ export const handlers = [
     "/api/v1/admin/enrollment-tokens/:id/revoke",
     guarded("admin", ({ params }) => {
       const token = state.tokens.find((candidate) => candidate.id === params.id);
-      if (token) token.expires_at = new Date().toISOString();
+      if (token) token.revoked_at = new Date().toISOString();
       return new HttpResponse(null, { status: 204 });
     }),
   ),

@@ -17,6 +17,8 @@ META_DIR_NAME: Final = "_meta"
 SIDECAR_SCHEMA: Final = "rushbase.sidecar/1"
 XMP_EXTENSION: Final = ".xmp"
 RUSHBASE_XMP_SUFFIX: Final = ".rushbase.xmp"
+RUSHBASE_XMP_MARKER: Final = b'xmp:CreatorTool="Rushbase"'
+"""Present in every XMP packet Rushbase writes; files without it are never overwritten."""
 
 
 class _Model(BaseModel):
@@ -106,9 +108,17 @@ class SidecarAI(_Model):
     audio: dict[str, Any] | None = None
     transcript_segments: int = 0
     transcript_language: str | None = None
+    transcript: list[dict[str, Any]] = Field(default_factory=list)
+    """Segments: idx, start_ms, end_ms, text, language, speaker, words."""
+    audio_events: list[dict[str, Any]] = Field(default_factory=list)
+    """Grouped audio events: tag, start_ms, end_ms, confidence, raw_top."""
     review_state: str = "none"
     review_reasons: list[str] = Field(default_factory=list)
     models: dict[str, Any] = Field(default_factory=dict)
+    ai_details: dict[str, Any] = Field(default_factory=dict)
+    """Asset-level model output kept for the review UI (``models`` is a part of it)."""
+    human_fields: list[str] = Field(default_factory=list)
+    """Asset columns edited by a person; AI results must not overwrite them after a rebuild."""
 
 
 class SidecarV1(_Model):
@@ -191,7 +201,8 @@ def render_xmp(
         ' <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n'
         '  <rdf:Description rdf:about=""\n'
         '    xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
-        '    xmlns:xmp="http://ns.adobe.com/xap/1.0/">\n'
+        '    xmlns:xmp="http://ns.adobe.com/xap/1.0/"\n'
+        '    xmp:CreatorTool="Rushbase">\n'
         f"{body}"
         "  </rdf:Description>\n"
         " </rdf:RDF>\n"

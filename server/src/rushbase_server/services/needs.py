@@ -4,6 +4,7 @@ Rushbase never notifies anybody: matching only attaches candidates that a person
 request) reviews later.
 """
 
+import json
 from collections.abc import Mapping, Sequence
 from datetime import date
 from typing import Any
@@ -17,6 +18,7 @@ from rushbase_server.models import Asset, NeedCandidate, NeedItem, NeedList, Sho
 from rushbase_server.search import hybrid
 from rushbase_server.search.encoder import QueryEncoder
 from rushbase_server.services import audit
+from rushbase_server.services.cache import TtlCache
 from rushbase_server.services.catalog import AssetFilters
 
 MATCH_DEPTH = 50
@@ -324,13 +326,44 @@ async def refresh_fulfilment(session: AsyncSession, item: NeedItem) -> None:
 # --- auto-matching ---------------------------------------------------------------------------
 
 
+async def _item_scores(
+    session: AsyncSession, encoder: QueryEncoder, item: NeedItem, cache: TtlCache | None
+) -> dict[UUID, float]:
+    """Fused scores of the top ``MATCH_DEPTH`` assets for an item (shared inside a filing burst)."""
+
+    async def compute() -> dict[UUID, float]:
+        result = await hybrid.search(
+            session,
+            encoder,
+            item.description,
+            "asset",
+            to_asset_filters(item.filters),
+            0,
+            MATCH_DEPTH,
+        )
+        scores: dict[UUID, float] = {}
+        for hit in result.hits:
+            scores.setdefault(hit.key[0], hit.score)
+        return scores
+
+    if cache is None:
+        return await compute()
+    key = ("needs", item.id, item.description, json.dumps(item.filters, sort_keys=True))
+    return await cache.get_or_compute(key, compute)
+
+
 async def match_asset(
-    session: AsyncSession, encoder: QueryEncoder, asset_id: UUID, threshold: float
+    session: AsyncSession,
+    encoder: QueryEncoder,
+    asset_id: UUID,
+    threshold: float,
+    cache: TtlCache | None = None,
 ) -> int:
     """Attach ``asset_id`` as candidate to open items it matches; returns how many were added.
 
     The item description is searched (hybrid) inside the item's filters; the asset must rank in
-    the top ``MATCH_DEPTH`` with a fused score of at least ``threshold``. Existing candidates
+    the top ``MATCH_DEPTH`` with a fused score of at least ``threshold``. With a ``cache`` the
+    search of an item is shared by all assets of a filing burst. Existing candidates
     (including rejected ones) are left alone.
     """
     asset = await session.get(Asset, asset_id)
@@ -356,11 +389,7 @@ async def match_asset(
         )
         if known is not None:
             continue
-        filters = to_asset_filters(item.filters)
-        result = await hybrid.search(
-            session, encoder, item.description, "asset", filters, 0, MATCH_DEPTH
-        )
-        score = next((h.score for h in result.hits if h.key[0] == asset_id), None)
+        score = (await _item_scores(session, encoder, item, cache)).get(asset_id)
         if score is not None and score >= threshold:
             session.add(
                 NeedCandidate(

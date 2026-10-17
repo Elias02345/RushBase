@@ -3,14 +3,14 @@
 import asyncio
 import contextlib
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Hashable
 from dataclasses import dataclass, field
 from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import delete, update
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
@@ -25,6 +25,7 @@ from rushbase_server.services import (
     queue,
     scanner,
 )
+from rushbase_server.services.cache import TtlCache
 from rushbase_server.services.library_binding import LibraryBinding
 from rushbase_server.services.ratelimit import LoginRateLimiter, TokenBuckets
 from rushbase_server.services.settings_store import (
@@ -51,6 +52,7 @@ class Runtime:
     pg_tools: backup.PgTools
     encoder: QueryEncoder = field(default_factory=NullEncoder)
     buckets: TokenBuckets = field(default_factory=TokenBuckets)
+    cache: TtlCache = field(default_factory=lambda: TtlCache(0))
     tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @property
@@ -68,7 +70,7 @@ class Runtime:
 
     async def filing_env(self) -> filing.FilingEnv | None:
         """Settings of the filing service; ``None`` when no library is mounted."""
-        if self.binding.root is None:
+        if self.binding.root is None or not self.binding.mounted:
             return None
         async with self.session_factory() as session:
             central = bool(await get_setting(session, CENTRAL_META_KEY, False))
@@ -80,11 +82,20 @@ class Runtime:
             queue_config=self.queue_config,
         )
 
+    async def cached[T](self, key: Hashable, compute: Callable[[AsyncSession], Awaitable[T]]) -> T:
+        """Serve an expensive aggregate from the TTL cache (own session, stale while refreshing)."""
+
+        async def run() -> T:
+            async with self.session_factory() as session:
+                return await compute(session)
+
+        return await self.cache.get_or_compute(key, run, stale=True)
+
     # --- single iterations (also called directly by tests) ---
 
     async def scan_once(self) -> scanner.ScanReport | None:
         """One scanner pass; ``None`` when the server is not the active coordinator."""
-        if not self.binding.held or self.binding.root is None:
+        if not self.binding.held or not self.binding.mounted or self.binding.root is None:
             return None
         stages = await self.enabled_stages()
         async with self.session_factory() as session:
@@ -122,7 +133,7 @@ class Runtime:
             await filing.run_finalize(
                 self.session_factory, env, self.clock.now, on_filed=self.match_needs
             )
-        if self.settings.inprocess and self.binding.root is not None:
+        if self.settings.inprocess and self.binding.root is not None and self.binding.mounted:
             await inprocess.run_one(
                 self.session_factory,
                 self.binding.root,
@@ -137,7 +148,11 @@ class Runtime:
         try:
             async with self.session_factory() as session:
                 await needs.match_asset(
-                    session, self.encoder, asset_id, self.settings.needs_match_threshold
+                    session,
+                    self.encoder,
+                    asset_id,
+                    self.settings.needs_match_threshold,
+                    self.cache,
                 )
                 await session.commit()
         except Exception:
@@ -146,7 +161,10 @@ class Runtime:
     async def backup_if_due(self) -> backup.BackupInfo | None:
         """Create a backup when the newest one is older than the configured interval."""
         root = self.binding.root
-        if not (self.settings.backup_enabled and self.binding.held and root is not None):
+        mounted = self.binding.mounted
+        if not (
+            self.settings.backup_enabled and self.binding.held and mounted and root is not None
+        ):
             return None
         now = self.clock.now()
         directory = backup.backup_dir(root)
@@ -171,6 +189,17 @@ class Runtime:
             )
         logger.info("backup created", extra={"file": info.name, "bytes": info.size})
         return info
+
+    def warm_encoder(self) -> None:
+        """Load the query encoders in a worker thread so the first search is not slow."""
+
+        async def warm() -> None:
+            try:
+                await asyncio.to_thread(self.encoder.warm)
+            except Exception:
+                logger.warning("query encoder warm-up failed", exc_info=True)
+
+        self.tasks.append(asyncio.create_task(warm(), name="rushbase-encoder-warmup"))
 
     # --- loops ---
 

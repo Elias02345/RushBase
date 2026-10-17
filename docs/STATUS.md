@@ -10,7 +10,7 @@
 | M5 MCP | OAuth, all tools, wish lists, "connect in claude.ai" guide | **done** (server and web; the real claude.ai connector test needs a public HTTPS URL, see `docs/mcp.md`) |
 | M6 Companion | Tauri GUI, CLI, local MCP, hardware detection, Resolve integration, installers | **done on Linux** — Windows/macOS builds and real Resolve untested (`docs/companion.md`) |
 | Operations | Installer (bare/Docker), updater with rollback and trains, watchdog, doctor, systemd units, proxy/tunnel examples, sandbox test (`docs/operations.md`) | **done** (pending review; Docker mode validated statically only) |
-| M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | planned |
+| M7 Hardening | Installer/updater, doctor, watchdog, performance at 100k assets, security review, v1.0 | **part 1 done** (performance, backlog, robustness; `docs/eval/2026-10-perf.md`) |
 
 ## M6 companion
 
@@ -276,3 +276,21 @@ Branch `feature/m7-security`: findings M1, M2, M3 (uv pinning only), M4 and L1 t
 security review. Summary in `CHANGELOG.md` ("Security"), threat model in `SECURITY.md`, settings in
 `docs/operations.md` ("Hardening settings"). Open: signed-update enforcement default
 (`RUSHBASE_UPDATE_REQUIRE_SIGNED`, owner decision), personal API token expiry (needs a column).
+
+## M7 hardening, part 1 (performance and robustness)
+
+- **Scale test:** `scripts/perf/seed.py` builds the 100 000-asset catalog in a dedicated database,
+  `bench.py` drives the real server (4 pinned cores) and writes the report. Result and open points:
+  `docs/eval/2026-10-perf.md` (single-user search p95 under 500 ms; multi-filter semantic search and
+  eight simultaneous searchers are bound by RAM/cores on the 8 GB / 4 core rig).
+- **Migration 0007** (additive, reversible): `enrollment_token.revoked_at`, sort and audit indexes,
+  halfvec HNSW indexes (rebuild takes minutes on large catalogs).
+- **Backlog closed:** encoder warm-up, AI section in `rebuild-from-sidecars`, XMP refresh,
+  revocable enrollment tokens, `/health` encoder state, `install.sh --with-models`, doctor check.
+- **Robustness:** library mount loss pauses the server's file work and recovers (tested);
+  worker client rides out a server restart (tested with a real server process).
+- **Decisions:** caches (15 s, stale-while-revalidate) only for facets, statistics and vector counts;
+  a 5000-match ranking pool for shot/transcript full-text; halfvec indexes instead of tuning
+  `ef_search`; Postgres tuning shipped as compose flags (Docker) or per-database settings (bare).
+- **Open:** security review fixes are merged separately; filtered semantic search on machines with
+  less than 16 GB RAM; real Windows/macOS companion builds (M6).

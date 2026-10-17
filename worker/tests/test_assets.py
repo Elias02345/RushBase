@@ -124,6 +124,26 @@ def test_model_store_pull_status_verify_remove(tmp_path: Path) -> None:
     assert store.status(spec).state == "missing"
 
 
+def test_pull_can_be_limited_to_some_roles(tmp_path: Path) -> None:
+    other = b"tokenizer-bytes"
+    files = (
+        ModelFile(role="model", repo="r/r", filename="onnx/m.bin", revision="abc",
+                  size=len(PAYLOAD), sha256=_sha(PAYLOAD)),
+        ModelFile(role="tokenizer", repo="r/r", filename="tok.json", revision="abc",
+                  size=len(other), sha256=_sha(other)),
+    )  # fmt: skip
+    spec = ModelSpec(id="two", kind="embed-text", display="two", license="MIT", files=files)
+    store = ModelStore(tmp_path)
+    started: list[dict[str, object]] = []
+    result = store.pull(spec, started.append, client=_server(other), roles=("tokenizer",))
+    assert (tmp_path / "models" / "two" / "tok.json").read_bytes() == other
+    assert not (tmp_path / "models" / "two" / "m.bin").exists()
+    assert result.state == "partial"  # the rest is still missing
+    assert started[0]["size"] == len(other)
+    with pytest.raises(KeyError, match="no file with role"):
+        store.pull(spec, lambda _e: None, roles=("nope",))
+
+
 def test_model_file_requires_installation(tmp_path: Path) -> None:
     store = ModelStore(tmp_path)
     with pytest.raises(ModelNotInstalledError, match="rushbase models pull"):

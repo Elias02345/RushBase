@@ -41,6 +41,7 @@ class EnrollmentTokenOut(BaseModel):
     created_at: datetime
     expires_at: datetime
     used_at: datetime | None
+    revoked_at: datetime | None
 
 
 class WorkerOut(BaseModel):
@@ -111,6 +112,7 @@ async def list_enrollment_tokens(_: AdminDep, db: DbDep) -> list[EnrollmentToken
             created_at=t.created_at,
             expires_at=t.expires_at,
             used_at=t.used_at,
+            revoked_at=t.revoked_at,
         )
         for t in rows
     ]
@@ -124,15 +126,14 @@ async def list_enrollment_tokens(_: AdminDep, db: DbDep) -> list[EnrollmentToken
 async def revoke_enrollment_token(
     token_id: UUID, admin: AdminDep, request: Request, runtime: RuntimeDep, db: DbDep
 ) -> None:
-    """Expire an unused token immediately (idempotent). Used tokens cannot be revoked."""
+    """Revoke an unused token (idempotent, keeps its expiry). Used tokens cannot be revoked."""
     token = await db.get(EnrollmentToken, token_id)
     if token is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "enrollment token not found")
     if token.used_at is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "token was already used")
-    now = runtime.clock.now()
-    if token.expires_at > now:
-        token.expires_at = now
+    if token.revoked_at is None:
+        token.revoked_at = runtime.clock.now()
         audit.record(
             db,
             actor_kind="user",

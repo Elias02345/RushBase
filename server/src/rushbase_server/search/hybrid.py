@@ -5,6 +5,7 @@ channels use the HNSW indexes with pgvector's iterative scan so selective filter
 enough rows. A channel whose encoder or stored vectors are unavailable is skipped, never an error.
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -25,7 +26,7 @@ from rushbase_server.models import (
     Shot,
     TranscriptSegment,
 )
-from rushbase_server.models.ai import Vector
+from rushbase_server.models.ai import HalfVector, Vector
 from rushbase_server.search.encoder import EncoderInfo, QueryEncoder
 from rushbase_server.services import catalog
 
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 RRF_K = 60
 CANDIDATES = 200
 MAX_DEPTH = 1000
+RANK_POOL = 5000
 Level = Literal["asset", "shot"]
 Key = tuple[UUID, UUID | None]
 """``(asset_id, shot_id)``; ``shot_id`` is ``None`` at asset level."""
@@ -79,7 +81,7 @@ def rrf(channels: list[Channel]) -> list[Fused]:
 
 
 def _vector_param(vector: list[float]) -> Any:
-    return cast(bindparam("qv", vector, type_=Vector()), Vector())
+    return cast(bindparam("qv", vector, type_=Vector()), HalfVector())
 
 
 def _dedupe(rows: list[tuple[UUID, UUID | None]], limit: int) -> list[Key]:
@@ -140,7 +142,11 @@ async def vector_channel(
     """Nearest vectors of one space (cosine distance), de-duplicated to the requested level."""
     started = time.perf_counter()
     await _tune_hnsw(session)
-    distance = table.embedding.op("<=>", return_type=Float)(_vector_param(vector))
+    # The HNSW indexes are built on ``embedding::halfvec(768)`` (migration 0007): the expression
+    # must match for the planner to use them.
+    distance = cast(table.embedding, HalfVector()).op("<=>", return_type=Float)(
+        _vector_param(vector)
+    )
     start: Any = EmbeddingText.start_ms if table is EmbeddingText else literal(None, BigInteger)
     stmt = (
         select(table.asset_id, table.shot_id, start.label("start_ms"), distance.label("d"))
@@ -153,7 +159,7 @@ async def vector_channel(
         stmt = stmt.where(table.asset_id != exclude_asset)
     if exclude_shot is not None:
         stmt = stmt.where((table.shot_id != exclude_shot) | (table.shot_id.is_(None)))
-    stmt = _filtered(stmt, filters).order_by(distance).limit(limit * 4)
+    stmt = _filtered(stmt, filters).order_by(distance).limit(limit * 3)
     rows: list[tuple[UUID, UUID | None, int | None]] = [
         (r[0], r[1], r[2]) for r in (await session.execute(stmt)).all()
     ]
@@ -190,29 +196,56 @@ async def fulltext_channels(
     if not usable:
         return []
     tsq = catalog.tsquery(terms)
-    shot_stmt = _filtered(
-        select(Shot.asset_id, Shot.id).join(Asset, Asset.id == Shot.asset_id), filters
+    # Ranking every match of a common word costs more than the rest of the search together, so
+    # only a pool of RANK_POOL matches (index order) is ranked; rarer terms are covered fully.
+    shot_pool = (
+        _filtered(
+            select(
+                Shot.asset_id.label("asset_id"), Shot.id.label("id"), Shot.search_tsv.label("tsv")
+            ).join(Asset, Asset.id == Shot.asset_id),
+            filters,
+        )
+        .where(Shot.search_tsv.op("@@")(tsq))
+        .limit(RANK_POOL)
+        .subquery()
     )
     shot_rows = await session.execute(
-        shot_stmt.where(Shot.search_tsv.op("@@")(tsq))
-        .order_by(func.ts_rank_cd(Shot.search_tsv, tsq).desc(), Shot.id)
+        select(shot_pool.c.asset_id, shot_pool.c.id)
+        .order_by(func.ts_rank_cd(shot_pool.c.tsv, tsq).desc(), shot_pool.c.id)
         .limit(limit)
     )
-    transcript_stmt = _filtered(
-        select(TranscriptSegment.asset_id, Shot.id)
-        .join(Asset, Asset.id == TranscriptSegment.asset_id)
-        .join(
-            Shot,
-            (Shot.asset_id == TranscriptSegment.asset_id)
-            & (TranscriptSegment.start_ms >= Shot.start_ms)
-            & (TranscriptSegment.start_ms <= Shot.end_ms),
-        ),
-        filters,
+    segment_pool = (
+        _filtered(
+            select(
+                TranscriptSegment.asset_id.label("asset_id"),
+                TranscriptSegment.start_ms.label("start_ms"),
+                TranscriptSegment.tsv.label("tsv"),
+            ).join(Asset, Asset.id == TranscriptSegment.asset_id),
+            filters,
+        )
+        .where(TranscriptSegment.tsv.op("@@")(tsq))
+        .limit(RANK_POOL)
+        .subquery()
+    )
+    ranked = (
+        select(
+            segment_pool.c.asset_id,
+            segment_pool.c.start_ms,
+            func.ts_rank_cd(segment_pool.c.tsv, tsq).label("rank"),
+        )
+        .order_by(func.ts_rank_cd(segment_pool.c.tsv, tsq).desc())
+        .limit(limit * 3)
+        .subquery()
     )
     transcript_rows = await session.execute(
-        transcript_stmt.where(TranscriptSegment.tsv.op("@@")(tsq))
-        .order_by(func.ts_rank_cd(TranscriptSegment.tsv, tsq).desc(), Shot.id)
-        .limit(limit * 3)
+        select(ranked.c.asset_id, Shot.id)
+        .join(
+            Shot,
+            (Shot.asset_id == ranked.c.asset_id)
+            & (ranked.c.start_ms >= Shot.start_ms)
+            & (ranked.c.start_ms <= Shot.end_ms),
+        )
+        .order_by(ranked.c.rank.desc(), Shot.id)
     )
     return [
         Channel("fulltext", [(a, s) for a, s in shot_rows], _ms(started)),
@@ -237,6 +270,15 @@ async def compatible_counts(
     return int(compatible), int(total) - int(compatible)
 
 
+async def has_compatible(session: AsyncSession, space: str, info: EncoderInfo) -> bool:
+    """Whether any stored vector of ``space`` matches the encoder (an index probe, no count)."""
+    table = EmbeddingImage if space == "image" else EmbeddingText
+    stmt = select(literal(1)).select_from(table).where(table.model_id == info.model_id)
+    if info.revision:
+        stmt = stmt.where(table.revision == info.revision)
+    return await session.scalar(stmt.limit(1)) is not None
+
+
 async def search(
     session: AsyncSession,
     encoder: QueryEncoder,
@@ -258,12 +300,11 @@ async def search(
         if not info.available:
             skipped[name] = info.reason or "encoder unavailable"
             continue
-        compatible, _mismatched = await compatible_counts(session, space, info)
-        if not compatible:
+        if not await has_compatible(session, space, info):
             skipped[name] = "no compatible vectors stored"
             continue
         started = time.perf_counter()
-        vector = encode(query)
+        vector = await asyncio.to_thread(encode, query)
         encoded_ms = _ms(started)
         channel = await vector_channel(
             session, name, table, info.model_id, info.revision, vector, level, filters, depth

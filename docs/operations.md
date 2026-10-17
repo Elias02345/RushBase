@@ -37,7 +37,7 @@ sudo bash install.sh --mode docker --network host --yes --library /srv/media   #
 
 Useful flags (see `install.sh --help`): `--branch main|dev`, `--repo URL`, `--app-dir DIR`,
 `--port N`, `--bind ADDR`, `--db-url URL` (external PostgreSQL, bare mode), `--with-worker`,
-`--no-web`, `--no-media-tools`, `--auto-update`, `--smb ...`, `--units-only`, `--no-start`.
+`--no-web`, `--with-models`, `--no-media-tools`, `--auto-update`, `--smb ...`, `--units-only`, `--no-start`.
 
 What the installer does, in order: root and OS check, apt prerequisites (with a 3x retry loop and
 dpkg lock timeout), the `rushbase` system user, `/opt/rushbase` (git clone of the chosen train),
@@ -204,6 +204,48 @@ states, `.env` permissions and secrets, `/health`, PostgreSQL, the library (exis
 `.rushbase/library.json`, write test as the service user), cifs mount options (warns on
 `cache=loose`, `vers<3`, `actimeo>5`), disk space and backup age. Exit status 1 when any check is
 an `[ERROR]`.
+
+## Query-encoder models on the server
+
+Hybrid search needs the text towers of SigLIP 2 and multilingual-e5 on the server (ADR-0012; the
+vision towers and all other models stay on the workers). About 0.9 GB:
+
+```sh
+sudo bash install.sh --with-models        # re-run is safe; sets RUSHBASE_MODELS_DIR
+```
+
+This runs `rushbase models pull --only siglip2-base-patch16-256:text-fp16,tokenizer --only
+multilingual-e5-base:model,tokenizer` with the worker's model manager (pinned revisions, SHA-256
+verified, resumable) into `/var/lib/rushbase/models`. In Docker mode the directory is mounted read-only
+as `/models`. Without models the server answers with full-text search only. The server loads the
+models in the background after start (`/search/capabilities` shows `warming`); `/health` lists
+`encoders` per space (`ready`, `warming`, `unavailable`) and the warning `encoder_models_missing`;
+`doctor.sh` checks the files.
+
+## Sizing (100 000 assets, about 50 TB)
+
+Measured with `scripts/perf/` (`docs/eval/2026-10-perf.md`):
+
+| Resource | Recommendation | Why |
+| --- | --- | --- |
+| CPU | 4 cores | One search encodes the query twice (about 40 ms each on CPU) and runs three PostgreSQL channels; eight simultaneous searchers saturate four cores |
+| RAM | 16 GB (8 GB works, filtered semantic search is then disk-bound) | HNSW indexes 4.5 GB plus the vectors a selective filter reads; give PostgreSQL 25 % as `shared_buffers` (`RUSHBASE_PG_SHARED_BUFFERS`, `RUSHBASE_PG_CACHE_SIZE` in `.env` for Docker; `ALTER SYSTEM` for bare installs) |
+| Disk (PostgreSQL) | 40 GB SSD/NVMe | 21 GB for 2.3 M vectors, 0.8 M shots and 0.5 M transcript segments, plus WAL and `pg_dump` backups; not on the SMB share |
+| Encoder models | 1 GB | Only the text towers |
+
+Notes: migration 0007 rebuilds the HNSW indexes (about 25 minutes for 2.3 M vectors, seconds for a
+small library); facet counts, statistics and vector counts may be up to
+`RUSHBASE_QUERY_CACHE_SECONDS` (15) old and are refreshed in the background;
+`RUSHBASE_STATEMENT_TIMEOUT_SECONDS` (30) aborts runaway queries. Bare installs get
+`jit = off`, `random_page_cost = 1.1` and `work_mem = 16MB` set for the `rushbase` database only.
+
+## Library mount lost, server restarts
+
+If the share disappears the server keeps running: `/health` answers 503 (`library_mounted: false`),
+the scanner, filing and in-process stages pause (nothing is marked as gone, no data is touched), the
+read API keeps serving from the database, and everything resumes by itself when the mount is back
+(the next lease heartbeat notices). Workers retry every call with exponential backoff for about two
+minutes, so a restart of the server does not lose a running job.
 
 ## SMB library mount
 

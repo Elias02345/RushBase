@@ -17,6 +17,7 @@ from rushbase_core.fsops import atomic_write_bytes
 from rushbase_core.layout import META_DIR
 from rushbase_core.sidecar import (
     META_DIR_NAME,
+    RUSHBASE_XMP_MARKER,
     RUSHBASE_XMP_SUFFIX,
     XMP_EXTENSION,
     SidecarAI,
@@ -178,13 +179,66 @@ def json_rel(root: Path, task: SidecarTask) -> str:
     return sidecar_rel_path(task.meta_directory, f"{task.filename}.{str(task.asset_id)[:8]}")
 
 
-def _xmp_rel(root: Path, task: SidecarTask) -> str:
+def _is_rushbase_xmp(path: Path) -> bool:
+    try:
+        return RUSHBASE_XMP_MARKER in path.read_bytes()
+    except OSError:
+        return False
+
+
+def xmp_rel(root: Path, task: SidecarTask) -> str:
+    """Library-relative path of the XMP Rushbase owns for this photo.
+
+    ``<stem>.xmp`` if no camera XMP exists and that name is free or already ours (marker
+    present), otherwise ``<stem>.rushbase.xmp``. A camera's XMP is never the target.
+    """
     assert task.xmp_directory is not None
     assert task.xmp_stem is not None
     plain = f"{task.xmp_directory}/{task.xmp_stem}{XMP_EXTENSION}"
-    if not task.camera_xmp_present and not resolve_in_root(root, plain).exists():
-        return plain
+    if not task.camera_xmp_present:
+        path = resolve_in_root(root, plain)
+        if not path.exists() or _is_rushbase_xmp(path):
+            return plain
     return f"{task.xmp_directory}/{task.xmp_stem}{RUSHBASE_XMP_SUFFIX}"
+
+
+def photo_xmp_task(
+    asset: Asset,
+    files: Sequence[AssetFile],
+    sidecar: SidecarV1,
+    primary: AssetFile,
+    meta_directory: str,
+) -> SidecarTask:
+    """:class:`SidecarTask` for a photo, including where its XMP lives."""
+    name = PurePosixPath(primary.rel_path)
+    camera_xmp = any(
+        f.role == "sidecar"
+        and PurePosixPath(f.rel_path).suffix.lower() == XMP_EXTENSION
+        and PurePosixPath(f.rel_path).stem == name.stem
+        for f in files
+    )
+    return SidecarTask(
+        asset_id=asset.id,
+        sidecar=sidecar,
+        meta_directory=meta_directory,
+        filename=name.name,
+        xmp_directory=str(name.parent),
+        xmp_stem=name.stem,
+        camera_xmp_present=camera_xmp,
+    )
+
+
+def refresh_xmp(root: Path, task: SidecarTask) -> bool:
+    """Rewrite the Rushbase XMP of a filed photo (temp + rename); ``False`` if unchanged."""
+    path = resolve_in_root(root, xmp_rel(root, task))
+    data = xmp_for(task.sidecar)
+    try:
+        if path.read_bytes() == data:
+            return False
+    except OSError:
+        pass
+    atomic_write_bytes(path, data)
+    return True
 
 
 def write_sidecars(root: Path, tasks: Sequence[SidecarTask], central_copy: bool) -> WrittenSidecars:
@@ -203,9 +257,9 @@ def write_sidecars(root: Path, tasks: Sequence[SidecarTask], central_copy: bool)
             atomic_write_bytes(resolve_in_root(root, json_path), data)
             written.paths.append(json_path)
             if task.xmp_directory is not None:
-                xmp_rel = _xmp_rel(root, task)
-                atomic_write_bytes(resolve_in_root(root, xmp_rel), xmp_for(task.sidecar))
-                written.paths.append(xmp_rel)
+                xmp_path = xmp_rel(root, task)
+                atomic_write_bytes(resolve_in_root(root, xmp_path), xmp_for(task.sidecar))
+                written.paths.append(xmp_path)
             if central_copy:
                 central = central_rel(task.asset_id)
                 atomic_write_bytes(resolve_in_root(root, central), data)
@@ -236,7 +290,10 @@ __all__ = [
     "build_sidecar",
     "central_rel",
     "json_rel",
+    "photo_xmp_task",
+    "refresh_xmp",
     "remove_written",
     "write_sidecars",
     "xmp_for",
+    "xmp_rel",
 ]

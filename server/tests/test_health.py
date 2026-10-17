@@ -34,6 +34,7 @@ async def test_health_ok_with_database(client_factory: ClientFactory, database_u
         "lease_held": None,
         "setup_required": True,
         "warnings": ["mcp_public_url_missing"],
+        "encoders": {"text": "unavailable", "image": "unavailable"},
     }
 
 

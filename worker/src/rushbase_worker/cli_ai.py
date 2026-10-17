@@ -98,6 +98,14 @@ def models_pull(
         list[str] | None, typer.Option(help="Extra VLM variants (profiles.toml).")
     ] = None,
     all_models: Annotated[bool, typer.Option("--all", help="Pull every pinned model.")] = False,
+    only: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="Pull only some files: MODEL_ID:ROLE[,ROLE...] (repeatable); installs no "
+            "inference binaries. The server uses siglip2-base-patch16-256:text-fp16,tokenizer "
+            "and multilingual-e5-base:model,tokenizer."
+        ),
+    ] = None,
     backends: Annotated[
         bool, typer.Option(help="Also install llama.cpp (and whisper fallback).")
     ] = True,
@@ -107,6 +115,9 @@ def models_pull(
     settings = WorkerSettings()
     report: HardwareReport = detect_hardware()
     emit = _emitter("models pull", as_json)
+    if only:
+        _pull_only(settings.data_dir, only, emit)
+        return
     if all_models:
         ids = list(load_models_lock().models)
     elif model:
@@ -125,6 +136,19 @@ def models_pull(
             store.pull(spec, emit)
     except (DownloadError, RuntimeError) as exc:
         emit({"event": "error", "message": str(exc)})
+        raise typer.Exit(1) from exc
+
+
+def _pull_only(data_dir: Path, selectors: list[str], emit: Any) -> None:
+    """Download selected files of selected models (``MODEL_ID:ROLE,ROLE``)."""
+    store = ModelStore(data_dir)
+    try:
+        for selector in selectors:
+            model_id, _, roles = selector.partition(":")
+            wanted = tuple(r for r in roles.split(",") if r) or None
+            store.pull(_resolve([model_id])[0], emit, roles=wanted)
+    except (DownloadError, RuntimeError, KeyError) as exc:
+        emit({"event": "error", "message": str(exc.args[0] if exc.args else exc)})
         raise typer.Exit(1) from exc
 
 

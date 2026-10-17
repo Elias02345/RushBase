@@ -23,6 +23,7 @@ Usage: sudo bash install.sh [options]
   --bind ADDR               Bind address (default: 127.0.0.1; keep it behind a proxy or tunnel)
   --db-url URL              Use an external PostgreSQL (bare mode); skips the local database
   --with-worker             Also install the headless worker unit (bare mode)
+  --with-models             Download the query-encoder models (about 0.9 GB) for hybrid search
   --no-web                  Skip Node.js/pnpm and the web UI build (bare mode)
   --no-media-tools          Do not install ffmpeg/exiftool
   --auto-update             Apply updates automatically (default: only notify)
@@ -41,7 +42,7 @@ EOF
 ASSUME_YES=0
 OPT_MODE=""; OPT_NETWORK=""; OPT_BRANCH=""; OPT_REPO=""; OPT_APP_DIR=""
 OPT_LIBRARY=""; OPT_PORT=""; OPT_BIND=""; OPT_DB_URL=""
-OPT_WORKER=""; OPT_WEB=""; OPT_AUTO_UPDATE=0; OPT_NO_START=0; OPT_UNITS_ONLY=0
+OPT_WORKER=""; OPT_MODELS=0; OPT_WEB=""; OPT_AUTO_UPDATE=0; OPT_NO_START=0; OPT_UNITS_ONLY=0
 OPT_SMB=""; OPT_SMB_USER=""; OPT_SMB_PWFILE=""; OPT_SMB_DOMAIN=""; OPT_SMB_OPTS=""
 
 while (( $# > 0 )); do
@@ -56,6 +57,7 @@ while (( $# > 0 )); do
     --bind)               OPT_BIND="${2:?--bind needs a value}"; shift 2 ;;
     --db-url)             OPT_DB_URL="${2:?--db-url needs a value}"; shift 2 ;;
     --with-worker)        OPT_WORKER=1; shift ;;
+    --with-models)        OPT_MODELS=1; shift ;;
     --no-web)             OPT_WEB=0; shift ;;
     --no-media-tools)     export RUSHBASE_MEDIA_TOOLS=0; shift ;;
     --auto-update)        OPT_AUTO_UPDATE=1; shift ;;
@@ -294,6 +296,9 @@ provision_local_db() {
     runuser -u postgres -- psql -v ON_ERROR_STOP=1 -qc 'CREATE DATABASE rushbase OWNER rushbase'
     ok "Created database 'rushbase'"
   fi
+  # Planner settings for vector search and ranked full-text queries (per database, no restart).
+  runuser -u postgres -- psql -v ON_ERROR_STOP=1 -qc "ALTER DATABASE rushbase SET jit = off" \
+    -c "ALTER DATABASE rushbase SET random_page_cost = 1.1" -c "ALTER DATABASE rushbase SET work_mem = '16MB'"
   runuser -u postgres -- psql -d rushbase -v ON_ERROR_STOP=1 -qc 'CREATE EXTENSION IF NOT EXISTS vector'
   runuser -u postgres -- psql -d rushbase -v ON_ERROR_STOP=1 -qc 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
   pg_url="$(db_url_plain)"
@@ -325,6 +330,14 @@ if [[ "${MODE}" == "bare" ]]; then
     web_build
     ok "Web UI built"
   fi
+fi
+
+# --- Query-encoder models (opt-in) -------------------------------------------------------------
+if (( OPT_MODELS == 1 )); then
+  banner "Query-encoder models"
+  pull_server_models
+  env_set RUSHBASE_MODELS_DIR "${RB_STATE_DIR}/models"
+  ok "Models installed in ${RB_STATE_DIR}/models (RUSHBASE_MODELS_DIR set)"
 fi
 
 # --- systemd, logrotate ------------------------------------------------------------------------
