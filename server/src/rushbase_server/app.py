@@ -25,6 +25,7 @@ from rushbase_server.api import (
     taxonomy,
     worker,
 )
+from rushbase_server.api.oauth import REGISTER_PER_HOUR
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.mcp.server import build_mcp
@@ -77,6 +78,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
             limiter=LoginRateLimiter(
                 clock, settings.login_max_failures, settings.login_window_seconds
             ),
+            registrations=LoginRateLimiter(clock, REGISTER_PER_HOUR, 3600),
             pg_tools=PgTools.from_settings(settings),
             encoder=build_encoder(settings),
         )

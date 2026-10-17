@@ -46,6 +46,9 @@ PARAMS = (
 ROLES_MAY_GRANT = ("admin", "editor")
 REGISTER_PER_MINUTE = 20
 LOGIN_PER_MINUTE = 30
+AUTHORIZE_PER_MINUTE = 60
+TOKEN_PER_IP_PER_MINUTE = 120
+REGISTER_PER_HOUR = 30
 
 
 async def oauth_config(runtime: Runtime, db: Any) -> OAuthConfig | None:
@@ -143,8 +146,12 @@ async def register(request: Request, runtime: RuntimeDep, db: DbDep) -> JSONResp
     if config is None:
         return _unconfigured()
     now = runtime.clock.now()
-    if not runtime.buckets.allow(f"register:{client_ip(request)}", REGISTER_PER_MINUTE, now):
+    ip_key = f"register:{client_ip(request)}"
+    if not runtime.buckets.allow(ip_key, REGISTER_PER_MINUTE, now):
         return _json({"error": "temporarily_unavailable"}, 429, {"Retry-After": "60"})
+    hourly = runtime.registrations.retry_after(ip_key)
+    if hourly:
+        return _json({"error": "temporarily_unavailable"}, 429, {"Retry-After": str(hourly)})
     try:
         body = await request.json()
         if not isinstance(body, dict):
@@ -157,6 +164,7 @@ async def register(request: Request, runtime: RuntimeDep, db: DbDep) -> JSONResp
         client = await service.register_client(db, body, config.extra_redirects, now)
     except OAuthError as exc:
         return _error(exc)
+    runtime.registrations.register_failure(ip_key)  # counts registrations, not failures
     audit.record(
         db,
         actor_kind="system",
@@ -244,6 +252,12 @@ def _check_request(params: dict[str, str], config: OAuthConfig) -> list[str]:
     return service.parse_scopes(params.get("scope"))
 
 
+def _throttled(runtime: Runtime, name: str, request: Request, per_minute: int) -> bool:
+    """Per-client-address limit for the unauthenticated OAuth endpoints."""
+    key = f"{name}-ip:{client_ip(request) or 'unknown'}"
+    return not runtime.buckets.allow(key, per_minute, runtime.clock.now())
+
+
 def _new_csrf() -> str:
     return secrets.token_urlsafe(24)
 
@@ -270,6 +284,8 @@ async def _consent_response(
         csrf=csrf,
         signed_in_as=user.display_name or user.username if user else None,
         message=message,
+        kind=client.kind,
+        verified=redirect_uri in redirects.BUILTIN_REDIRECTS,
     )
     response = _html(page, status)
     response.set_cookie(
@@ -289,6 +305,8 @@ async def authorize_page(request: Request, runtime: RuntimeDep, db: DbDep) -> Re
     """Consent page: shows client, redirect host and scopes; login with Rushbase credentials."""
     config = await oauth_config(runtime, db)
     lang = _lang(request)
+    if _throttled(runtime, "authorize", request, AUTHORIZE_PER_MINUTE):
+        return _html(pages.error_page(lang, pages.STRINGS[lang]["too_many"]), 429)
     if config is None:
         return _html(pages.error_page(lang, pages.STRINGS[lang]["unavailable"]), 503)
     params = dict(request.query_params)
@@ -317,6 +335,8 @@ async def authorize_submit(request: Request, runtime: RuntimeDep, db: DbDep) -> 
     """Handle the consent form: authenticate, check the role, issue the code."""
     config = await oauth_config(runtime, db)
     lang = _lang(request)
+    if _throttled(runtime, "authorize", request, AUTHORIZE_PER_MINUTE):
+        return _html(pages.error_page(lang, pages.STRINGS[lang]["too_many"]), 429)
     if config is None:
         return _html(pages.error_page(lang, pages.STRINGS[lang]["unavailable"]), 503)
     form = await request.form()
@@ -412,6 +432,7 @@ FormStr = Annotated[str | None, Form()]
 
 @router.post("/oauth/token", include_in_schema=False)
 async def token(
+    request: Request,
     runtime: RuntimeDep,
     db: DbDep,
     grant_type: FormStr = None,
@@ -428,6 +449,8 @@ async def token(
     if config is None:
         return _unconfigured()
     now = runtime.clock.now()
+    if _throttled(runtime, "token", request, TOKEN_PER_IP_PER_MINUTE):
+        return _json({"error": "temporarily_unavailable"}, 429, {"Retry-After": "5"})
     try:
         if not client_id:
             raise OAuthError("invalid_client", "client_id is required", 401)
@@ -468,12 +491,28 @@ async def token(
     except OAuthError as exc:
         await db.rollback()
         return _error(exc)
+    audit.record(
+        db,
+        actor_kind="system",
+        action="oauth.token_issued"
+        if grant_type == "authorization_code"
+        else "oauth.token_refreshed",
+        target_kind="oauth_client",
+        target_id=client.id,
+        details={"client": client.name, "grant_type": grant_type},
+        ip=client_ip(request),
+    )
+    await db.commit()
     return _json(tokens.body())
 
 
 @router.post("/oauth/revoke", include_in_schema=False)
-async def revoke(runtime: RuntimeDep, db: DbDep, token: FormStr = None) -> Response:
+async def revoke(
+    request: Request, runtime: RuntimeDep, db: DbDep, token: FormStr = None
+) -> Response:
     """RFC 7009 revocation: always answers 200."""
-    if token:
+    if token and not _throttled(runtime, "revoke", request, AUTHORIZE_PER_MINUTE):
         await service.revoke_token(db, token, runtime.clock.now())
+        audit.record(db, actor_kind="system", action="oauth.token_revoked", ip=client_ip(request))
+        await db.commit()
     return Response(status_code=200, headers=NO_STORE)

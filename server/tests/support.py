@@ -75,6 +75,7 @@ def make_settings(database_url: str, **overrides: Any) -> Settings:
         "background_tasks": False,
         "pg_docker_container": PG_CONTAINER if shutil.which("docker") else None,
         "login_max_failures": 3,
+        "cookie_secure": False,  # the test client speaks plain http
         **overrides,
     }
     return Settings(_env_file=None, **values)

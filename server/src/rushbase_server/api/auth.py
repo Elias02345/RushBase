@@ -359,7 +359,10 @@ class TokenIn(BaseModel):
     """Request for a new personal API token."""
 
     name: str = Field(min_length=1, max_length=100)
-    scopes: list[str] = Field(default_factory=list)
+    scopes: list[Literal["read", "write"]] = Field(
+        default_factory=list,
+        description="Empty: full access of the user's role. Only 'read': safe methods only.",
+    )
 
 
 class TokenOut(BaseModel):

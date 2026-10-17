@@ -47,6 +47,7 @@ class Runtime:
     clock: Clock
     binding: LibraryBinding
     limiter: LoginRateLimiter
+    registrations: LoginRateLimiter
     pg_tools: backup.PgTools
     encoder: QueryEncoder = field(default_factory=NullEncoder)
     buckets: TokenBuckets = field(default_factory=TokenBuckets)
