@@ -9,7 +9,7 @@ Comment[de]=Material auf der eigenen GPU verarbeiten und die Rushbase-Bibliothek
 Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 {{exec}}
 Icon=rushbase
 Terminal=false
-Categories=AudioVideo;Video;Utility;
+Categories=AudioVideo;Video;
 Keywords=video;footage;media;library;archive;ai;transcode;proxy;
 Keywords[de]=Video;Material;Medien;Bibliothek;Archiv;KI;
 StartupWMClass=rushbase-desktop
