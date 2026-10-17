@@ -137,8 +137,8 @@ Connectors, Add custom connector* in claude.ai. Step by step: [docs/mcp.md](docs
 
 ## Status
 
-Pre-1.0. Milestones M0 to M5 are done; the companion is verified on Linux only and hardening is in
-progress. See [`docs/STATUS.md`](docs/STATUS.md) for details and
+Pre-1.0, feature-complete. Milestones M0 to M7 are implemented; v1.0 waits for signed releases, a
+real claude.ai connector test and the manual test matrix on Windows/macOS. See [`docs/STATUS.md`](docs/STATUS.md) for details and
 [`docs/release-checklist.md`](docs/release-checklist.md) for what is left before v1.0.
 Configuration reference: [`.env.example`](.env.example).
 
