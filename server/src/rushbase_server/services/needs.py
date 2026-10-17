@@ -309,6 +309,35 @@ async def set_candidate(
     return row
 
 
+async def links_of_asset(session: AsyncSession, asset_id: UUID) -> list[dict[str, Any]]:
+    """Needs items the asset is a candidate for (any decision), open lists first."""
+    rows = await session.execute(
+        select(NeedCandidate, NeedItem, NeedList, Shot.idx)
+        .join(NeedItem, NeedItem.id == NeedCandidate.item_id)
+        .join(NeedList, NeedList.id == NeedItem.list_id)
+        .outerjoin(Shot, Shot.id == NeedCandidate.shot_id)
+        .where(NeedCandidate.asset_id == asset_id)
+        .order_by(NeedList.status.desc(), NeedList.title, NeedItem.position)
+    )
+    return [
+        {
+            "list_id": need.id,
+            "list_title": need.title,
+            "list_status": need.status,
+            "item_id": item.id,
+            "item_description": item.description,
+            "item_status": item.status,
+            "count_wanted": item.count_wanted,
+            "candidate_id": candidate.id,
+            "status": candidate.status,
+            "source": candidate.source,
+            "score": candidate.score,
+            "shot_idx": shot_idx,
+        }
+        for candidate, item, need, shot_idx in rows
+    ]
+
+
 async def refresh_fulfilment(session: AsyncSession, item: NeedItem) -> None:
     """Mark an item fulfilled once enough candidates are confirmed (never reopens a drop)."""
     confirmed = int(

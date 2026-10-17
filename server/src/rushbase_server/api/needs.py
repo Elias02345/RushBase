@@ -142,6 +142,33 @@ def _guard(exc: needs.NeedsError) -> HTTPException:
     return HTTPException(exc.status, str(exc))
 
 
+class AssetNeedLink(BaseModel):
+    """A needs item the asset is a candidate for."""
+
+    list_id: UUID
+    list_title: str
+    list_status: str
+    item_id: UUID
+    item_description: str
+    item_status: str
+    count_wanted: int
+    candidate_id: UUID
+    status: str
+    source: str
+    score: float
+    shot_idx: int | None
+
+
+@router.get(
+    "/for-asset/{asset_id}",
+    response_model=list[AssetNeedLink],
+    summary="Needs items an asset is a candidate for",
+)
+async def needs_of_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> list[dict[str, Any]]:
+    """Linked needs lists for the asset detail (confirm/reject through the candidate route)."""
+    return await needs.links_of_asset(db, asset_id)
+
+
 @router.get("", response_model=NeedPage, summary="List needs lists")
 async def list_needs(
     _: ViewerDep,
