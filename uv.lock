@@ -1263,7 +1263,7 @@ wheels = [
 
 [[package]]
 name = "rushbase"
-version = "0.9.0rc2"
+version = "0.9.0rc3"
 source = { virtual = "." }
 
 [package.dev-dependencies]
@@ -1302,7 +1302,7 @@ dev = [
 
 [[package]]
 name = "rushbase-core"
-version = "0.9.0rc2"
+version = "0.9.0rc3"
 source = { editable = "core" }
 dependencies = [
     { name = "blake3" },
@@ -1317,7 +1317,7 @@ requires-dist = [
 
 [[package]]
 name = "rushbase-server"
-version = "0.9.0rc2"
+version = "0.9.0rc3"
 source = { editable = "server" }
 dependencies = [
     { name = "alembic" },
@@ -1362,7 +1362,7 @@ requires-dist = [
 
 [[package]]
 name = "rushbase-worker"
-version = "0.9.0rc2"
+version = "0.9.0rc3"
 source = { editable = "worker" }
 dependencies = [
     { name = "defusedxml" },
