@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Elias02345/RushBase/security/advisories/new
+    about: Private reporting, please do not open a public issue.
+  - name: User guide
+    url: https://github.com/Elias02345/RushBase/blob/dev/docs/user-guide/en.md
+    about: FAQ and troubleshooting.
+  - name: Operations guide
+    url: https://github.com/Elias02345/RushBase/blob/dev/docs/operations.md
+    about: Install, update, rollback and disaster recovery.

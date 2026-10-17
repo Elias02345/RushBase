@@ -4,25 +4,93 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
     target-branch: dev
+    open-pull-requests-limit: 3
+    labels: [dependencies, python]
+    commit-message:
+      prefix: "chore(deps)"
     groups:
       python:
-        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # ADR-0001/0008: the MCP SDK is pinned exactly; bump by hand after tests.
+      - dependency-name: mcp
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+      day: monday
     target-branch: dev
+    open-pull-requests-limit: 3
+    labels: [dependencies, javascript]
+    commit-message:
+      prefix: "chore(deps)"
     groups:
       web:
-        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # Major migrations are scheduled by hand (React 19, TypeScript 7).
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react-dom"
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      # Must follow the Node runtime in .nvmrc.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      # Tauri JS packages are pinned together with the Rust crates (ADR-0004).
+      - dependency-name: "@tauri-apps/*"
+
+  - package-ecosystem: cargo
+    directory: /desktop/src-tauri
+    schedule:
+      interval: weekly
+      day: monday
+    target-branch: dev
+    open-pull-requests-limit: 2
+    labels: [dependencies, rust]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      rust:
+        update-types: [minor, patch]
+    ignore:
+      # Tauri crates and plugins are pinned exactly (ADR-0004).
+      - dependency-name: "tauri"
+      - dependency-name: "tauri-*"
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
     target-branch: dev
+    open-pull-requests-limit: 3
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      actions:
+        patterns: ["*"]
+
   - package-ecosystem: docker
     directory: /deploy/docker
     schedule:
       interval: weekly
+      day: monday
     target-branch: dev
+    open-pull-requests-limit: 2
+    labels: [dependencies, docker]
+    commit-message:
+      prefix: "build(deps)"
+    ignore:
+      # Python is pinned to 3.12 (requires-python >=3.12,<3.13).
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]

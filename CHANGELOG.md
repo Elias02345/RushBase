@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed (repository)
+
+- README rewritten with logo, screenshots, architecture diagram and a verified quick start; issue
+  and pull request templates, Code of Conduct, release-notes categories; Dependabot now groups
+  minor/patch updates per ecosystem, adds Cargo and ignores pinned or major-migration packages.
+
 ### Added (worker)
 
 - `rushbase models pull` installs the pinned, CI-built whisper.cpp release build for the detected
