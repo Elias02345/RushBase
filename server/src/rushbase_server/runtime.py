@@ -8,13 +8,13 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from uuid import UUID
 
-from sqlalchemy import delete, update
+from sqlalchemy import delete, exists, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from rushbase_server.clock import Clock
 from rushbase_server.db import SessionFactory
-from rushbase_server.models import Session, Worker
+from rushbase_server.models import Session, User, Worker
 from rushbase_server.search.encoder import NullEncoder, QueryEncoder
 from rushbase_server.services import (
     backup,
@@ -209,14 +209,29 @@ class Runtime:
         self._spawn("lease", s.server_lease_heartbeat_seconds, self.binding.heartbeat)
         self._spawn("scanner", s.scan_interval_seconds, self._scan)
         self._spawn("maintenance", s.maintenance_interval_seconds, self._maintain)
-        self._spawn("backup", 60, self.backup_if_due)
+        self._spawn("backup", 60, self._backup)
+
+    async def setup_complete(self) -> bool:
+        """Whether the first-run setup (or a restore) created at least one user.
+
+        Until then the database must stay empty: scanning, filing or backing up a fresh database
+        would make a restore from the share impossible ("target database is not empty") and could
+        let an empty backup shadow the real ones.
+        """
+        async with self.session_factory() as session:
+            return bool(await session.scalar(select(exists().where(User.id.is_not(None)))))
 
     async def _scan(self) -> None:
-        await self.scan_once()
+        if await self.setup_complete():
+            await self.scan_once()
 
     async def _maintain(self) -> None:
-        if self.binding.held:
+        if self.binding.held and await self.setup_complete():
             await self.maintain_once()
+
+    async def _backup(self) -> None:
+        if await self.setup_complete():
+            await self.backup_if_due()
 
     def _spawn(self, name: str, interval: float, work: Callable[[], Awaitable[object]]) -> None:
         async def loop() -> None:
