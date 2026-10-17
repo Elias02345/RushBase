@@ -183,8 +183,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: desktop
-          # MSI only accepts numeric pre-release identifiers, so "-rc.N" versions ship NSIS only.
-          args: ${{ (runner.os == 'Windows' && contains(needs.verify.outputs.version, '-')) && '--bundles nsis' || matrix.args }}
+          # MSI and RPM cannot encode "-rc.N" versions: pre-releases ship NSIS (Windows) and
+          # AppImage/deb (Linux, the Arch package is built from the deb) only.
+          args: ${{ contains(needs.verify.outputs.version, '-') && (runner.os == 'Windows' && '--bundles nsis' || runner.os == 'Linux' && '--bundles appimage,deb' || matrix.args) || matrix.args }}
           # An empty tagName means "build only"; with a tag everything goes into the draft release
           # created by the verify job (latest.json is uploaded there as well when the updater key exists).
           tagName: ${{ env.IS_RELEASE == 'true' && needs.verify.outputs.tag || '' }}
