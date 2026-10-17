@@ -44,7 +44,7 @@ jobs:
             args: "--target aarch64-apple-darwin --bundles dmg"
             triple: aarch64-apple-darwin
           - name: macOS (Intel)
-            os: macos-13
+            os: macos-15-intel
             args: "--target x86_64-apple-darwin --bundles dmg"
             triple: x86_64-apple-darwin
           - name: Windows
@@ -94,6 +94,34 @@ jobs:
         run: |
           [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\cert.pfx", [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
 
+      # Tauri treats an empty APPLE_CERTIFICATE as "sign with this" and fails, so the Apple
+      # variables are only exported when the secrets actually exist (unsigned build otherwise).
+      - name: Apple signing environment
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [[ -z "${APPLE_CERTIFICATE}" ]]; then
+            echo "::notice::No Apple certificate configured: building an unsigned DMG"
+            exit 0
+          fi
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY \
+                      APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            value="${!name}"
+            [[ -n "${value}" ]] || continue
+            {
+              echo "${name}<<__RB_EOF__"
+              echo "${value}"
+              echo "__RB_EOF__"
+            } >>"${GITHUB_ENV}"
+          done
+
       - name: Build installers
         uses: tauri-apps/tauri-action@v0
         env:
@@ -101,12 +129,6 @@ jobs:
           RUSHBASE_UPDATER_PUBKEY: ${{ vars.RUSHBASE_UPDATER_PUBKEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: desktop
           args: ${{ matrix.args }}
