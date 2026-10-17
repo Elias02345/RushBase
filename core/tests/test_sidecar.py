@@ -122,6 +122,8 @@ def test_safe_rename_maps_permission_errors_to_file_in_use(
     def deny(*_: object) -> None:
         raise OSError(errno.EACCES, "denied")
 
+    monkeypatch.setattr("rushbase_core.fsops._renameat2_noreplace", lambda *_: False)
+    monkeypatch.setattr("rushbase_core.fsops._link_noreplace", lambda *_: False)
     monkeypatch.setattr("rushbase_core.fsops.os.rename", deny)
     with pytest.raises(FileInUseError):
         safe_rename(tmp_path / "a", tmp_path / "b")
@@ -140,3 +142,47 @@ def test_append_line_is_durable_and_newline_terminated(tmp_path: Path) -> None:
     append_line(log, "one")
     append_line(log, "two\n")
     assert log.read_text() == "one\ntwo\n"
+
+
+def test_safe_rename_is_atomic_when_the_target_appears_after_the_check(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A racing writer creates the target between the existence check and the rename."""
+    monkeypatch.setattr("rushbase_core.fsops.lexists", lambda _path: False)  # check always passes
+    (tmp_path / "a").write_text("new")
+    (tmp_path / "b").write_text("racer")
+    with pytest.raises(FileExistsError):
+        safe_rename(tmp_path / "a", tmp_path / "b")
+    assert (tmp_path / "b").read_text() == "racer"
+    (tmp_path / "d1").mkdir()
+    (tmp_path / "d1" / "x").write_text("x")
+    (tmp_path / "d2").mkdir()  # an empty directory would be silently replaced by rename(2)
+    with pytest.raises(FileExistsError):
+        safe_rename(tmp_path / "d1", tmp_path / "d2")
+    assert (tmp_path / "d1" / "x").exists()
+
+
+def test_safe_rename_link_fallback_never_overwrites(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("rushbase_core.fsops._renameat2_noreplace", lambda *_: False)
+    monkeypatch.setattr("rushbase_core.fsops.lexists", lambda _path: False)
+    (tmp_path / "a").write_text("new")
+    (tmp_path / "b").write_text("racer")
+    with pytest.raises(FileExistsError):
+        safe_rename(tmp_path / "a", tmp_path / "b")
+    assert (tmp_path / "b").read_text() == "racer"
+    safe_rename(tmp_path / "a", tmp_path / "c")
+    assert (tmp_path / "c").read_text() == "new"
+    assert not (tmp_path / "a").exists()
+
+
+def test_atomic_write_does_not_follow_a_planted_temp_symlink(tmp_path: Path) -> None:
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep")
+    target = tmp_path / "doc.json"
+    for planted in ("doc.json.rbtmp", "doc.json.deadbeef.rbtmp"):
+        (tmp_path / f".{planted}").symlink_to(victim)
+    atomic_write_bytes(target, b"data")
+    assert victim.read_text() == "keep"
+    assert target.read_bytes() == b"data"

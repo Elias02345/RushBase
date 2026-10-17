@@ -692,8 +692,8 @@ async def rules_propose(ctx: Ctx, p: spec.RulesPropose) -> ToolOutput:
 
 
 async def rules_activate(ctx: Ctx, p: spec.RulesActivate) -> ToolOutput:
-    """``rules_activate``."""
-    ctx.require_role("editor")
+    """``rules_activate``: changes where new material is filed, so it needs an admin account."""
+    ctx.require_role("admin")
     try:
         rule = await filing_rules.activate_rule(ctx.db, _uuid(p.rule_id, "rule_id"), ctx.user.id)
     except filing_rules.RuleError as exc:

@@ -25,9 +25,11 @@ from rushbase_server.api import (
     taxonomy,
     worker,
 )
+from rushbase_server.api.oauth import REGISTER_PER_HOUR
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.mcp.server import build_mcp
+from rushbase_server.middleware import BodyLimitMiddleware, SecurityHeadersMiddleware
 from rushbase_server.models import Library
 from rushbase_server.runtime import Runtime
 from rushbase_server.search.encoder import build_encoder
@@ -76,6 +78,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
             limiter=LoginRateLimiter(
                 clock, settings.login_max_failures, settings.login_window_seconds
             ),
+            registrations=LoginRateLimiter(clock, REGISTER_PER_HOUR, 3600),
             pg_tools=PgTools.from_settings(settings),
             encoder=build_encoder(settings),
         )
@@ -96,6 +99,8 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app = FastAPI(title="Rushbase", version=get_version(), lifespan=lifespan)
     endpoint, mcp_sessions = build_mcp(lambda: app.state.runtime, settings.public_url)
     app.state.mcp_sessions = mcp_sessions
+    app.add_middleware(BodyLimitMiddleware, max_bytes=settings.max_body_bytes)
+    app.add_middleware(SecurityHeadersMiddleware)
     app.router.routes.append(Route("/mcp", endpoint))
     app.include_router(system.router)
     app.include_router(auth.router)

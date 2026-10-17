@@ -7,6 +7,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from pydantic import SecretStr
 
 from support import Server
 
@@ -202,7 +203,10 @@ async def test_pause_blocks_claims_and_metrics_are_opt_in(
     server_factory: ServerFactory, database_url: str, library_root: Path
 ) -> None:
     async with server_factory(
-        database_url, library_root=library_root, metrics_enabled=True
+        database_url,
+        library_root=library_root,
+        metrics_enabled=True,
+        metrics_token=SecretStr("m" * 20),
     ) as server:
         admin = await server.setup_admin()
         await ingest(server, ["a.jpg"])
@@ -218,7 +222,10 @@ async def test_pause_blocks_claims_and_metrics_are_opt_in(
         ).status_code == 204
         resumed = await server.client.post("/api/v1/worker/claim", json={}, headers=worker)
         assert len(resumed.json()["jobs"]) == 1
-        metrics = await server.client.get("/metrics")
+        assert (await server.client.get("/metrics")).status_code == 401
+        metrics = await server.client.get(
+            "/metrics", headers={"Authorization": "Bearer " + "m" * 20}
+        )
         assert metrics.status_code == 200
         assert 'rushbase_jobs{stage="probe",state="leased"} 1' in metrics.text
     async with server_factory(database_url, library_root=library_root) as off:

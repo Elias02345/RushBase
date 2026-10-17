@@ -6,6 +6,35 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security (milestone M7)
+
+- Derived files are served only for media/JSON extensions with `Content-Security-Policy: sandbox`;
+  every response carries CSP, `X-Frame-Options`, `Referrer-Policy` and `nosniff`; request bodies
+  are capped (`RUSHBASE_MAX_BODY_BYTES`).
+- `RUSHBASE_TRUSTED_PROXIES` (uvicorn forwarded headers), cookie `Secure` derived from
+  `RUSHBASE_PUBLIC_URL`, one-time `RUSHBASE_SETUP_TOKEN` (installer prints the setup URL, wizard
+  asks for the code, `setup_token_required` in `GET /api/v1/setup`), `/metrics` needs
+  `RUSHBASE_METRICS_TOKEN`.
+- File names with backslashes/control characters are skipped by the scanner and rejected by
+  `resolve_in_root`; no-overwrite renames are atomic (`renameat2`/`link`); temp files are created
+  exclusively without following links; sidecar discovery ignores symlinks.
+- ffmpeg/ffprobe: protocol whitelist `file,pipe`, `file:` inputs, playlists/scripts refused;
+  ExifTool `--`; Pillow pixel cap 250 MP; model downloads re-verified when already present and
+  capped to the pinned size.
+- OAuth: per-IP limits on authorize/token/revoke, hourly registration cap, metadata-client
+  negative cache and row cap, unused clients purged after one hour, consent page marks unverified
+  clients; token issuance/refresh/revocation and rejected MCP tokens are audited; MCP rate
+  limits also per account; `rules_activate` needs an admin account; personal API token scopes
+  (`read`-only tokens cannot change anything).
+- Result lists of workers are bounded (shots/files 10 000, transcript segments 100 000, ...).
+- Installer: uv is installed from a checksum-pinned release archive; systemd units are sandboxed
+  (`ProtectSystem=strict`, no capabilities, syscall filter for the server, `UMask=0077`); SMB
+  mounts use `0660`/`0770`.
+- Desktop: no worker command or library root from the webview (native folder dialog, config file
+  or `RUSHBASE_CLI` only), per-sub-command flag allow-list, `http(s)` server URL validation, release
+  builds fail while the updater key is the placeholder.
+- Docs: threat model in `SECURITY.md`, hardening settings in `docs/operations.md`.
+
 ### Added (milestone M5, MCP server and needs lists)
 
 - OAuth 2.1 authorization server in the FastAPI app (ADR-0010): discovery documents,

@@ -259,8 +259,6 @@
     "server": "Server address",
     "libraryRoot": "Library folder",
     "libraryRootHint": "Used read-only.",
-    "cli": "Worker command",
-    "cliHint": "Empty = the bundled program. For development, e.g. “uv run rushbase”.",
     "saved": "Saved",
     "wizard": "Run setup again",
     "appearance": "Appearance",

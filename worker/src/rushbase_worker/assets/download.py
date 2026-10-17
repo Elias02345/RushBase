@@ -47,8 +47,11 @@ def download(
     final file appears only after the SHA-256 matched (atomic ``os.replace``).
     """
     if dest.is_file() and dest.stat().st_size == size:
-        emit({"event": "download_skipped", "file": label, "reason": "present"})
-        return
+        if sha256_file(dest) == sha256:
+            emit({"event": "download_skipped", "file": label, "reason": "present"})
+            return
+        emit({"event": "download_replaced", "file": label, "reason": "checksum mismatch"})
+        dest.unlink()
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     owned = client is None
@@ -107,6 +110,8 @@ def _fetch(
             for chunk in response.iter_bytes(CHUNK):
                 handle.write(chunk)
                 done += len(chunk)
+                if done > size:
+                    raise DownloadError(f"{label}: server sent more than {size} bytes")
                 now = time.monotonic()
                 if now - last_emit >= PROGRESS_INTERVAL:
                     last_emit = now

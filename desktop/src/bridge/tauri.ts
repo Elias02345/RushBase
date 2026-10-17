@@ -59,6 +59,7 @@ export function createTauriBridge(): Bridge {
       const chosen = await open({ directory: true, multiple: false });
       return typeof chosen === "string" ? chosen : null;
     },
+    pickLibraryRoot: () => invoke<string | null>("pick_library_root"),
     autostart: {
       get: () => isEnabled(),
       set: (enabled) => (enabled ? enable() : disable()),

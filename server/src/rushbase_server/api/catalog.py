@@ -592,6 +592,7 @@ async def get_derived(asset_id: UUID, path: str, _: ViewerDep, runtime: RuntimeD
         headers={
             "Cache-Control": "private, max-age=86400",
             "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "sandbox; default-src 'none'",
             "Content-Disposition": "inline",
         },
     )

@@ -21,7 +21,11 @@ from rushbase_server.services.security import constant_time_equals, hash_token
 DEFAULT_SCOPES = ("read",)
 CODE_TTL = timedelta(minutes=5)
 MAX_DCR_CLIENTS = 500
-UNUSED_CLIENT_TTL = timedelta(days=1)
+UNUSED_CLIENT_TTL = timedelta(hours=1)
+MAX_CIMD_CLIENTS = 200
+NEGATIVE_CACHE_TTL = timedelta(minutes=5)
+_FAILED_FETCHES: dict[str, datetime] = {}
+"""client_id URL -> time of the last failed metadata fetch (no client row existed)."""
 ACCESS_PREFIX = "rba"
 REFRESH_PREFIX = "rbr"
 CODE_PREFIX = "rbc"
@@ -167,6 +171,9 @@ async def load_client(
         return client
     if client is not None and client.metadata_expires_at and client.metadata_expires_at > now:
         return client
+    failed_at = _FAILED_FETCHES.get(client_id)
+    if client is None and failed_at is not None and now - failed_at < NEGATIVE_CACHE_TTL:
+        raise OAuthError("invalid_client", "client metadata: fetch failed recently", 401)
     try:
         meta = await cimd.fetch_client_metadata(
             client_id,
@@ -177,12 +184,16 @@ async def load_client(
     except cimd.CimdError as exc:
         if client is not None:  # keep serving the last good document during an outage
             return client
+        if len(_FAILED_FETCHES) >= 1000:
+            _FAILED_FETCHES.clear()
+        _FAILED_FETCHES[client_id] = now
         raise OAuthError("invalid_client", f"client metadata: {exc}", 401) from exc
     expires = now + timedelta(seconds=meta.cache_seconds)
     if meta.not_modified and client is not None:
         client.metadata_expires_at = expires
         return client
     if client is None:
+        await _make_room_for_cimd_client(db, now)
         client = OAuthClient(id=uuid7(), client_id=client_id, kind="cimd")
         db.add(client)
     client.name = meta.name
@@ -192,6 +203,21 @@ async def load_client(
     client.metadata_etag = meta.etag
     await db.flush()
     return client
+
+
+async def _make_room_for_cimd_client(db: AsyncSession, now: datetime) -> None:
+    """Purge never-used metadata clients; refuse new ones while the table is at its cap."""
+    await db.execute(
+        delete(OAuthClient).where(
+            OAuthClient.kind == "cimd",
+            OAuthClient.created_at < now - UNUSED_CLIENT_TTL,
+            OAuthClient.last_used_at.is_(None),
+            ~OAuthClient.id.in_(select(OAuthToken.client_id)),
+        )
+    )
+    count = len((await db.execute(select(OAuthClient.id).where(OAuthClient.kind == "cimd"))).all())
+    if count >= MAX_CIMD_CLIENTS:
+        raise OAuthError("temporarily_unavailable", "too many metadata clients", 429)
 
 
 def check_redirect(client: OAuthClient, redirect_uri: str, extra: tuple[str, ...]) -> None:

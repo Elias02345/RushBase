@@ -70,6 +70,8 @@ assert "checkout is at the baseline commit" test "$(head_commit)" = "${BASE_COMM
 assert_eq "health reports database=true" true "$(health_json | python3 -c 'import json,sys; print(str(json.load(sys.stdin)["database"]).lower())')"
 assert "rushbase-server.service active" systemctl is-active --quiet rushbase-server
 assert "rushbase-server.service enabled" systemctl is-enabled --quiet rushbase-server
+assert_eq "server unit is sandboxed (ProtectSystem)" strict "$(systemctl show -p ProtectSystem --value rushbase-server)"
+assert_eq "server unit drops all capabilities" "" "$(systemctl show -p CapabilityBoundingSet --value rushbase-server)"
 assert "watchdog timer active" systemctl is-active --quiet rushbase-watchdog.timer
 assert "updater timer active" systemctl is-active --quiet rushbase-updater.timer
 assert "updater handler active" systemctl is-active --quiet rushbase-updater-handler

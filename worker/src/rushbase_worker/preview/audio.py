@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.preview.derived import atomic_output
 from rushbase_worker.tools.process import ToolError
+from rushbase_worker.tools.safe_input import input_args
 from rushbase_worker.tools.toolbox import Toolbox
 
 SAMPLE_RATE = 8000
@@ -106,8 +107,7 @@ async def _stream_peaks(toolbox: Toolbox, source: Path, timeout: float) -> tuple
         "-v",
         "error",
         "-nostdin",
-        "-i",
-        str(source),
+        *input_args(source),
         "-vn",
         "-ac",
         "1",

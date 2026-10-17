@@ -44,10 +44,14 @@ def resolve_in_root(root: Path, relative: str) -> Path:
     """Join a stored relative path onto the local ``root``.
 
     Absolute paths, drive letters and ``..`` segments that would leave the root are rejected.
+    Stored paths are ``/``-separated: a backslash (or NUL) is part of a POSIX file name and is
+    rejected rather than interpreted as a separator, so two names can never alias one path.
     """
-    if relative.startswith(("/", "\\")) or PureWindowsPath(relative).drive:
+    if "\\" in relative or "\x00" in relative:
+        raise PathOutsideLibraryError(f"invalid library path {relative!r}")
+    if relative.startswith("/") or PureWindowsPath(relative).drive:
         raise PathOutsideLibraryError(f"expected a relative path, got {relative!r}")
-    normalized = _normalize(PurePosixPath(relative.replace("\\", "/")).parts)
+    normalized = _normalize(PurePosixPath(relative).parts)
     return root.joinpath(*normalized.split("/")) if normalized else root
 
 

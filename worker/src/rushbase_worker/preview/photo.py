@@ -11,7 +11,7 @@ from PIL import Image, ImageOps
 from rushbase_core.media import is_raw_photo
 
 pillow_heif.register_heif_opener()
-Image.MAX_IMAGE_PIXELS = 600_000_000
+Image.MAX_IMAGE_PIXELS = 250_000_000
 EMBEDDED_MIN_EDGE = 1000
 """Embedded RAW thumbnails smaller than this (long edge) are not used as the preview."""
 

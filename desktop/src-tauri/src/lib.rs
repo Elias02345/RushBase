@@ -14,6 +14,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use streams::Streams;
 use tauri::{AppHandle, Manager, RunEvent, State, WindowEvent};
+use tauri_plugin_dialog::DialogExt;
 
 /// How long quitting waits for the worker to release its jobs.
 const QUIT_GRACE: Duration = Duration::from_secs(25);
@@ -33,11 +34,35 @@ fn get_settings(app: Shared) -> Settings {
     app.settings.get()
 }
 
+/// Store the settings the webview may change (server URL, language). The worker command and the
+/// library root are kept as they are: see [`Settings::with_ui_changes`].
 #[tauri::command]
-fn set_settings(handle: AppHandle, app: Shared, settings: Settings) -> Result<(), String> {
+fn set_settings(app: Shared, settings: Settings) -> Result<(), String> {
+    let merged = app.settings.get().with_ui_changes(&settings)?;
+    app.settings.set(merged)
+}
+
+/// Let the user pick the library root in a native dialog, store it and return it.
+///
+/// The path never travels through the webview, so injected script cannot widen the readable
+/// area of the asset protocol.
+#[tauri::command]
+async fn pick_library_root(handle: AppHandle, app: Shared<'_>) -> Result<Option<String>, String> {
+    let picker = handle.clone();
+    let chosen =
+        tauri::async_runtime::spawn_blocking(move || picker.dialog().file().blocking_pick_folder())
+            .await
+            .map_err(|e| e.to_string())?;
+    let Some(folder) = chosen else {
+        return Ok(None);
+    };
+    let path = folder.into_path().map_err(|e| e.to_string())?;
+    let root = path.to_string_lossy().into_owned();
+    let mut settings = app.settings.get();
+    settings.library_root = Some(root.clone());
     app.settings.set(settings.clone())?;
     allow_library(&handle, &settings);
-    Ok(())
+    Ok(Some(root))
 }
 
 /// Run an allowed CLI sub-command to completion (stdin only for secrets such as passwords).
@@ -182,6 +207,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_settings,
             set_settings,
+            pick_library_root,
             cli,
             stream_start,
             stream_stop,

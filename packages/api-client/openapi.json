@@ -4301,6 +4301,12 @@
             "minLength": 1,
             "title": "Backup Name",
             "type": "string"
+          },
+          "setup_token": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Setup Token",
+            "type": "string"
           }
         },
         "required": [
@@ -4772,6 +4778,12 @@
             "title": "Password",
             "type": "string"
           },
+          "setup_token": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Setup Token",
+            "type": "string"
+          },
           "username": {
             "maxLength": 64,
             "minLength": 1,
@@ -4810,6 +4822,11 @@
           },
           "restore_available": {
             "title": "Restore Available",
+            "type": "boolean"
+          },
+          "setup_token_required": {
+            "default": false,
+            "title": "Setup Token Required",
             "type": "boolean"
           }
         },
