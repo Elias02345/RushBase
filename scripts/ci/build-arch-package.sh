@@ -47,16 +47,16 @@ docker run --name "${name}" \
 
     echo "[INFO] package contents (desktop entry, icons, binaries)"
     bsdtar -tf "${pkg}" | grep -E "usr/bin/|usr/share/applications/.*\.desktop|usr/share/icons/hicolor/" | tee /tmp/listing
-    for need in usr/share/applications/ hicolor/32x32/apps/rushbase.png hicolor/64x64/apps/rushbase.png \
-        hicolor/128x128/apps/rushbase.png hicolor/256x256/apps/rushbase.png hicolor/512x512/apps/rushbase.png \
-        hicolor/scalable/apps/rushbase.svg usr/bin/rushbase-desktop usr/bin/rushbase; do
+    for need in usr/share/applications/ hicolor/32x32/apps/rushbase-desktop.png hicolor/64x64/apps/rushbase-desktop.png \
+        hicolor/128x128/apps/rushbase-desktop.png hicolor/256x256/apps/rushbase-desktop.png hicolor/512x512/apps/rushbase-desktop.png \
+        hicolor/scalable/apps/rushbase-desktop.svg usr/bin/rushbase-desktop usr/bin/rushbase; do
       grep -q "${need}" /tmp/listing || { echo "[FATAL] package lacks ${need}" >&2; exit 1; }
     done
     mkdir /tmp/x && bsdtar -xf "${pkg}" -C /tmp/x
     for d in /tmp/x/usr/share/applications/*.desktop; do
       desktop-file-validate "${d}"
       echo "[OK] desktop-file-validate ${d##*/}"
-      grep -q "^Icon=rushbase$" "${d}"
+      grep -q "^Icon=rushbase-desktop$" "${d}"
     done
     cp "${pkg}" PKGBUILD .SRCINFO /out/
     chown "${HOST_UID}:${HOST_GID}" /out/*
