@@ -475,5 +475,8 @@ async def test_role_limits_apply_to_the_connected_account(env: Fixture) -> None:
         )
         assert denied.is_error
         assert "admin" in str(denied.content[0])
+        no_activate = await client.call_tool("rules_activate", {"rule_id": str(env.asset.id)})
+        assert no_activate.is_error
+        assert "admin" in str(no_activate.content[0])
         approved, _ = await call(client, "library_stats")
         assert approved

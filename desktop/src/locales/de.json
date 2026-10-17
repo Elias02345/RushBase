@@ -259,8 +259,6 @@
     "server": "Server-Adresse",
     "libraryRoot": "Ordner der Bibliothek",
     "libraryRootHint": "Wird nur lesend verwendet.",
-    "cli": "Worker-Befehl",
-    "cliHint": "Leer = das mitgelieferte Programm. Für die Entwicklung z. B. „uv run rushbase“.",
     "saved": "Gespeichert",
     "wizard": "Einrichtung wiederholen",
     "appearance": "Darstellung",

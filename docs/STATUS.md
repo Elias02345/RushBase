@@ -269,3 +269,10 @@ Guide: `docs/mcp.md`. Code: `server/src/rushbase_server/{oauth,mcp}/`, tool cont
   Claude's tags never override or remove human tags; reads use scope `read`, needs tools scope `needs`.
 - **Inspector:** `npx @modelcontextprotocol/inspector --cli http://localhost:<port>/mcp --transport http --header "Authorization: Bearer <token>"` (npm cache in the toolchain) succeeded for `tools/list`, `tools/call library_stats` and `resources/list` against a locally running server with a token from the real OAuth flow (DCR, PKCE).
 - **Not verified here:** the real claude.ai connector (needs a public HTTPS URL).
+
+## M7 security
+
+Branch `feature/m7-security`: findings M1, M2, M3 (uv pinning only), M4 and L1 to L14 of the
+security review. Summary in `CHANGELOG.md` ("Security"), threat model in `SECURITY.md`, settings in
+`docs/operations.md` ("Hardening settings"). Open: signed-update enforcement default
+(`RUSHBASE_UPDATE_REQUIRE_SIGNED`, owner decision), personal API token expiry (needs a column).

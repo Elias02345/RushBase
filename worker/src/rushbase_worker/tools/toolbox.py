@@ -10,6 +10,7 @@ from typing import Any
 from rushbase_worker.config import WorkerSettings
 from rushbase_worker.tools.locate import locate
 from rushbase_worker.tools.process import ToolError, ToolResult, run_tool
+from rushbase_worker.tools.safe_input import PROTOCOL_WHITELIST, check_not_a_playlist
 
 EXIFTOOL_FLAGS = ("-j", "-G1", "-n", "-a", "-u", "-ee3", "-api", "largefilesupport=1")
 """JSON, group names (family 1), numeric values, duplicates, unknown tags, embedded telemetry."""
@@ -70,18 +71,21 @@ class Toolbox:
     async def ffprobe(self, path: Path) -> dict[str, Any]:
         """Return ``ffprobe -show_format -show_streams -show_chapters`` as a dict."""
         exe = self._need("ffprobe", self.ffprobe_path)
+        check_not_a_playlist(path, "ffprobe")
         result = await run_tool(
             "ffprobe",
             [
                 exe,
                 "-v",
                 "error",
+                "-protocol_whitelist",
+                PROTOCOL_WHITELIST,
                 "-print_format",
                 "json",
                 "-show_format",
                 "-show_streams",
                 "-show_chapters",
-                str(path),
+                f"file:{path}",
             ],
             timeout=self.settings.tool_timeout_seconds,
         )
@@ -92,7 +96,7 @@ class Toolbox:
         exe = self._need("exiftool", self.exiftool_path)
         result = await run_tool(
             "exiftool",
-            [exe, *EXIFTOOL_FLAGS, str(path)],
+            [exe, *EXIFTOOL_FLAGS, "--", str(path)],
             timeout=self.settings.tool_timeout_seconds,
             ok_codes=(0, 1),
         )

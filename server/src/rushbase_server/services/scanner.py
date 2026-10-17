@@ -75,6 +75,15 @@ class ScanReport:
     complete: bool = True
 
 
+def unsafe_name(name: str) -> bool:
+    """File names with a backslash or control characters are never ingested.
+
+    A ``\\`` is a path separator on Windows workers but an ordinary character on POSIX, so such
+    names could alias other paths; control characters can forge log and UI output.
+    """
+    return "\\" in name or any(ord(char) < 32 or ord(char) == 127 for char in name)
+
+
 def walk_input(root: Path) -> tuple[list[ScanEntry], bool]:
     """List the non-ignored regular files below ``<root>/Input``.
 
@@ -101,6 +110,9 @@ def walk_input(root: Path) -> tuple[list[ScanEntry], bool]:
             continue
         for child in children:
             child_rel = f"{rel}/{child.name}"
+            if unsafe_name(child.name):
+                logger.warning("skipping unsafe file name", extra={"path": ascii(child_rel)})
+                continue
             if is_ignored(child_rel):
                 continue
             try:

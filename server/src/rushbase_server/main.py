@@ -1,6 +1,7 @@
 """Server start-up helpers shared by the CLI."""
 
 import sys
+from typing import Any
 
 import uvicorn
 from pydantic import ValidationError
@@ -23,16 +24,22 @@ def load_settings(**overrides: object) -> Settings:
         raise SystemExit(2) from exc
 
 
+def uvicorn_options(settings: Settings) -> dict[str, Any]:
+    """Server options; X-Forwarded-For is honoured only from ``settings.trusted_proxies``."""
+    return {
+        "host": settings.host,
+        "port": settings.port,
+        "log_config": None,
+        "access_log": False,
+        "proxy_headers": True,
+        "forwarded_allow_ips": settings.trusted_proxies,
+    }
+
+
 def serve(settings: Settings) -> None:
     """Run the API server with uvicorn until it is stopped."""
     configure_logging(settings.log_level)
-    uvicorn.run(
-        create_app(settings),
-        host=settings.host,
-        port=settings.port,
-        log_config=None,
-        access_log=False,
-    )
+    uvicorn.run(create_app(settings), **uvicorn_options(settings))
 
 
 def main() -> None:

@@ -118,6 +118,10 @@ def _authenticate(runtime: Runtime, scope: str) -> CallAuth:
             f"rate limit exceeded ({limit} calls/minute); retry in "
             f"{runtime.buckets.retry_after(limit)} s"
         )
+    user_limit = limit * 2  # one account behind several connectors still has a ceiling
+    if not runtime.buckets.allow(f"mcp-user:{call.user_id}", user_limit, runtime.clock.now()):
+        wait = runtime.buckets.retry_after(user_limit)
+        raise ToolError(f"rate limit exceeded for this account; retry in {wait} s")
     return call
 
 

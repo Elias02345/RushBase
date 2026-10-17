@@ -193,6 +193,8 @@ env_set RUSHBASE_SECRET_KEY "$(existing_or_generated_secret RUSHBASE_SECRET_KEY 
 [[ -n "${OPT_PORT}" ]] && env_set RUSHBASE_PORT "${OPT_PORT}"
 [[ -n "${OPT_BIND}" ]] && env_set RUSHBASE_BIND "${OPT_BIND}"
 env_set_default RUSHBASE_PORT 8080
+# One-time code the first-run setup wizard asks for (kept on re-run).
+env_set RUSHBASE_SETUP_TOKEN "$(existing_or_generated_secret RUSHBASE_SETUP_TOKEN 18)"
 env_set_default RUSHBASE_BIND 127.0.0.1
 env_set_default RUSHBASE_UPDATE_AUTO false
 env_set_default RUSHBASE_UPDATE_INTERVAL 10min
@@ -206,6 +208,8 @@ if [[ "${MODE}" == "bare" ]]; then
   env_set_default RUSHBASE_HOST "$(env_get RUSHBASE_BIND)"
   env_set RUSHBASE_HOST "$(env_get RUSHBASE_BIND)"
 else
+  # The host proxy reaches the container over the docker bridge: trust its forwarded headers.
+  [[ "${NETWORK}" == "bridge" ]] && env_set_default RUSHBASE_TRUSTED_PROXIES "172.16.0.0/12"
   env_set RUSHBASE_DB_PASSWORD "$(existing_or_generated_secret RUSHBASE_DB_PASSWORD 24)"
   env_set_default RUSHBASE_DB_PORT 15432
 fi
@@ -399,6 +403,7 @@ bind="$(env_get RUSHBASE_BIND)"
 banner "Rushbase is installed"
 cat <<EOF
   Web UI:        http://127.0.0.1:${port}   (bound to ${bind:-127.0.0.1}; put Caddy/Nginx or a tunnel in front)
+  Setup URL:     http://127.0.0.1:${port}/setup?token=$(env_get RUSHBASE_SETUP_TOKEN)
   Health:        $(health_url)
   Mode:          ${MODE}$([[ "${MODE}" == docker ]] && echo ", ${NETWORK} network")
   Update train:  ${BRANCH}   (auto-update: $(env_get RUSHBASE_UPDATE_AUTO), poll interval: $(update_interval))

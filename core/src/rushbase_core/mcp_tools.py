@@ -470,7 +470,7 @@ TOOLS: Final[tuple[ToolSpec, ...]] = (
         "rules_activate",
         "rules",
         RulesActivate,
-        "Activate a stored rule version. Applies to material filed afterwards only.",
+        "Activate a stored rule version (admin account). Applies to material filed afterwards.",
         True,
     ),
     _spec(

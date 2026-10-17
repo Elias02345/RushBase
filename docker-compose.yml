@@ -36,6 +36,8 @@ services:
       RUSHBASE_LIBRARY_ROOT: /library
       # Query-encoder models (install.sh --with-models); empty = full-text search only.
       RUSHBASE_MODELS_DIR: ${RUSHBASE_MODELS_DIR:+/models}
+      RUSHBASE_SETUP_TOKEN: ${RUSHBASE_SETUP_TOKEN:-}
+      RUSHBASE_TRUSTED_PROXIES: ${RUSHBASE_TRUSTED_PROXIES:-127.0.0.1}
     ports:
       - "${RUSHBASE_BIND:-127.0.0.1}:${RUSHBASE_PORT:-8080}:8080"
     volumes:

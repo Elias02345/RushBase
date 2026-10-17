@@ -14,9 +14,24 @@ WorkingDirectory=@APP_DIR@
 ExecStart=@APP_DIR@/.venv/bin/rushbase worker run
 Restart=always
 RestartSec=5
+# Sandbox (GPU devices and the inference runtimes stay reachable: no PrivateDevices or syscall filter).
 NoNewPrivileges=true
+UMask=0077
 PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=@RW_PATHS@
 ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target

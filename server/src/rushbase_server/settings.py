@@ -3,11 +3,11 @@
 import os
 import socket
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from rushbase_core import (
@@ -88,8 +88,19 @@ class Settings(BaseSettings):
     )
 
     # --- auth ---
-    cookie_secure: bool = Field(
-        default=False, description="Send session cookies only over HTTPS (enable behind TLS)."
+    cookie_secure: bool | None = Field(
+        default=None,
+        description="Send session cookies only over HTTPS. Unset: derived from public_url (https).",
+    )
+    setup_token: SecretStr | None = Field(
+        default=None,
+        min_length=16,
+        description="One-time code required by the first-run setup while no admin exists.",
+    )
+    trusted_proxies: str = Field(
+        default="127.0.0.1",
+        description="Comma-separated IPs/CIDRs whose X-Forwarded-For is trusted (uvicorn "
+        "forwarded_allow_ips). Those proxies must overwrite, not append to, the header.",
     )
     session_ttl_hours: float = Field(default=168, gt=0)
     login_max_failures: int = Field(default=5, ge=1)
@@ -139,6 +150,14 @@ class Settings(BaseSettings):
 
     # --- ops ---
     metrics_enabled: bool = False
+    metrics_token: SecretStr | None = Field(
+        default=None, min_length=16, description="Bearer token required by /metrics."
+    )
+    max_body_bytes: int = Field(
+        default=16 * 1024 * 1024,
+        ge=1024,
+        description="Request body limit (upload endpoints exempt).",
+    )
 
     @field_validator("public_url")
     @classmethod
@@ -153,6 +172,19 @@ class Settings(BaseSettings):
         if not parts.hostname or parts.query or parts.fragment or parts.path:
             raise ValueError("public_url must be a bare origin such as https://media.example.org")
         return url
+
+    @model_validator(mode="after")
+    def _metrics_need_token(self) -> Self:
+        if self.metrics_enabled and self.metrics_token is None:
+            raise ValueError("metrics_enabled requires metrics_token")
+        return self
+
+    @property
+    def use_secure_cookies(self) -> bool:
+        """Whether session cookies carry ``Secure`` (explicit setting, else https public URL)."""
+        if self.cookie_secure is not None:
+            return self.cookie_secure
+        return bool(self.public_url and self.public_url.startswith("https://"))
 
     @property
     def mcp_resource(self) -> str | None:

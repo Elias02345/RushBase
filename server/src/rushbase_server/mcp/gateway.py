@@ -10,6 +10,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from rushbase_server.oauth import service
 from rushbase_server.runtime import Runtime
+from rushbase_server.services import audit
 
 
 @dataclass(frozen=True)
@@ -54,6 +55,9 @@ async def _respond(
     await send({"type": "http.response.body", "body": raw})
 
 
+AUDITED_401_PER_MINUTE = 6
+
+
 class McpGateway:
     """Authenticates ``/mcp`` requests and hands them to the SDK's Streamable HTTP app."""
 
@@ -89,6 +93,7 @@ class McpGateway:
                     db, token, settings.mcp_resource, runtime.clock.now()
                 )
         if verified is None:
+            await self._audit_rejection(runtime, scope, token is not None)
             header = challenge + (', error="invalid_token"' if token is not None else "")
             await _respond(
                 send,
@@ -109,3 +114,19 @@ class McpGateway:
             await self._inner(scope, receive, send)
         finally:
             current_call.reset(reset)
+
+    @staticmethod
+    async def _audit_rejection(runtime: Runtime, scope: Scope, had_token: bool) -> None:
+        """Record rejected MCP requests, rate-limited so a flood cannot grow the audit table."""
+        if not runtime.buckets.allow("audit:mcp-401", AUDITED_401_PER_MINUTE, runtime.clock.now()):
+            return
+        client = scope.get("client")
+        async with runtime.session_factory() as db:
+            audit.record(
+                db,
+                actor_kind="system",
+                action="mcp.unauthorized",
+                details={"had_token": had_token},
+                ip=str(client[0]) if client else None,
+            )
+            await db.commit()

@@ -10,6 +10,7 @@ import asyncio
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -215,7 +216,7 @@ async def run_backup(
     kind = await asyncio.to_thread(choose_kind, directory, now)
     stamp = now.strftime(STAMP_FORMAT)
     name = f"rushbase-{stamp}-{kind}.dump"
-    tmp = directory / f".{name}.rbtmp"
+    tmp = directory / f".{name}.{secrets.token_hex(4)}.rbtmp"
     try:
         await asyncio.to_thread(tools.dump, url, tmp)
         await asyncio.to_thread(os.replace, tmp, directory / name)

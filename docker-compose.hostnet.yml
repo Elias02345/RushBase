@@ -41,6 +41,8 @@ services:
       RUSHBASE_LIBRARY_ROOT: /library
       # Query-encoder models (install.sh --with-models); empty = full-text search only.
       RUSHBASE_MODELS_DIR: ${RUSHBASE_MODELS_DIR:+/models}
+      RUSHBASE_SETUP_TOKEN: ${RUSHBASE_SETUP_TOKEN:-}
+      RUSHBASE_TRUSTED_PROXIES: ${RUSHBASE_TRUSTED_PROXIES:-127.0.0.1}
     volumes:
       - ${RUSHBASE_LIBRARY_HOST_PATH:?RUSHBASE_LIBRARY_HOST_PATH is missing; run install.sh}:/library
       - ${RUSHBASE_MODELS_DIR:-/var/lib/rushbase/models}:/models:ro

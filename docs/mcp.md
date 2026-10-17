@@ -357,7 +357,7 @@ Store a candidate filing rule (inactive) and return a dry run: where recent asse
 
 ### rules_activate
 
-Activate a stored rule version. Applies to material filed afterwards only.
+Activate a stored rule version (admin account). Applies to material filed afterwards.
 
 | Argument | Type | Required | Description |
 | --- | --- | --- | --- |

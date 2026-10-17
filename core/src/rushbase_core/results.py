@@ -18,6 +18,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from rushbase_core.pipeline import Stage
 
+MAX_FILES = 10_000
+"""Upper bounds for list fields of worker results (a bad or hostile worker cannot bloat rows)."""
+MAX_SHOTS = 10_000
+MAX_KEYFRAMES = 1_000
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -182,7 +187,7 @@ class FileHash(_Model):
 
 class HashOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
-    files: list[FileHash]
+    files: list[FileHash] = Field(max_length=MAX_FILES)
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
@@ -207,7 +212,7 @@ class DerivedFile(_Model):
 
 class PreviewOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
-    files: list[DerivedFile]
+    files: list[DerivedFile] = Field(max_length=MAX_FILES)
     normalization: str | None = None
     """LUT/transform applied for log material (``None`` = none applied)."""
     perceptual_hash: str | None = None
@@ -237,7 +242,7 @@ class ShotOut(_Model):
     idx: int = Field(ge=0)
     start_ms: int = Field(ge=0)
     end_ms: int = Field(ge=0)
-    keyframes: list[Keyframe]
+    keyframes: list[Keyframe] = Field(max_length=MAX_KEYFRAMES)
     camera_motion: Estimated[CameraMotion] | None = None
     sharpness: float | None = Field(default=None, ge=0.0, le=1.0)
     shake: float | None = Field(default=None, ge=0.0, le=1.0)
@@ -249,7 +254,7 @@ class ShotOut(_Model):
 class ShotsOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
     detector: str
-    shots: list[ShotOut]
+    shots: list[ShotOut] = Field(max_length=MAX_SHOTS)
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 

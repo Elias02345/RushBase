@@ -12,6 +12,8 @@ from rushbase_core import SYSTEM_DIR
 from rushbase_core.layout import DERIVED_DIR
 
 URL_PREFIX = "/api/v1/derived"
+#: Only these file types are ever served; anything else (``.html``, ``.svg``, ...) is a 404.
+SERVED_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp", ".mp4", ".m4a", ".webm", ".json"})
 
 
 class DerivedPathError(ValueError):
@@ -60,7 +62,9 @@ def resolve_derived(root: Path, asset_id: UUID, sub_path: str) -> Path:
     Raises:
         DerivedPathError: traversal attempt, symlink escape, or not a regular file.
     """
-    _check_segments(sub_path)
+    segments = _check_segments(sub_path)
+    if Path(segments[-1]).suffix.lower() not in SERVED_EXTENSIONS:
+        raise DerivedPathError("not found")
     base = (root / SYSTEM_DIR / DERIVED_DIR / str(asset_id)).resolve()
     candidate = (base / sub_path).resolve()
     if not candidate.is_relative_to(base) or not candidate.is_file():

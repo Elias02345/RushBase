@@ -20,6 +20,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "error_title": "Anfrage nicht möglich",
         "unavailable": "MCP ist nicht eingerichtet: RUSHBASE_PUBLIC_URL fehlt.",
         "note": "Du kannst den Zugriff jederzeit unter Administration > MCP / Claude widerrufen.",
+        "unverified": "Nicht verifizierter Client: Der Name stammt vom Client selbst. "
+        "Erlaube nur, wenn du ihn gerade selbst eingerichtet hast.",
+        "kind_dcr": "Dynamisch registriert",
+        "kind_cimd": "Metadaten-Dokument",
+        "kind_builtin": "Bekannter Anbieter",
+        "registration": "Registrierung",
     },
     "en": {
         "title": "Allow access",
@@ -38,6 +44,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "error_title": "Request not possible",
         "unavailable": "MCP is not set up: RUSHBASE_PUBLIC_URL is missing.",
         "note": "You can revoke access at any time under Administration > MCP / Claude.",
+        "unverified": "Unverified client: the name was chosen by the client itself. "
+        "Only allow if you just set it up yourself.",
+        "kind_dcr": "Dynamically registered",
+        "kind_cimd": "Metadata document",
+        "kind_builtin": "Known provider",
+        "registration": "Registration",
     },
 }
 
@@ -109,6 +121,8 @@ def consent_page(
     csrf: str,
     signed_in_as: str | None,
     message: str | None = None,
+    kind: str = "dcr",
+    verified: bool = False,
 ) -> str:
     """Login + consent form; ``fields`` are the original authorization parameters."""
     t = STRINGS[lang]
@@ -130,10 +144,14 @@ def consent_page(
             'autocomplete="current-password" required></label>'
         )
     err = f'<p class="err" role="alert">{escape(message)}</p>' if message else ""
+    kind_label = t["kind_builtin"] if verified else t.get(f"kind_{kind}", kind)
+    warning = "" if verified else f'<p class="err" role="note">{escape(t["unverified"])}</p>'
     body = (
         f"<h1>{escape(t['title'])}</h1>"
         f"<p><strong>{escape(client_name)}</strong> {escape(t['wants'])}</p>"
-        f'<p class="muted">{escape(t["redirect"])} <code>{escape(redirect_host)}</code></p>'
+        f"{warning}"
+        f"<p>{escape(t['redirect'])} <strong><code>{escape(redirect_host)}</code></strong></p>"
+        f'<p class="muted">{escape(t["registration"])}: {escape(kind_label)}</p>'
         f"<p>{escape(t['scopes'])}:</p><ul>{items}</ul>"
         f'<form method="post" action="/oauth/authorize">{hidden}'
         f'<input type="hidden" name="csrf" value="{escape(csrf)}">{login}{err}'

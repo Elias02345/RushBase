@@ -23,6 +23,8 @@ export interface Bridge {
   /** URL the webview can load for a local file below the library root (read-only). */
   assetUrl(path: string): string;
   pickDirectory(): Promise<string | null>;
+  /** Native folder dialog run by the Rust side; stores and returns the chosen library root. */
+  pickLibraryRoot(): Promise<string | null>;
   autostart: { get(): Promise<boolean>; set(enabled: boolean): Promise<void> };
   quit(): Promise<void>;
 }

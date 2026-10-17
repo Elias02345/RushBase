@@ -58,11 +58,19 @@ def discover(root: Path) -> list[Path]:
     found: list[Path] = []
     for directory, subdirs, names in os.walk(root / CONTENT_DIR):
         if Path(directory).name == META_DIR_NAME:
-            found += [Path(directory) / n for n in names if n.endswith(".json")]
+            found += [
+                Path(directory) / n
+                for n in names
+                if n.endswith(".json") and not (Path(directory) / n).is_symlink()
+            ]
             subdirs.clear()
     central = root / SYSTEM_DIR / META_DIR
     if central.is_dir():
-        found += [central / n.name for n in central.iterdir() if n.name.endswith(".json")]
+        found += [
+            central / n.name
+            for n in central.iterdir()
+            if n.name.endswith(".json") and not n.is_symlink()
+        ]
     return sorted(found)
 
 

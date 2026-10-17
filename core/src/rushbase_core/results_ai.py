@@ -17,6 +17,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from rushbase_core.results import Estimated
 
+MAX_SEGMENTS = 100_000
+"""Upper bounds for list fields of worker results (a bad or hostile worker cannot bloat rows)."""
+MAX_WORDS = 10_000
+MAX_ITEMS = 10_000
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
@@ -63,13 +68,13 @@ class TranscriptSegment(_Model):
     text: str
     language: str | None = None
     speaker: str | None = None
-    words: list[Word] = Field(default_factory=list)
+    words: list[Word] = Field(default_factory=list, max_length=MAX_WORDS)
 
 
 class Transcript(_Model):
     language: str | None = None
     language_probability: float | None = Field(default=None, ge=0.0, le=1.0)
-    segments: list[TranscriptSegment]
+    segments: list[TranscriptSegment] = Field(max_length=MAX_SEGMENTS)
     model: ModelRef
 
 
@@ -103,7 +108,7 @@ class AudioOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
     has_audio: bool
     transcript: Transcript | None = None
-    events: list[AudioEvent] = Field(default_factory=list)
+    events: list[AudioEvent] = Field(default_factory=list, max_length=MAX_ITEMS)
     events_model: ModelRef | None = None
     loudness: Loudness | None = None
     audio_type: Estimated[AudioType] | None = None
@@ -125,7 +130,7 @@ class ImageEmbedding(_Model):
 class EmbedOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
     model: ModelRef
-    images: list[ImageEmbedding]
+    images: list[ImageEmbedding] = Field(max_length=MAX_ITEMS)
 
 
 # --- vision ----------------------------------------------------------------------------------
@@ -237,7 +242,7 @@ class AssetSummary(_Model):
 class VisionOutput(_Model):
     schema_: Literal[1] = Field(default=1, alias="schema")
     model: ModelRef
-    descriptions: list[VisualDescription]
+    descriptions: list[VisualDescription] = Field(max_length=MAX_ITEMS)
     summary: AssetSummary | None = None
 
 
@@ -274,8 +279,8 @@ class ClassifyOutput(_Model):
     text_model: ModelRef
     taxonomy_version: int
     """Version of the taxonomy snapshot the worker used (sent with the job)."""
-    tags: list[TagAssignment] = Field(default_factory=list)
-    proposals: list[TermProposal] = Field(default_factory=list)
-    text_embeddings: list[TextEmbedding] = Field(default_factory=list)
+    tags: list[TagAssignment] = Field(default_factory=list, max_length=MAX_ITEMS)
+    proposals: list[TermProposal] = Field(default_factory=list, max_length=MAX_ITEMS)
+    text_embeddings: list[TextEmbedding] = Field(default_factory=list, max_length=MAX_ITEMS)
     review_reasons: list[str] = Field(default_factory=list)
     """Why the asset should go to the review list (low confidence, VLM vs. SigLIP conflict …)."""

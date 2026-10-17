@@ -14,11 +14,29 @@ WorkingDirectory=@APP_DIR@
 ExecStart=@APP_DIR@/.venv/bin/rushbase-server
 Restart=always
 RestartSec=5
+# Sandbox: the server only writes below its state/log directories and the media library.
 NoNewPrivileges=true
+UMask=0077
 PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ReadWritePaths=@RW_PATHS@
 ProtectHome=true
 ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
 ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
 
 [Install]
 WantedBy=multi-user.target

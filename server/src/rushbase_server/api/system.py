@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,7 @@ from rushbase_server.db import database_reachable
 from rushbase_server.models import User
 from rushbase_server.runtime import Runtime
 from rushbase_server.services import stats
+from rushbase_server.services.security import constant_time_equals
 
 router = APIRouter()
 
@@ -135,10 +136,14 @@ async def _status(runtime: Runtime, db: AsyncSession) -> StatusOut:
 
 
 @router.get("/metrics", include_in_schema=False)
-async def metrics(runtime: RuntimeDep, db: DbDep) -> Response:
-    """Prometheus text exposition; 404 unless ``RUSHBASE_METRICS_ENABLED`` is set."""
-    if not runtime.settings.metrics_enabled:
+async def metrics(request: Request, runtime: RuntimeDep, db: DbDep) -> Response:
+    """Prometheus text exposition; 404 unless enabled, then needs the metrics bearer token."""
+    settings = runtime.settings
+    if not settings.metrics_enabled or settings.metrics_token is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
+    sent = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+    if not constant_time_equals(sent, settings.metrics_token.get_secret_value()):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "metrics token required")
     snapshot = await stats.system_status(
         db, runtime.clock.now(), runtime.settings.worker_online_seconds
     )

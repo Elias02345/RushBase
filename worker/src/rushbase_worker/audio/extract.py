@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 
 from rushbase_core.results_ai import Loudness
 from rushbase_worker.tools.process import ToolError, run_tool
+from rushbase_worker.tools.safe_input import input_args
 from rushbase_worker.tools.toolbox import Toolbox
 
 SAMPLE_RATE = 16_000
@@ -22,7 +23,7 @@ async def extract_pcm(toolbox: Toolbox, source: Path) -> NDArray[np.float32]:
     """Decode the first audio stream to mono float32 at 16 kHz (empty when there is none)."""
     try:
         result = await toolbox.ffmpeg(
-            ["-i", str(source), "-map", "0:a:0?", "-vn", "-ac", "1", "-ar", str(SAMPLE_RATE),
+            [*input_args(source), "-map", "0:a:0?", "-vn", "-ac", "1", "-ar", str(SAMPLE_RATE),
              "-f", "f32le", "-"],
             timeout=toolbox.settings.long_tool_timeout_seconds,
         )  # fmt: skip
@@ -71,7 +72,7 @@ async def measure_loudness(toolbox: Toolbox, source: Path) -> Loudness | None:
     try:
         result = await run_tool(
             "ffmpeg",
-            [exe, "-hide_banner", "-nostats", "-nostdin", "-i", str(source), "-map", "0:a:0?",
+            [exe, "-hide_banner", "-nostats", "-nostdin", *input_args(source), "-map", "0:a:0?",
              "-vn", "-af", "ebur128=peak=true", "-f", "null", "-"],
             timeout=toolbox.settings.long_tool_timeout_seconds,
         )  # fmt: skip

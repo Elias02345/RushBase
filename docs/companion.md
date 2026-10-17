@@ -184,10 +184,15 @@ pnpm --filter @rushbase/desktop tauri build --bundles appimage,deb
 pnpm --filter @rushbase/desktop screenshots                     # docs/screenshots/desktop-*.png
 ```
 
-The worker command resolves in this order: `RUSHBASE_CLI`, Settings > Worker command, the bundled
-sidecar next to the executable, `rushbase` from `PATH`. The webview cannot spawn processes: Rust
-only runs an allow-list of sub-commands (`desktop/src-tauri/src/sidecar.rs`) and a fixed set of
-options for `process` and `models pull`; the capability file grants no shell or filesystem access.
+The worker command resolves in this order: `RUSHBASE_CLI`, `cli_command` in `settings.json`
+(edit the file by hand; the webview cannot read or set it), the bundled sidecar next to the
+executable, `rushbase` from `PATH`. The webview cannot spawn processes: Rust only runs an
+allow-list of sub-commands **and flags per sub-command**
+(`desktop/src-tauri/src/sidecar.rs`) and a fixed set of options for `process` and `models pull`;
+the capability file grants no shell or filesystem access. The library root is chosen in a native
+folder dialog run by Rust (the webview never supplies the path, which also scopes the read-only
+asset protocol), and the server URL must be `http://` or `https://`. Release builds with the
+updater (`RUSHBASE_UPDATER_PUBKEY`) fail while the key is empty or the placeholder.
 
 ## Troubleshooting
 

@@ -87,6 +87,8 @@ async def current_principal(request: Request, runtime: RuntimeDep, db: DbDep) ->
         user = await db.get(User, token.user_id) if token and token.user_id else None
         if token is None or user is None or user.disabled:
             raise _unauthorized("invalid token")
+        if token.scopes and "write" not in token.scopes and request.method not in SAFE_METHODS:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "token scope 'read' allows reading only")
         if token.last_used_at is None or now - token.last_used_at > TOKEN_TOUCH_INTERVAL:
             token.last_used_at = now
             await db.commit()

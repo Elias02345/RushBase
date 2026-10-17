@@ -72,6 +72,9 @@ export function SetupPage() {
 
   const [step, setStep] = useState(0);
   const [admin, setAdmin] = useState({ displayName: "", username: "", password: "", confirm: "" });
+  const [setupToken, setSetupToken] = useState(
+    () => new URLSearchParams(window.location.search).get("token") ?? "",
+  );
   const [adminError, setAdminError] = useState<string | null>(null);
   const [mode, setMode] = useState<LibraryMode | null>(null);
   const [libraryName, setLibraryName] = useState("Rushbase");
@@ -112,16 +115,19 @@ export function SetupPage() {
     if (effectiveMode === "restore") {
       const name = backupName || status?.backups[0]?.name;
       if (!name) return;
-      restore.mutate(name, {
-        onSuccess: () => {
-          toast.push({
-            title: t("setup.restored"),
-            description: t("setup.restoredText"),
-            tone: "success",
-          });
-          void navigate({ to: "/login" });
+      restore.mutate(
+        { backup_name: name, setup_token: setupToken.trim() },
+        {
+          onSuccess: () => {
+            toast.push({
+              title: t("setup.restored"),
+              description: t("setup.restoredText"),
+              tone: "success",
+            });
+            void navigate({ to: "/login" });
+          },
         },
-      });
+      );
       return;
     }
     setup.mutate(
@@ -131,6 +137,7 @@ export function SetupPage() {
         display_name: admin.displayName.trim(),
         library_name: libraryName.trim() || "Rushbase",
         locale: language,
+        setup_token: setupToken.trim(),
       },
       { onSuccess: () => setStep(3) },
     );
@@ -226,6 +233,21 @@ export function SetupPage() {
               </h1>
               <p className="wizard__lead">{t("setup.admin.lead")}</p>
               <div className="form-grid">
+                {status?.setup_token_required ? (
+                  <Field label={t("setup.admin.setupCode")} hint={t("setup.admin.setupCodeHint")}>
+                    {(control) => (
+                      <Input
+                        {...control}
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="rb-input--mono"
+                        required
+                        value={setupToken}
+                        onChange={(e) => setSetupToken(e.target.value)}
+                      />
+                    )}
+                  </Field>
+                ) : null}
                 <Field label={t("setup.admin.displayName")}>
                   {(control) => (
                     <Input
