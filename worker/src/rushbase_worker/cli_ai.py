@@ -107,7 +107,7 @@ def models_pull(
         ),
     ] = None,
     backends: Annotated[
-        bool, typer.Option(help="Also install llama.cpp (and whisper fallback).")
+        bool, typer.Option(help="Also install llama.cpp and whisper.cpp builds.")
     ] = True,
     as_json: JsonOption = False,
 ) -> None:
@@ -130,8 +130,7 @@ def models_pull(
         if backends:
             backend_store = BackendStore(settings.data_dir)
             backend_store.install_llama(report, emit)
-            if backend_store.find_whisper(report) is None:
-                backend_store.install_whisper_fallback(report, emit)
+            backend_store.install_whisper(report, emit)
         for spec in specs:
             store.pull(spec, emit)
     except (DownloadError, RuntimeError) as exc:

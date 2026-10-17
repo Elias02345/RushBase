@@ -103,7 +103,50 @@
   },
   "whisper.cpp": {
     "note": "No upstream GPU binaries: CI builds publish Rushbase release assets (see .github/workflows/whisper-build.yml); `platforms` is filled from those.",
-    "platforms": {},
+    "platforms": {
+      "linux-x64-cpu": {
+        "name": "whisper.cpp-v1.9.5-linux-x64-cpu.tar.gz",
+        "sha256": "e783ea89dc89602e7fbf491f694713e1e96b56314f2f36ecd52012f2ee486b77",
+        "size": 1318791,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-linux-x64-cpu.tar.gz"
+      },
+      "linux-x64-cuda": {
+        "name": "whisper.cpp-v1.9.5-linux-x64-cuda.tar.gz",
+        "sha256": "2c78346f2fff7e3daa76f1979391f96a5f786d78eb5cdd4217596c61608edd89",
+        "size": 153109293,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-linux-x64-cuda.tar.gz"
+      },
+      "linux-x64-vulkan": {
+        "name": "whisper.cpp-v1.9.5-linux-x64-vulkan.tar.gz",
+        "sha256": "4bb9ab0470e4af758d8c6d5a35b5df8be477f80ca6e70271bdd207569993b83e",
+        "size": 12496226,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-linux-x64-vulkan.tar.gz"
+      },
+      "macos-arm64-metal": {
+        "name": "whisper.cpp-v1.9.5-macos-arm64-metal.tar.gz",
+        "sha256": "b7402f82f54a13ee2dc38866a5c6786c3c21ba8c7207e5fd8c070b2217d81bea",
+        "size": 2103476,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-macos-arm64-metal.tar.gz"
+      },
+      "windows-x64-cpu": {
+        "name": "whisper.cpp-v1.9.5-windows-x64-cpu.zip",
+        "sha256": "17158417d0c360e35e7071d384780e40e5e75de8e24788db44d60f05f2375a07",
+        "size": 830752,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-windows-x64-cpu.zip"
+      },
+      "windows-x64-cuda": {
+        "name": "whisper.cpp-v1.9.5-windows-x64-cuda.zip",
+        "sha256": "f363e31018a6332deeeb9c120159cf744d7e4f8c21331b4c9b373dfd0cb57773",
+        "size": 152022234,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-windows-x64-cuda.zip"
+      },
+      "windows-x64-vulkan": {
+        "name": "whisper.cpp-v1.9.5-windows-x64-vulkan.zip",
+        "sha256": "0531329a4421aa38b7e00c05ac76e71bf96bbffee7d8c1931af0b26a3e871ab8",
+        "size": 14152668,
+        "url": "https://github.com/Elias02345/RushBase/releases/download/whisper-v1.9.5/whisper.cpp-v1.9.5-windows-x64-vulkan.zip"
+      }
+    },
     "tag": "v1.9.5",
     "upstream_cpu_fallback": {
       "name": "whisper-bin-ubuntu-x64.tar.gz",

@@ -7,7 +7,8 @@ Hugging Face model API (LFS ``oid`` = SHA-256, git commit ``sha`` as revision). 
 files (configs, label maps) are downloaded once to compute their SHA-256. The result is meant
 to be reviewed as a diff and committed; the worker only ever trusts the committed lock files.
 
-    python worker/scripts/update-lock.py binaries [--tag b11681]
+    python worker/scripts/update-lock.py binaries [--tag b11681] \\
+        [--whisper-repo Elias02345/RushBase] [--whisper-tag whisper-v1.9.5]
     python worker/scripts/update-lock.py models
 
 Stdlib only, so it runs without the project environment.
@@ -16,6 +17,7 @@ Stdlib only, so it runs without the project environment.
 import argparse
 import hashlib
 import json
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -52,6 +54,12 @@ LLAMA_ASSETS: dict[str, tuple[str, str | None]] = {
         "cudart-llama-bin-win-cuda-13.4-x64.zip",
     ),
 }
+WHISPER_RELEASE_REPO = "Elias02345/RushBase"
+WHISPER_RELEASE_TAG = "whisper-v1.9.5"
+# ``whisper.cpp-<version>-<key>.(tar.gz|zip)`` with key ``<os>-<arch>-<backend>``.
+WHISPER_ASSET = re.compile(
+    r"^whisper\.cpp-(?P<version>v[\d.]+)-(?P<key>(?:linux|macos|windows)-[a-z0-9]+-[a-z]+)\.(?:tar\.gz|zip)$"
+)
 WHISPER_FALLBACK_ASSET = "whisper-bin-ubuntu-x64.tar.gz"
 
 # model id -> (HF repo, [(local name, filename in repo)]); metadata lives in models.lock.json.
@@ -99,7 +107,25 @@ def pick_llama_release(tag: str | None) -> dict[str, Any]:
     raise SystemExit("no llama.cpp release carries all wanted assets")
 
 
-def update_binaries(tag: str | None) -> None:
+def pick_whisper_platforms(repo: str, tag: str) -> tuple[str, dict[str, Any]]:
+    """Version and platform entries of the CI-built whisper.cpp release ``tag`` in ``repo``."""
+    release = fetch_json(f"https://api.github.com/repos/{repo}/releases/tags/{tag}")
+    assets = {a["name"]: a for a in release["assets"]}
+    platforms: dict[str, Any] = {}
+    versions: set[str] = set()
+    for name in sorted(assets):
+        match = WHISPER_ASSET.match(name)
+        if match:
+            versions.add(match["version"])
+            platforms[match["key"]] = asset_entry(assets, name)
+    if len(versions) != 1:
+        raise SystemExit(
+            f"{repo}@{tag}: expected one whisper.cpp version, found {sorted(versions)}"
+        )
+    return versions.pop(), platforms
+
+
+def update_binaries(tag: str | None, whisper_repo: str, whisper_tag: str) -> None:
     lock: dict[str, Any] = json.loads(BINARIES_LOCK.read_text()) if BINARIES_LOCK.exists() else {}
     release = pick_llama_release(tag)
     assets = {a["name"]: a for a in release["assets"]}
@@ -116,7 +142,6 @@ def update_binaries(tag: str | None) -> None:
         "platforms": platforms,
     }
     whisper_releases = fetch_json(f"{API}/whisper.cpp/releases?per_page=10")
-    existing_whisper = lock.get("whisper.cpp", {})
     fallback = next(
         (
             (r, {a["name"]: a for a in r["assets"]})
@@ -125,11 +150,12 @@ def update_binaries(tag: str | None) -> None:
         ),
         None,
     )
+    whisper_version, whisper_platforms = pick_whisper_platforms(whisper_repo, whisper_tag)
     lock["whisper.cpp"] = {
-        "tag": existing_whisper.get("tag", "v1.9.5"),
+        "tag": whisper_version,
         "note": "No upstream GPU binaries: CI builds publish Rushbase release assets (see "
         ".github/workflows/whisper-build.yml); `platforms` is filled from those.",
-        "platforms": existing_whisper.get("platforms", {}),
+        "platforms": whisper_platforms,
         "upstream_cpu_fallback": (
             {"release": fallback[0]["tag_name"], **asset_entry(fallback[1], WHISPER_FALLBACK_ASSET)}
             if fallback
@@ -188,10 +214,12 @@ def main() -> None:
     sub = parser.add_subparsers(dest="what", required=True)
     binaries = sub.add_parser("binaries")
     binaries.add_argument("--tag", help="pin this llama.cpp release instead of the newest")
+    binaries.add_argument("--whisper-repo", default=WHISPER_RELEASE_REPO)
+    binaries.add_argument("--whisper-tag", default=WHISPER_RELEASE_TAG)
     sub.add_parser("models")
     args = parser.parse_args()
     if args.what == "binaries":
-        update_binaries(args.tag)
+        update_binaries(args.tag, args.whisper_repo, args.whisper_tag)
     else:
         update_models()
 

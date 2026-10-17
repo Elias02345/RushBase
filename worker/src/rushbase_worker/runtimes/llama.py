@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import os
 import socket
+import sys
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -165,10 +166,11 @@ def build_args(
 def library_env(backend: InstalledBackend, extra: Sequence[Path] = ()) -> dict[str, str]:
     """Environment with the backend's shared libraries (and ``extra`` dirs) on the loader path."""
     paths = [str(p) for p in [*backend.lib_dirs, *extra]]
-    existing = os.environ.get("LD_LIBRARY_PATH")
+    variable = "PATH" if sys.platform == "win32" else "LD_LIBRARY_PATH"
+    existing = os.environ.get(variable)
     if existing:
         paths.append(existing)
-    return {**os.environ, "LD_LIBRARY_PATH": ":".join(paths)}
+    return {**os.environ, variable: os.pathsep.join(paths)}
 
 
 async def start_server(

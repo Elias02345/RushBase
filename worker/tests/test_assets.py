@@ -7,14 +7,16 @@ import httpx
 import pytest
 
 from rushbase_worker.assets import (
+    BackendStore,
     ModelNotInstalledError,
     ModelStore,
     load_binaries_lock,
     load_models_lock,
 )
-from rushbase_worker.assets.backends import _extract, llama_platform_keys
+from rushbase_worker.assets import backends as backends_module
+from rushbase_worker.assets.backends import _extract, llama_platform_keys, whisper_platform_keys
 from rushbase_worker.assets.download import DownloadError, download
-from rushbase_worker.assets.lock import ModelFile, ModelSpec
+from rushbase_worker.assets.lock import Asset, ModelFile, ModelSpec
 from rushbase_worker.hardware import Backend, CpuInfo, Gpu, HardwareReport, Profile
 from rushbase_worker.runtimes.profiles import load_profiles
 
@@ -198,6 +200,61 @@ def test_llama_platform_keys() -> None:
     assert llama_platform_keys(_report(Backend.CPU)) == ["linux-x64-cpu"]
     windows = llama_platform_keys(_report(Backend.CUDA, cuda="13.4", os="windows"))
     assert windows[:2] == ["windows-x64-cuda-13.4", "windows-x64-cuda-12.4"]
+
+
+def test_whisper_platform_keys() -> None:
+    assert whisper_platform_keys(_report(Backend.CUDA, cuda="12.8")) == [
+        "linux-x64-cuda", "linux-x64-vulkan", "linux-x64-cpu"]  # fmt: skip
+    assert whisper_platform_keys(_report(Backend.ROCM)) == ["linux-x64-vulkan", "linux-x64-cpu"]
+    assert whisper_platform_keys(_report(Backend.CPU)) == ["linux-x64-cpu"]
+    assert whisper_platform_keys(_report(Backend.CUDA, os="windows"))[0] == "windows-x64-cuda"
+    mac = _report(Backend.METAL, os="darwin")
+    assert whisper_platform_keys(mac.model_copy(update={"arch": "arm64"})) == ["macos-arm64-metal"]
+
+
+def _whisper_archive(tmp_path: Path, folder: str) -> bytes:
+    source = tmp_path / "src" / folder
+    source.mkdir(parents=True)
+    (source / "whisper-cli").write_text("bin")
+    archive = tmp_path / "w.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(source, arcname=folder)
+    return archive.read_bytes()
+
+
+def test_install_whisper_uses_the_pinned_release_build(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data = _whisper_archive(tmp_path, "whisper.cpp-v9-linux-x64-cuda")
+    asset = Asset(name="w.tar.gz", url="https://example.test/w.tar.gz", sha256=_sha(data),
+                  size=len(data))  # fmt: skip
+    lock = load_binaries_lock()
+    pinned = lock.model_copy(update={"whisper": lock.whisper.model_copy(
+        update={"tag": "v9", "platforms": {"linux-x64-cuda": asset}})})  # fmt: skip
+    monkeypatch.setattr(backends_module, "load_binaries_lock", lambda: pinned)
+    client = _server(data)
+    store = BackendStore(tmp_path / "data")
+    report = _report(Backend.CUDA, cuda="12.8")
+    installed = store.install_whisper(report, lambda _event: None, client)
+    assert installed.name == "whisper.cpp-v9-linux-x64-cuda"
+    assert store.find_whisper(report) == installed
+    # a bad checksum is rejected before anything is installed
+    broken = asset.model_copy(update={"sha256": "0" * 64})
+    monkeypatch.setattr(backends_module, "load_binaries_lock", lambda: pinned.model_copy(
+        update={"whisper": pinned.whisper.model_copy(update={"platforms": {
+            "linux-x64-cuda": broken}})}))  # fmt: skip
+    with pytest.raises(DownloadError):
+        BackendStore(tmp_path / "other").install_whisper(report, lambda _event: None, client)
+
+
+def test_find_whisper_prefers_release_builds_over_the_upstream_fallback(tmp_path: Path) -> None:
+    store = BackendStore(tmp_path)
+    for name in ("whisper.cpp-upstream-b1-linux-x64-cpu", "whisper.cpp-v9-linux-x64-cpu"):
+        (store.root / name).mkdir(parents=True)
+        (store.root / name / "whisper-cli").write_text("bin")
+    found = store.find_whisper(_report(Backend.CPU))
+    assert found is not None
+    assert found.name == "whisper.cpp-v9-linux-x64-cpu"
 
 
 def test_extract_flattens_single_top_folder_and_rejects_traversal(tmp_path: Path) -> None:

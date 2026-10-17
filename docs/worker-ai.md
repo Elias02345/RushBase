@@ -42,9 +42,17 @@ missing are simply not advertised.
   cpu/vulkan/cuda and publishes them as release assets with SHA256SUMS. Locally,
   `worker/scripts/build-whisper-docker.sh cuda <dir>` builds in a throw-away container
   (`rushbase-m4-build`, `nvidia/cuda:12.8.1-devel-ubuntu24.04`, arch sm_86 only for the dev run,
-  NCCL off) - nothing is installed on the host. **The CUDA binary used in the benchmark is that
-  local build** (`backends/whisper.cpp-v1.9.5-linux-x64-cuda/BUILD_INFO.json`); the upstream CPU build
-  (`b5454`) is the pinned fallback. The CUDA libraries come from the llama.cpp cudart bundle.
+  NCCL off) - nothing is installed on the host.
+- **Pinned release builds**: `worker/binaries.lock.json` (`whisper.cpp.platforms`, keys
+  `<os>-<arch>-<backend>`, filled by `update-lock.py binaries --whisper-repo ... --whisper-tag
+  whisper-v1.9.5`) lists the CI release assets with SHA-256. `rushbase models pull` installs the
+  first entry that fits the detected hardware: cuda, then vulkan, then cpu on Linux/Windows,
+  metal on macOS arm64 (`backends/whisper.cpp-<tag>-<key>`, verified before unpacking). Only
+  when the lock has no entry for the machine does it install the upstream CPU build (`b5454`,
+  Linux x64). `find_whisper` prefers release builds over that fallback.
+- **CUDA runtime**: the CUDA whisper builds ship no CUDA libraries. The worker puts the installed
+  llama.cpp build directory (which holds the cudart bundle) on `LD_LIBRARY_PATH` (`PATH` on
+  Windows) for the `whisper-cli` subprocess, so `models pull` installs llama.cpp first.
 
 ## GPU scheduling
 

@@ -62,6 +62,20 @@ def llama_platform_keys(report: HardwareReport) -> list[str]:
     return list(dict.fromkeys(keys))
 
 
+def whisper_platform_keys(report: HardwareReport) -> list[str]:
+    """whisper.cpp lock keys, most preferred first (cuda, vulkan, cpu; metal on Apple Silicon)."""
+    prefix = platform_prefix(report)
+    if prefix == "macos-arm64":
+        return ["macos-arm64-metal"]
+    if prefix not in {"linux-x64", "windows-x64"}:
+        return []
+    keys = [f"{prefix}-cuda"] if report.backend is Backend.CUDA else []
+    if report.backend in {Backend.CUDA, Backend.ROCM, Backend.VULKAN, Backend.SYCL}:
+        keys.append(f"{prefix}-vulkan")
+    keys.append(f"{prefix}-cpu")
+    return keys
+
+
 @dataclass(frozen=True)
 class InstalledBackend:
     """A backend directory in the data dir."""
@@ -107,11 +121,10 @@ class BackendStore:
             return None
         prefix = platform_prefix(report)
         wanted = [f"whisper.cpp-*-{prefix}-{report.backend.value}"]
-        if report.backend not in {Backend.CPU, Backend.VULKAN}:
-            wanted.append(f"whisper.cpp-*-{prefix}-vulkan")
-        wanted.append(f"whisper.cpp-*-{prefix}-cpu")
-        for pattern in wanted:
-            for directory in sorted(self.root.glob(pattern)):
+        wanted += [f"whisper.cpp-*-{key}" for key in whisper_platform_keys(report)]
+        for pattern in dict.fromkeys(wanted):
+            # Release builds (``whisper.cpp-v...``) come before the upstream fallback.
+            for directory in sorted(self.root.glob(pattern), key=lambda d: "upstream" in d.name):
                 executable = _find(directory, "whisper-cli")
                 if executable is not None:
                     return InstalledBackend(directory.name, directory, executable)
@@ -137,6 +150,26 @@ class BackendStore:
         if installed is None:
             raise RuntimeError(f"{target} contains no llama-server")
         return installed
+
+    def install_whisper(
+        self, report: HardwareReport, emit: ProgressSink, client: httpx.Client | None = None
+    ) -> InstalledBackend:
+        """Install the pinned whisper.cpp release build matching ``report`` (SHA-256 verified).
+
+        Falls back to the upstream CPU build only when the lock has no entry for this machine.
+        """
+        lock = load_binaries_lock().whisper
+        keys = [k for k in whisper_platform_keys(report) if k in lock.platforms]
+        if not keys:
+            return self.install_whisper_fallback(report, emit, client)
+        key = keys[0]
+        target = self.root / f"whisper.cpp-{lock.tag}-{key}"
+        if _find(target, "whisper-cli") is None:
+            self._install_archives(target, [lock.platforms[key]], emit, client)
+        installed = _find(target, "whisper-cli")
+        if installed is None:
+            raise RuntimeError(f"{target} contains no whisper-cli")
+        return InstalledBackend(target.name, target, installed)
 
     def install_whisper_fallback(
         self, report: HardwareReport, emit: ProgressSink, client: httpx.Client | None = None
