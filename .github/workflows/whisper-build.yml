@@ -60,13 +60,19 @@ jobs:
         backend: [cpu, vulkan, cuda]
     steps:
       - uses: actions/checkout@v4
-      - uses: Jimver/cuda-toolkit@v0.2.19
+      - uses: Jimver/cuda-toolkit@v0.2.36
         if: matrix.backend == 'cuda'
         with:
-          cuda: "12.8.1"
+          cuda: "12.8.2"
       - name: Install Vulkan SDK
         if: matrix.backend == 'vulkan'
-        run: choco install vulkan-sdk -y
+        shell: pwsh
+        run: |
+          choco install vulkan-sdk -y
+          # choco does not export the SDK location to later steps; CMake's FindVulkan needs it.
+          $sdk = (Get-ChildItem C:\VulkanSDK -Directory | Sort-Object Name | Select-Object -Last 1).FullName
+          "VULKAN_SDK=$sdk" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "$sdk\Bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
       - name: Build
         shell: bash
         run: |

@@ -37,9 +37,16 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             args: "--bundles appimage,deb,rpm"
-          - name: macOS (universal)
+          # One DMG per architecture: the PyInstaller sidecar is built natively on each runner,
+          # which a universal bundle cannot do (it needs both sidecars on one machine).
+          - name: macOS (Apple Silicon)
             os: macos-14
-            args: "--target universal-apple-darwin --bundles dmg"
+            args: "--target aarch64-apple-darwin --bundles dmg"
+            triple: aarch64-apple-darwin
+          - name: macOS (Intel)
+            os: macos-13
+            args: "--target x86_64-apple-darwin --bundles dmg"
+            triple: x86_64-apple-darwin
           - name: Windows
             os: windows-latest
             args: "--bundles msi,nsis"
@@ -64,7 +71,7 @@ jobs:
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.triple || '' }}
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: desktop/src-tauri
@@ -72,20 +79,12 @@ jobs:
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
 
-      # The sidecar is a PyInstaller build of `rushbase`, one per target triple. A universal macOS
-      # app needs both architectures; the arm64 binary is built natively, x86_64 under Rosetta.
-      - name: Build the sidecar (Linux, Windows)
-        if: runner.os != 'macOS'
+      # The sidecar is a PyInstaller build of `rushbase` for this runner's target triple.
+      - name: Build the sidecar
         shell: bash
+        env:
+          TARGET_TRIPLE: ${{ matrix.triple }}
         run: bash desktop/scripts/build-sidecar.sh
-
-      - name: Build the sidecars (macOS arm64 and x86_64)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          TARGET_TRIPLE=aarch64-apple-darwin bash desktop/scripts/build-sidecar.sh
-          arch -x86_64 /bin/bash -c 'TARGET_TRIPLE=x86_64-apple-darwin bash desktop/scripts/build-sidecar.sh' || \
-            echo "::warning::x86_64 sidecar could not be built; the universal bundle needs it"
 
       - name: Import the Windows signing certificate
         if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''

@@ -19,6 +19,6 @@ docker run --name "${NAME}" -e DEBIAN_FRONTEND=noninteractive \
     set -Eeuo pipefail
     apt-get update -qq
     apt-get install -y -qq --no-install-recommends cmake curl ca-certificates build-essential \
-      pkg-config libvulkan-dev glslc glslang-tools >/dev/null
+      pkg-config libvulkan-dev glslc glslang-tools spirv-headers >/dev/null
     bash /build-whisper.sh '${BACKEND}' /out '${TAG}'
     chown -R $(id -u):$(id -g) /out"
