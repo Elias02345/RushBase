@@ -35,8 +35,10 @@ the maintainer.
 - [x] Security review and fixes (`SECURITY.md`, CHANGELOG "Security").
 - [x] Robustness: worker killed mid-job (`scripts/kill-test.sh`), server restart during
       processing, library mount lost and restored.
-- [ ] Disaster-recovery drill: fresh server + existing library → restore from the newest backup
+- [x] Disaster-recovery drill: fresh server + existing library → restore from the newest backup
       in `.rushbase/backups/` → search works; and without backups → `rebuild-from-sidecars`.
+      `scripts/dr-drill.sh` PASS (16 checks), nightly in CI (`dr-drill` job); procedure and what
+      is not recoverable: `docs/operations.md` "Disaster recovery".
 
 ## Manual test matrix (maintainer)
 
