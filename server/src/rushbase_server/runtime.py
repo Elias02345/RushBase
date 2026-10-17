@@ -139,7 +139,11 @@ class Runtime:
         try:
             async with self.session_factory() as session:
                 await needs.match_asset(
-                    session, self.encoder, asset_id, self.settings.needs_match_threshold
+                    session,
+                    self.encoder,
+                    asset_id,
+                    self.settings.needs_match_threshold,
+                    self.cache,
                 )
                 await session.commit()
         except Exception:

@@ -23,7 +23,12 @@ SessionFactory = async_sessionmaker[AsyncSession]
 
 def create_engine(settings: Settings) -> AsyncEngine:
     """Create the async engine; connections are opened lazily."""
-    return create_async_engine(settings.database_url.get_secret_value(), pool_pre_ping=True)
+    timeout_ms = int(settings.statement_timeout_seconds * 1000)
+    return create_async_engine(
+        settings.database_url.get_secret_value(),
+        pool_pre_ping=True,
+        connect_args={"options": f"-c statement_timeout={timeout_ms}"} if timeout_ms else {},
+    )
 
 
 def create_session_factory(engine: AsyncEngine) -> SessionFactory:

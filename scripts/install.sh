@@ -296,6 +296,9 @@ provision_local_db() {
     runuser -u postgres -- psql -v ON_ERROR_STOP=1 -qc 'CREATE DATABASE rushbase OWNER rushbase'
     ok "Created database 'rushbase'"
   fi
+  # Planner settings for vector search and ranked full-text queries (per database, no restart).
+  runuser -u postgres -- psql -v ON_ERROR_STOP=1 -qc "ALTER DATABASE rushbase SET jit = off" \
+    -c "ALTER DATABASE rushbase SET random_page_cost = 1.1" -c "ALTER DATABASE rushbase SET work_mem = '16MB'"
   runuser -u postgres -- psql -d rushbase -v ON_ERROR_STOP=1 -qc 'CREATE EXTENSION IF NOT EXISTS vector'
   runuser -u postgres -- psql -d rushbase -v ON_ERROR_STOP=1 -qc 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
   pg_url="$(db_url_plain)"

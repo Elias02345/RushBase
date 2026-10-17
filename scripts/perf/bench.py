@@ -311,6 +311,7 @@ async def needs_matching(
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
     from rushbase_server.search.encoder import NullEncoder, build_encoder
+    from rushbase_server.services.cache import TtlCache
     from rushbase_server.services import needs
     from rushbase_server.settings import Settings
 
@@ -323,12 +324,13 @@ async def needs_matching(
     encoder = build_encoder(settings) if models_dir else NullEncoder()
     engine = create_async_engine(make_url(db_url).set(drivername="postgresql+psycopg"))
     factory = async_sessionmaker(engine, expire_on_commit=False)
+    cache = TtlCache(600)  # like the server: the item searches are shared by a filing burst
     stats = Stats()
     for asset_id in work.asset_ids[:samples]:
         started = time.perf_counter()
         async with factory() as session:
             await needs.match_asset(
-                session, encoder, UUID(asset_id), settings.needs_match_threshold
+                session, encoder, UUID(asset_id), settings.needs_match_threshold, cache
             )
             await session.rollback()
         stats.samples.append((time.perf_counter() - started) * 1000)

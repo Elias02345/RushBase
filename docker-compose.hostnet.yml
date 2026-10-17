@@ -7,8 +7,26 @@ name: rushbase
 services:
   postgres:
     image: pgvector/pgvector:pg16
+    # Tuned for the vector indexes and ranked full-text search (docs/operations.md, sizing).
+    command:
+      - postgres
+      - -p
+      - ${RUSHBASE_DB_PORT:-15432}
+      - -c
+      - listen_addresses=127.0.0.1
+      - -c
+      - shared_buffers=${RUSHBASE_PG_SHARED_BUFFERS:-1GB}
+      - -c
+      - effective_cache_size=${RUSHBASE_PG_CACHE_SIZE:-3GB}
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=512MB
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - jit=off
     network_mode: host
-    command: ["postgres", "-p", "${RUSHBASE_DB_PORT:-15432}", "-c", "listen_addresses=127.0.0.1"]
     environment:
       POSTGRES_USER: rushbase
       POSTGRES_PASSWORD: ${RUSHBASE_DB_PASSWORD:?RUSHBASE_DB_PASSWORD is missing; run install.sh}
