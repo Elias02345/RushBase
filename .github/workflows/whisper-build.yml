@@ -109,3 +109,6 @@ jobs:
           tag_name: whisper-${{ env.WHISPER_TAG }}
           name: whisper.cpp ${{ env.WHISPER_TAG }} builds
           files: dist/*
+          # Not a Rushbase release: never "Latest" (the desktop updater reads releases/latest).
+          prerelease: true
+          make_latest: false
