@@ -355,3 +355,35 @@ async def test_rebuild_from_sidecars_round_trip(
             assert await snapshot(server) == before
         batches = (await server.client.get("/api/v1/batches")).json()
         assert batches[0]["by_status"] == {"filed": 2}
+
+
+async def test_derived_serving_only_allows_media_extensions_and_sandboxes(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        admin = await server.setup_admin()
+        await filed_server_state(server, admin, library_root)
+        client = server.client
+        asset = (await client.get("/api/v1/assets?q=clip")).json()["items"][0]
+        asset_id = asset["id"]
+        derived_dir = library_root / f".rushbase/derived/{asset_id}"
+        for name in ("x.html", "x.svg", "x.js", "x.xml", "noext"):
+            (derived_dir / name).write_text("<script>alert(1)</script>")
+            response = await client.get(f"/api/v1/derived/{asset_id}/{name}")
+            assert response.status_code == 404, name
+        ok = await client.get(asset["poster_url"])
+        assert ok.status_code == 200
+        assert ok.headers["content-security-policy"] == "sandbox; default-src 'none'"
+        assert ok.headers["x-content-type-options"] == "nosniff"
+
+
+async def test_every_response_carries_security_headers(
+    server_factory: ServerFactory, database_url: str
+) -> None:
+    async with server_factory(database_url) as server:
+        for path in ("/health", "/api/v1/auth/me", "/does-not-exist"):
+            response = await server.client.get(path)
+            assert "default-src 'self'" in response.headers["content-security-policy"], path
+            assert response.headers["x-frame-options"] == "DENY"
+            assert response.headers["referrer-policy"] == "same-origin"
+            assert response.headers["x-content-type-options"] == "nosniff"

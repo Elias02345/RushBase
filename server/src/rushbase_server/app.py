@@ -28,6 +28,7 @@ from rushbase_server.api import (
 from rushbase_server.clock import Clock, SystemClock
 from rushbase_server.db import create_engine, create_session_factory
 from rushbase_server.mcp.server import build_mcp
+from rushbase_server.middleware import SecurityHeadersMiddleware
 from rushbase_server.models import Library
 from rushbase_server.runtime import Runtime
 from rushbase_server.search.encoder import build_encoder
@@ -96,6 +97,7 @@ def create_app(settings: Settings, clock: Clock | None = None) -> FastAPI:
     app = FastAPI(title="Rushbase", version=get_version(), lifespan=lifespan)
     endpoint, mcp_sessions = build_mcp(lambda: app.state.runtime, settings.public_url)
     app.state.mcp_sessions = mcp_sessions
+    app.add_middleware(SecurityHeadersMiddleware)
     app.router.routes.append(Route("/mcp", endpoint))
     app.include_router(system.router)
     app.include_router(auth.router)
