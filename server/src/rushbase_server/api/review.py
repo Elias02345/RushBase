@@ -90,6 +90,9 @@ class BulkIn(BaseModel):
     add_tags: list[TagIn] = Field(default_factory=list, max_length=20)
     remove_tags: list[TagIn] = Field(default_factory=list, max_length=20)
     locked: bool | None = None
+    consent: Literal["yes", "no", "unknown"] | None = None
+    consent_ref: str | None = Field(default=None, max_length=300)
+    person_identifiable: Literal["yes", "no", "unknown"] | None = None
     add_to_collection: UUID | None = None
     remove_from_collection: UUID | None = None
 
@@ -271,13 +274,16 @@ async def edit_shot(
 async def bulk_edit(
     body: BulkIn, principal: EditorDep, request: Request, db: DbDep, runtime: RuntimeDep
 ) -> BulkOut:
-    """Add/remove tags, set the lock or change collection membership for up to 500 assets."""
+    """Edit up to 500 assets: tags, lock, consent, person flag and collection membership."""
     assets = (await db.execute(select(Asset).where(Asset.id.in_(body.asset_ids)))).scalars().all()
     for collection_id in (body.add_to_collection, body.remove_from_collection):
         if collection_id and await db.get(Collection, collection_id) is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "collection not found")
     edit = editing.Edit(
-        columns={"locked": body.locked} if body.locked is not None else {},
+        columns=body.model_dump(
+            include={"locked", "consent", "consent_ref", "person_identifiable"},
+            exclude_none=True,
+        ),
         add_tags=[editing.TagRef(t.field, t.value) for t in body.add_tags],
         remove_tags=[editing.TagRef(t.field, t.value) for t in body.remove_tags],
     )
@@ -309,6 +315,8 @@ async def bulk_edit(
             "add_tags": [f"{t.field}:{t.value}" for t in body.add_tags],
             "remove_tags": [f"{t.field}:{t.value}" for t in body.remove_tags],
             "locked": body.locked,
+            "consent": body.consent,
+            "person_identifiable": body.person_identifiable,
             "add_to_collection": str(body.add_to_collection) if body.add_to_collection else None,
         },
         ip=client_ip(request),
