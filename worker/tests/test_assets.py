@@ -1,5 +1,6 @@
 import hashlib
 import tarfile
+from collections.abc import Iterator
 from pathlib import Path
 
 import httpx
@@ -71,6 +72,37 @@ def test_download_rejects_wrong_checksum_and_keeps_no_file(tmp_path: Path) -> No
         )
     assert not target.exists()
     assert not target.with_name("file.bin.part").exists()
+
+
+def test_download_verifies_a_present_file_and_replaces_a_tampered_one(tmp_path: Path) -> None:
+    target = tmp_path / "file.bin"
+    target.write_bytes(b"x" * len(PAYLOAD))  # same size, wrong content (planted on the share)
+    events: list[dict[str, object]] = []
+    download("http://x/f", target, sha256=_sha(PAYLOAD), size=len(PAYLOAD), label="f",
+             emit=events.append, client=_server())  # fmt: skip
+    assert target.read_bytes() == PAYLOAD
+    assert not any(e["event"] == "download_skipped" for e in events)
+    events.clear()
+    download("http://x/f", target, sha256=_sha(PAYLOAD), size=len(PAYLOAD), label="f",
+             emit=events.append, client=_server())  # fmt: skip
+    assert [e["event"] for e in events] == ["download_skipped"]
+
+
+def test_download_stops_streaming_beyond_the_pinned_size(tmp_path: Path) -> None:
+    target = tmp_path / "file.bin"
+    consumed: list[int] = []
+
+    def endless() -> Iterator[bytes]:
+        while True:
+            consumed.append(1)
+            yield b"y" * (1 << 20)
+
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, content=endless()))
+    with pytest.raises(DownloadError):
+        download("http://x/f", target, sha256=_sha(PAYLOAD), size=2 << 20, label="f",
+                 client=httpx.Client(transport=transport))  # fmt: skip
+    assert len(consumed) <= 3  # a few chunks past the limit at most, not the whole stream
+    assert not target.exists()
 
 
 def _spec(payload: bytes) -> ModelSpec:
