@@ -553,6 +553,14 @@
             ],
             "title": "Title"
           },
+          "usage": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/UsageOut"
+            },
+            "title": "Usage",
+            "type": "array"
+          },
           "waveform_url": {
             "anyOf": [
               {
@@ -828,6 +836,85 @@
           }
         },
         "title": "AssetEditIn",
+        "type": "object"
+      },
+      "AssetNeedLink": {
+        "description": "A needs item the asset is a candidate for.",
+        "properties": {
+          "candidate_id": {
+            "format": "uuid",
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "count_wanted": {
+            "title": "Count Wanted",
+            "type": "integer"
+          },
+          "item_description": {
+            "title": "Item Description",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_status": {
+            "title": "Item Status",
+            "type": "string"
+          },
+          "list_id": {
+            "format": "uuid",
+            "title": "List Id",
+            "type": "string"
+          },
+          "list_status": {
+            "title": "List Status",
+            "type": "string"
+          },
+          "list_title": {
+            "title": "List Title",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "shot_idx": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Idx"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "list_id",
+          "list_title",
+          "list_status",
+          "item_id",
+          "item_description",
+          "item_status",
+          "count_wanted",
+          "candidate_id",
+          "status",
+          "source",
+          "score",
+          "shot_idx"
+        ],
+        "title": "AssetNeedLink",
         "type": "object"
       },
       "AssetPage": {
@@ -1135,6 +1222,133 @@
           "confidence"
         ],
         "title": "AudioEventOut",
+        "type": "object"
+      },
+      "AuditEntryOut": {
+        "description": "One audit entry; ``actor_name`` resolves users and workers (``None`` when gone).",
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "actor_kind": {
+            "title": "Actor Kind",
+            "type": "string"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Kind"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "actor_kind",
+          "actor_id",
+          "actor_name",
+          "action",
+          "target_kind",
+          "target_id",
+          "details",
+          "ip"
+        ],
+        "title": "AuditEntryOut",
+        "type": "object"
+      },
+      "AuditLogPage": {
+        "description": "A page of entries, newest first.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AuditLogPage",
         "type": "object"
       },
       "AuditOut": {
@@ -1600,6 +1814,93 @@
         "title": "BulkOut",
         "type": "object"
       },
+      "ByModelIn": {
+        "description": "Queue ``stage`` again where the latest result's model attribute is older / different.",
+        "properties": {
+          "dry_run": {
+            "default": true,
+            "description": "Only count; create no jobs.",
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "field": {
+            "enum": [
+              "model_version",
+              "model_id",
+              "profile"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "op": {
+            "enum": [
+              "lt",
+              "ne"
+            ],
+            "title": "Op",
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "value": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "field",
+          "op",
+          "value"
+        ],
+        "title": "ByModelIn",
+        "type": "object"
+      },
+      "ByModelOut": {
+        "description": "What matched and, unless it was a dry run, what was queued.",
+        "properties": {
+          "by_value": {
+            "items": {
+              "$ref": "#/components/schemas/ModelValueCount"
+            },
+            "title": "By Value",
+            "type": "array"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "matched": {
+            "title": "Matched",
+            "type": "integer"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dry_run",
+          "matched",
+          "queued",
+          "skipped",
+          "truncated",
+          "by_value"
+        ],
+        "title": "ByModelOut",
+        "type": "object"
+      },
       "CandidateIn": {
         "description": "Confirm, reject or add a candidate.",
         "properties": {
@@ -1936,6 +2237,35 @@
           "decision"
         ],
         "title": "DecisionIn",
+        "type": "object"
+      },
+      "DimensionOut": {
+        "description": "A heatmap axis.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label_de": {
+            "title": "Label De",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label_de",
+          "label_en",
+          "kind"
+        ],
+        "title": "DimensionOut",
         "type": "object"
       },
       "DryRunIn": {
@@ -3050,6 +3380,38 @@
         "title": "GoldenTarget",
         "type": "object"
       },
+      "GrowthMonth": {
+        "description": "What was added to the library in one month (by ingest time).",
+        "properties": {
+          "by_media_type": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TypeBucket"
+            },
+            "title": "By Media Type",
+            "type": "object"
+          },
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "bytes",
+          "count",
+          "by_media_type"
+        ],
+        "title": "GrowthMonth",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -3153,6 +3515,91 @@
           "lease_expires_at"
         ],
         "title": "HeartbeatOut",
+        "type": "object"
+      },
+      "HeatCell": {
+        "description": "Assets in one (row, column) combination.",
+        "properties": {
+          "col": {
+            "title": "Col",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row",
+          "col",
+          "count"
+        ],
+        "title": "HeatCell",
+        "type": "object"
+      },
+      "HeatmapOut": {
+        "description": "Coverage matrix with the weakest cells (zero cells included).",
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "column_values": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Column Values",
+            "type": "array"
+          },
+          "columns_dimension": {
+            "title": "Columns Dimension",
+            "type": "string"
+          },
+          "max": {
+            "title": "Max",
+            "type": "integer"
+          },
+          "row_values": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Row Values",
+            "type": "array"
+          },
+          "rows_dimension": {
+            "title": "Rows Dimension",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "weakest": {
+            "items": {
+              "$ref": "#/components/schemas/HeatCell"
+            },
+            "title": "Weakest",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows_dimension",
+          "columns_dimension",
+          "row_values",
+          "column_values",
+          "cells",
+          "max",
+          "truncated",
+          "weakest"
+        ],
+        "title": "HeatmapOut",
         "type": "object"
       },
       "HistoryOut": {
@@ -3762,6 +4209,22 @@
         "title": "LoginOut",
         "type": "object"
       },
+      "ManualUsageIn": {
+        "description": "Mark an asset as used in a project by hand.",
+        "properties": {
+          "project_name": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Project Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_name"
+        ],
+        "title": "ManualUsageIn",
+        "type": "object"
+      },
       "McpStatus": {
         "description": "Connector status and settings.",
         "properties": {
@@ -4132,6 +4595,86 @@
         "title": "ModelInfo",
         "type": "object"
       },
+      "ModelUseOut": {
+        "description": "Assets whose latest result of ``stage`` came from one model.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          }
+        },
+        "required": [
+          "stage",
+          "model_id",
+          "model_version",
+          "profile",
+          "assets"
+        ],
+        "title": "ModelUseOut",
+        "type": "object"
+      },
+      "ModelValueCount": {
+        "description": "A current value of the compared attribute and how many matching assets have it.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "assets"
+        ],
+        "title": "ModelValueCount",
+        "type": "object"
+      },
       "NeedDetail": {
         "description": "A needs list with items and candidates.",
         "properties": {
@@ -4375,6 +4918,25 @@
           "priority"
         ],
         "title": "PriorityIn",
+        "type": "object"
+      },
+      "ProjectCount": {
+        "description": "A project name and how many assets are used in it.",
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "project_name": {
+            "title": "Project Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_name",
+          "assets"
+        ],
+        "title": "ProjectCount",
         "type": "object"
       },
       "ProposalOut": {
@@ -6110,6 +6672,65 @@
         "title": "TaxonomyOut",
         "type": "object"
       },
+      "ThroughputHour": {
+        "description": "Successful stage results finished within one hour.",
+        "properties": {
+          "by_stage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Stage",
+            "type": "object"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "hour": {
+            "title": "Hour",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hour",
+          "count",
+          "by_stage"
+        ],
+        "title": "ThroughputHour",
+        "type": "object"
+      },
+      "ThroughputOut": {
+        "description": "Hourly throughput of the last seven days.",
+        "properties": {
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/ThroughputHour"
+            },
+            "title": "Hours",
+            "type": "array"
+          },
+          "per_hour_avg": {
+            "title": "Per Hour Avg",
+            "type": "number"
+          },
+          "since": {
+            "title": "Since",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "since",
+          "total",
+          "per_hour_avg",
+          "hours"
+        ],
+        "title": "ThroughputOut",
+        "type": "object"
+      },
       "TokenCreated": {
         "description": "A newly created token including its plaintext, shown exactly once.",
         "properties": {
@@ -6117,6 +6738,18 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "id": {
             "format": "uuid",
@@ -6174,6 +6807,7 @@
           "scopes",
           "last_used_at",
           "revoked_at",
+          "expires_at",
           "created_at",
           "token"
         ],
@@ -6183,6 +6817,20 @@
       "TokenIn": {
         "description": "Request for a new personal API token.",
         "properties": {
+          "expires_in_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lifetime in days; omitted: never expires.",
+            "title": "Expires In Days"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -6215,6 +6863,18 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "id": {
             "format": "uuid",
@@ -6268,6 +6928,7 @@
           "scopes",
           "last_used_at",
           "revoked_at",
+          "expires_at",
           "created_at"
         ],
         "title": "TokenOut",
@@ -6390,6 +7051,139 @@
           "files"
         ],
         "title": "TrashedOut",
+        "type": "object"
+      },
+      "TypeBucket": {
+        "description": "Bytes and assets of one media type within a month.",
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bytes",
+          "count"
+        ],
+        "title": "TypeBucket",
+        "type": "object"
+      },
+      "UsageItemIn": {
+        "description": "One Rushbase clip of the project.",
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "uses": {
+            "description": "Timeline uses; 0 = only in the pool.",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Uses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "uses"
+        ],
+        "title": "UsageItemIn",
+        "type": "object"
+      },
+      "UsageOut": {
+        "description": "A project the asset was used in.",
+        "properties": {
+          "first_seen": {
+            "format": "date-time",
+            "title": "First Seen",
+            "type": "string"
+          },
+          "last_seen": {
+            "format": "date-time",
+            "title": "Last Seen",
+            "type": "string"
+          },
+          "machine": {
+            "title": "Machine",
+            "type": "string"
+          },
+          "project_name": {
+            "title": "Project Name",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_name",
+          "source",
+          "machine",
+          "first_seen",
+          "last_seen"
+        ],
+        "title": "UsageOut",
+        "type": "object"
+      },
+      "UsageReportIn": {
+        "description": "What a companion read from one Resolve project.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UsageItemIn"
+            },
+            "maxItems": 5000,
+            "title": "Items",
+            "type": "array"
+          },
+          "machine": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Machine",
+            "type": "string"
+          },
+          "project_name": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Project Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_name",
+          "items"
+        ],
+        "title": "UsageReportIn",
+        "type": "object"
+      },
+      "UsageReportOut": {
+        "description": "Counts of an accepted report.",
+        "properties": {
+          "cleared": {
+            "title": "Cleared",
+            "type": "integer"
+          },
+          "recorded": {
+            "title": "Recorded",
+            "type": "integer"
+          },
+          "unknown": {
+            "title": "Unknown",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recorded",
+          "cleared",
+          "unknown"
+        ],
+        "title": "UsageReportOut",
         "type": "object"
       },
       "UserCreate": {
@@ -7143,6 +7937,211 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/audit": {
+      "get": {
+        "description": "Filter the log by actor, action (`prefix*` allowed), target and time range.",
+        "operationId": "list_audit_api_v1_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "actor_kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "actor_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "action",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Until"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit log",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/admin/audit/actions": {
+      "get": {
+        "description": "Action names for the viewer's filter (cached; the log can be large).",
+        "operationId": "list_actions_api_v1_admin_audit_actions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response List Actions Api V1 Admin Audit Actions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Distinct actions in the log",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
     "/api/v1/admin/backups": {
       "get": {
         "description": "List backups on the share, newest first.",
@@ -8028,6 +9027,76 @@
         ]
       }
     },
+    "/api/v1/admin/reprocess/by-model": {
+      "post": {
+        "description": "Re-enqueue a stage for assets whose latest result is older than / differs from a model.",
+        "operationId": "reprocess_by_model_api_v1_admin_reprocess_by_model_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ByModelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ByModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reprocess By Model",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
+    "/api/v1/admin/reprocess/models": {
+      "get": {
+        "description": "Current model, version and profile per stage with asset counts.",
+        "operationId": "reprocess_models_api_v1_admin_reprocess_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelUseOut"
+                  },
+                  "title": "Response Reprocess Models Api V1 Admin Reprocess Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reprocess Models",
+        "tags": [
+          "admin",
+          "queue"
+        ]
+      }
+    },
     "/api/v1/admin/trash": {
       "get": {
         "description": "Trashed assets with their expiry.",
@@ -8650,6 +9719,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -9185,6 +10271,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -9320,6 +10423,110 @@
         "summary": "Move an asset to the trash",
         "tags": [
           "trash"
+        ]
+      }
+    },
+    "/api/v1/assets/{asset_id}/usage": {
+      "delete": {
+        "description": "Delete one usage row (a Resolve row reappears with the next sync while it is true).",
+        "operationId": "unmark_used_api_v1_assets__asset_id__usage_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Project Name",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "default": "manual",
+              "pattern": "^(manual|resolve|claude)$",
+              "title": "Source",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a usage mark",
+        "tags": [
+          "usage"
+        ]
+      },
+      "put": {
+        "description": "Add a ``manual`` usage row.",
+        "operationId": "mark_used_api_v1_assets__asset_id__usage_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualUsageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark an asset as used in a project by hand",
+        "tags": [
+          "usage"
         ]
       }
     },
@@ -9936,6 +11143,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -10510,6 +11734,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -10742,6 +11983,54 @@
           }
         },
         "summary": "Create a needs list",
+        "tags": [
+          "needs"
+        ]
+      }
+    },
+    "/api/v1/needs/for-asset/{asset_id}": {
+      "get": {
+        "description": "Linked needs lists for the asset detail (confirm/reject through the candidate route).",
+        "operationId": "needs_of_asset_api_v1_needs_for_asset__asset_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssetNeedLink"
+                  },
+                  "title": "Response Needs Of Asset Api V1 Needs For Asset  Asset Id  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Needs items an asset is a candidate for",
         "tags": [
           "needs"
         ]
@@ -11485,6 +12774,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -11885,6 +13191,23 @@
                 }
               ],
               "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
             }
           }
         ],
@@ -12483,6 +13806,23 @@
               ],
               "title": "Tag"
             }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
           }
         ],
         "responses": {
@@ -12532,6 +13872,482 @@
         "summary": "Library statistics",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/stats/coverage": {
+      "get": {
+        "description": "Asset counts per (row value, column value) and the weakest cells (cached).",
+        "operationId": "get_coverage_api_v1_stats_coverage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "rows",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Rows",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "columns",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Columns",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lens_model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lens Model"
+            }
+          },
+          {
+            "in": "query",
+            "name": "log_profile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Log Profile"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Orientation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "shot_size",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shot Size"
+            }
+          },
+          {
+            "in": "query",
+            "name": "camera_angle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Camera Angle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interior_exterior",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interior Exterior"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_of_day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Of Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_identifiable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Identifiable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "review_reason",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Review Reason"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "used_in_project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Used In Project"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatmapOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Coverage heatmap of two dimensions",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/stats/dimensions": {
+      "get": {
+        "description": "Technical columns and taxonomy fields that can be crossed in the coverage heatmap.",
+        "operationId": "get_dimensions_api_v1_stats_dimensions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DimensionOut"
+                  },
+                  "title": "Response Get Dimensions Api V1 Stats Dimensions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Heatmap axes",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/stats/growth": {
+      "get": {
+        "description": "Bytes and assets added per month and media type (one grouped pass, cached).",
+        "operationId": "get_growth_api_v1_stats_growth_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GrowthMonth"
+                  },
+                  "title": "Response Get Growth Api V1 Stats Growth Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Storage added per month",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/stats/throughput": {
+      "get": {
+        "description": "Successful stage results per hour over the last seven days (cached).",
+        "operationId": "get_throughput_api_v1_stats_throughput_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThroughputOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Jobs per hour, last 7 days",
+        "tags": [
+          "dashboard"
         ]
       }
     },
@@ -13267,6 +15083,74 @@
         ]
       }
     },
+    "/api/v1/usage/projects": {
+      "get": {
+        "description": "Projects any asset was used in, with asset counts.",
+        "operationId": "list_projects_api_v1_usage_projects_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectCount"
+                  },
+                  "title": "Response List Projects Api V1 Usage Projects Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Projects",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
+    "/api/v1/usage/report": {
+      "post": {
+        "description": "Upsert usage rows (source ``resolve``); entries with ``uses = 0`` clear the row.",
+        "operationId": "report_usage_api_v1_usage_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report the Rushbase clips of a Resolve project (personal token or session)",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
     "/api/v1/worker/claim": {
       "post": {
         "description": "Lease up to ``max_jobs`` jobs, preferring the stage this worker ran last.",
@@ -13550,6 +15434,48 @@
         "tags": [
           "taxonomy",
           "worker"
+        ]
+      }
+    },
+    "/api/v1/worker/usage": {
+      "post": {
+        "description": "Same as the personal-token variant, for machines enrolled as workers only.",
+        "operationId": "report_usage_as_worker_api_v1_worker_usage_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report the Rushbase clips of a Resolve project (worker key)",
+        "tags": [
+          "usage"
         ]
       }
     },

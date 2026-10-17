@@ -31,7 +31,7 @@ class AuditEntryOut(BaseModel):
     ip: str | None
 
 
-class AuditPage(BaseModel):
+class AuditLogPage(BaseModel):
     """A page of entries, newest first."""
 
     items: list[AuditEntryOut]
@@ -51,7 +51,7 @@ async def _names(db: AsyncSession, rows: list[AuditLog]) -> dict[UUID, str]:
     return names
 
 
-@router.get("", response_model=AuditPage, summary="Audit log")
+@router.get("", response_model=AuditLogPage, summary="Audit log")
 async def list_audit(
     _: AdminDep,
     db: DbDep,
@@ -64,7 +64,7 @@ async def list_audit(
     until: datetime | None = None,
     cursor: str | None = None,
     limit: Annotated[int, Query(ge=1, le=audit.MAX_PAGE)] = 50,
-) -> AuditPage:
+) -> AuditLogPage:
     """Filter the log by actor, action (`prefix*` allowed), target and time range."""
     filters = audit.AuditFilters(actor_kind, actor_id, action, target_kind, target_id, since, until)
     try:
@@ -72,7 +72,7 @@ async def list_audit(
     except audit.InvalidCursorError as exc:
         raise HTTPException(422, str(exc)) from exc
     names = await _names(db, rows)
-    return AuditPage(
+    return AuditLogPage(
         items=[
             AuditEntryOut(
                 id=r.id,
