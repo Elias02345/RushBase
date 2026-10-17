@@ -97,6 +97,18 @@ class SidecarTag(_Model):
     shot_idx: int | None = None
 
 
+class SidecarSync(_Model):
+    """A confirmed audio/video sync pair as seen from this asset."""
+
+    other_asset_id: UUID
+    other_role: str
+    """``audio`` or ``video``: what the other asset is."""
+    offset_ms: int
+    """Start of the audio relative to the start of the video."""
+    confidence: float | None = None
+    basis: str | None = None
+
+
 class SidecarAI(_Model):
     """AI results kept next to the media: descriptions, review state, transcript pointer."""
 
@@ -143,6 +155,8 @@ class SidecarV1(_Model):
     """Taxonomy tags with source and confidence (milestone M4)."""
     ai: SidecarAI | None = None
     """Optional AI section; absent in sidecars written before the AI stages ran."""
+    sync: list[SidecarSync] = Field(default_factory=list)
+    """Confirmed audio/video sync pairs (suggestions are never written)."""
     rule_version: int | None = None
     created_at: datetime
     filed_at: datetime | None = None

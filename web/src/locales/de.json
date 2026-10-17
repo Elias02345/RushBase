@@ -32,7 +32,8 @@
     "review": "Prüfen",
     "golden": "Referenzset",
     "taxonomy": "Taxonomie",
-    "needs": "Bedarf"
+    "needs": "Bedarf",
+    "privacy": "Datenschutz"
   },
   "theme": {
     "system": "Farbschema: System (zum Wechseln klicken)",
@@ -114,7 +115,17 @@
     },
     "asset": {
       "edit": "Von Hand bearbeitet",
-      "bulk_edit": "Mehrfachbearbeitung"
+      "bulk_edit": "Mehrfachbearbeitung",
+      "trash": "In den Papierkorb verschoben",
+      "trash_restore": "Aus dem Papierkorb wiederhergestellt",
+      "migrated": "Per Migration neu abgelegt"
+    },
+    "privacy": {
+      "lock": "Per Datenschutz-Werkzeug gesperrt"
+    },
+    "sync": {
+      "confirmed": "Ton-Sync bestätigt",
+      "rejected": "Ton-Sync abgelehnt"
     }
   },
   "meta": {
@@ -420,7 +431,9 @@
       "transcript": "Transkript",
       "tags": "Tags",
       "ai": "Beschreibung",
-      "similar": "Ähnliches"
+      "similar": "Ähnliches",
+      "privacy": "Datenschutz",
+      "sync": "Ton-Sync"
     },
     "noMetadata": "Noch keine Metadaten",
     "noMetadataText": "Sobald die Analyse gelaufen ist, stehen die Daten hier.",
@@ -433,7 +446,8 @@
     "tagsText": "Tags erscheinen nach der Analyse oder wenn du sie selbst vergibst.",
     "transcriptSearch": "Im Transkript suchen",
     "transcriptCount": "{{shown}} von {{total}} Abschnitten",
-    "audioEvents": "Tonereignisse"
+    "audioEvents": "Tonereignisse",
+    "duplicateOf": "Zum Original"
   },
   "processing": {
     "title": "Verarbeitung",
@@ -486,7 +500,9 @@
       "settings": "Einstellungen",
       "backups": "Backups",
       "search": "Suche",
-      "mcp": "MCP / Claude"
+      "mcp": "MCP / Claude",
+      "trash": "Papierkorb",
+      "migration": "Migration"
     },
     "users": {
       "title": "Konten",
@@ -852,5 +868,105 @@
       "failed": "Fehler",
       "empty": "Keine Aufrufe aufgezeichnet."
     }
+  },
+  "trash": {
+    "title": "Papierkorb",
+    "lead": "Hier liegen gelöschte Assets. Die Dateien bleiben unverändert in .rushbase/trash/ und können bis zum Ablauf der Aufbewahrungsfrist wiederhergestellt werden. Danach werden sie endgültig gelöscht.",
+    "move": "In den Papierkorb",
+    "moveDuplicate": "Duplikat in den Papierkorb",
+    "confirmTitle": "In den Papierkorb verschieben?",
+    "confirmText": "„{{name}}“ und alle zugehörigen Dateien werden aus der Bibliothek in den Papierkorb verschoben.",
+    "confirmHint": "Das ist umkehrbar, solange die Aufbewahrungsfrist läuft. Nur Administratoren können löschen, Claude nie.",
+    "confirm": "In den Papierkorb verschieben",
+    "done": "In den Papierkorb verschoben",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt",
+    "restoreFailed": "Wiederherstellen nicht möglich",
+    "retention": "Aufbewahrung (Tage)",
+    "retentionHint": "Danach wird der Papierkorb-Inhalt endgültig gelöscht.",
+    "emptyTitle": "Der Papierkorb ist leer",
+    "emptyText": "Gelöschte Assets erscheinen hier.",
+    "col": {
+      "name": "Datei",
+      "trashed": "Gelöscht am",
+      "expires": "Endgültig gelöscht ab"
+    }
+  },
+  "privacy": {
+    "title": "Datenschutz",
+    "lead": "Alle Assets einer Person oder eines Batches finden und sperren.",
+    "selectBy": "Auswahl nach",
+    "byPerson": "Person",
+    "byBatch": "Batch",
+    "personHint": "Gefunden wird, wer als freigegebener Wert im Feld „person“ getaggt ist oder mit Namen in Titel, Beschreibung oder Transkript vorkommt. Das ist eine Textsuche, keine Gesichtserkennung.",
+    "batchHint": "Alle Assets des gewählten Batches.",
+    "person": "Name der Person",
+    "batch": "Batch",
+    "setConsent": "Einwilligung setzen",
+    "consent": "Einwilligung",
+    "consentRef": "Nachweis (Verweis)",
+    "consentRefHint": "Zum Beispiel Vertragsnummer oder Dokumentname.",
+    "consentChoice": {
+      "keep": "Nicht ändern",
+      "yes": "Ja",
+      "no": "Nein",
+      "unknown": "Unbekannt"
+    },
+    "consentValue": {
+      "yes": "Ja",
+      "no": "Nein",
+      "unknown": "Unbekannt"
+    },
+    "find": "Treffer anzeigen",
+    "found": "{{count}} Assets gefunden.",
+    "lockAll": "{{count}} Assets sperren",
+    "lockedDone": "{{count}} Assets gesperrt",
+    "locked": "Gesperrt",
+    "lockedHint": "Bei gesperrten Assets ändert die Analyse weder Person erkennbar noch Einwilligung.",
+    "faceNote": "Gesichtserkennung ist standardmäßig aus und in Rushbase nicht umgesetzt.",
+    "bulkButton": "Datenschutz",
+    "bulkTitle": "Datenschutz für {{count}} Assets",
+    "asset": {
+      "lead": "Die KI schätzt „Person erkennbar“ nur als Hinweis; eine Person entscheidet.",
+      "personHint": "Ist eine Person erkennbar?"
+    }
+  },
+  "sync": {
+    "emptyTitle": "Keine Sync-Vorschläge",
+    "emptyText": "Audio und Video desselben Batches mit passendem Timecode erscheinen hier als Vorschlag.",
+    "lead": "Vorschläge verknüpfen nichts. Erst deine Bestätigung verbindet Ton und Bild.",
+    "details": "Versatz {{offset}} · Sicherheit {{confidence}} % · Grundlage: {{basis}}",
+    "confirm": "Bestätigen",
+    "reject": "Ablehnen",
+    "role": {
+      "audio": "Audio",
+      "video": "Video"
+    },
+    "basis": {
+      "timecode": "Timecode",
+      "capture_at": "Aufnahmezeit"
+    },
+    "status": {
+      "suggested": "Vorschlag",
+      "confirmed": "Bestätigt",
+      "rejected": "Abgelehnt"
+    }
+  },
+  "migration": {
+    "lead": "Optional und standardmäßig aus: bestehende Dateien mit einer neuen Ablageregel neu ablegen. Erst Vorschau, dann Ausführung mit getippter Bestätigung. Es entsteht eine Relink-Liste für DaVinci. Über MCP ist das Werkzeug nie erreichbar.",
+    "enable": "Migrationswerkzeug aktivieren",
+    "tool": "Neu ablegen",
+    "batch": "Batch",
+    "batchPlaceholder": "Batch wählen",
+    "template": "Neue Ablageregel",
+    "templateHint": "Vorlage wie bei den Ablageregeln, zum Beispiel Content/{media_type}/{batch_label}/",
+    "preview": "Vorschau",
+    "summary": "{{count}} Assets würden verschoben.",
+    "skipped": "übersprungen: {{reason}}",
+    "confirmLabel": "Zur Bestätigung „{{text}}“ eintippen",
+    "execute": "Jetzt verschieben",
+    "done": "{{count}} Assets verschoben",
+    "result": "{{moved}} verschoben, {{failed}} fehlgeschlagen.",
+    "relink": "Relink-Liste (CSV) herunterladen"
   }
 }

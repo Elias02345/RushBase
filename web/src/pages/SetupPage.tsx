@@ -151,7 +151,10 @@ export function SetupPage() {
       linux: paths.linux.trim() || null,
     };
     if (!roots.windows && !roots.macos && !roots.linux) return setStep(4);
-    savePaths.mutate({ path_roots: roots, central_meta: false }, { onSuccess: () => setStep(4) });
+    savePaths.mutate(
+      { path_roots: roots, central_meta: false, trash_retention_days: 30 },
+      { onSuccess: () => setStep(4) },
+    );
   };
 
   const token = enrollment.data?.token;

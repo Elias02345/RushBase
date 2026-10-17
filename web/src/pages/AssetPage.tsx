@@ -31,7 +31,10 @@ import { formatMetaValue, hasValue } from "../lib/metadata";
 import { detectOs, copyText, type Os } from "../lib/platform";
 import { assetTone } from "../lib/status";
 import { AiDescription } from "./asset/AiDescription";
+import { PrivacyPanel } from "./asset/PrivacyPanel";
 import { SimilarPanel } from "./asset/SimilarPanel";
+import { SyncPanel } from "./asset/SyncPanel";
+import { TrashButton } from "./asset/TrashButton";
 import { TagsPanel } from "./asset/TagsPanel";
 import { TranscriptPanel } from "./asset/TranscriptPanel";
 
@@ -315,6 +318,10 @@ function AssetBody({
           <TabsTrigger value="ai">{t("asset.tabs.ai")}</TabsTrigger>
           <TabsTrigger value="tags">{t("asset.tabs.tags")}</TabsTrigger>
           <TabsTrigger value="transcript">{t("asset.tabs.transcript")}</TabsTrigger>
+          <TabsTrigger value="privacy">{t("asset.tabs.privacy")}</TabsTrigger>
+          {(detail.sync ?? []).length > 0 ? (
+            <TabsTrigger value="sync">{t("asset.tabs.sync")}</TabsTrigger>
+          ) : null}
           <TabsTrigger value="similar">{t("asset.tabs.similar")}</TabsTrigger>
           <TabsTrigger value="files">{t("asset.tabs.files")}</TabsTrigger>
           <TabsTrigger value="history">{t("asset.tabs.history")}</TabsTrigger>
@@ -338,6 +345,12 @@ function AssetBody({
         </TabsContent>
         <TabsContent value="transcript">
           <TranscriptPanel detail={detail} current={current} onSeek={seek} />
+        </TabsContent>
+        <TabsContent value="privacy">
+          <PrivacyPanel detail={detail} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="sync">
+          <SyncPanel detail={detail} canEdit={canEdit} />
         </TabsContent>
         <TabsContent value="similar">
           {tab === "similar" ? <SimilarPanel kind={similar.kind} id={similar.id} /> : null}
@@ -373,6 +386,7 @@ function AssetPageInner({ id }: { id: string }) {
   const router = useRouter();
   const query = useAsset(id);
   const detail = query.data;
+  const isAdmin = hasRole(useMe().data?.role, "admin");
   const [tab, setTab] = useState("data");
   const [similar, setSimilar] = useState<SimilarTarget>({ kind: "asset", id });
   if (query.isError) {
@@ -446,6 +460,14 @@ function AssetPageInner({ id }: { id: string }) {
               >
                 {t("similar.button")}
               </Button>
+              {detail.duplicate_of ? (
+                <Link to="/assets/$id" params={{ id: detail.duplicate_of }} className="link">
+                  {t("asset.duplicateOf")}
+                </Link>
+              ) : null}
+              {isAdmin && (detail.status === "filed" || detail.status === "duplicate") ? (
+                <TrashButton detail={detail} />
+              ) : null}
             </div>
           </header>
           <AssetBody

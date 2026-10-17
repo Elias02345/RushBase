@@ -58,7 +58,7 @@ def quarantine_dir(asset_id: UUID) -> str:
     return f"{SYSTEM_DIR}/{QUARANTINE_DIR}/{asset_id}"
 
 
-def _execute_moves(
+def execute_moves(
     root: Path, moves: list[QuarantineMove]
 ) -> tuple[list[QuarantineMove], list[str]]:
     """Perform ``moves``; returns ``(done, missing_sources)``. Undoes everything on errors."""
@@ -73,12 +73,12 @@ def _execute_moves(
             safe_rename(source, resolve_in_root(root, move.dst))
             done.append(move)
     except BaseException:
-        _undo_moves(root, done)
+        undo_moves(root, done)
         raise
     return done, missing
 
 
-def _undo_moves(root: Path, moves: list[QuarantineMove]) -> None:
+def undo_moves(root: Path, moves: list[QuarantineMove]) -> None:
     for move in reversed(moves):
         try:
             safe_rename(resolve_in_root(root, move.dst), resolve_in_root(root, move.src))
@@ -86,7 +86,7 @@ def _undo_moves(root: Path, moves: list[QuarantineMove]) -> None:
             continue
 
 
-def _prune_empty(root: Path, rel_dir: str) -> None:
+def prune_empty(root: Path, rel_dir: str) -> None:
     """Remove empty directories below ``rel_dir`` and ``rel_dir`` itself (best effort)."""
     top = resolve_in_root(root, rel_dir)
     for directory, _subdirs, _names in os.walk(top, topdown=False):
@@ -135,7 +135,7 @@ async def quarantine_asset(session: AsyncSession, root: Path, asset: Asset, now:
     failure = await _failure_of(session, asset.id)
     planned = await _plan_moves(session, asset, files)
     try:
-        done, missing = await asyncio.to_thread(_execute_moves, root, planned)
+        done, missing = await asyncio.to_thread(execute_moves, root, planned)
     except FileInUseError as exc:
         logger.warning("quarantine postponed", extra={"asset": str(asset.id), "error": str(exc)})
         return False
@@ -247,7 +247,7 @@ async def retry_asset(
             raise QuarantineError(f"quarantined item is missing: {move.dst}")
     back = [QuarantineMove(m.kind, m.dst, m.src) for m in moves]
     try:
-        await asyncio.to_thread(_execute_moves, root, back)
+        await asyncio.to_thread(execute_moves, root, back)
     except OSError as exc:
         raise QuarantineError(f"could not move files back: {exc}") from exc
     files = list(
@@ -295,7 +295,7 @@ async def retry_asset(
 def _clear_quarantine_dir(root: Path, rel_dir: str) -> None:
     """Delete ``error.json`` and the (now empty) quarantine folder of a restored asset."""
     resolve_in_root(root, f"{rel_dir}/{ERROR_FILE}").unlink(missing_ok=True)
-    _prune_empty(root, rel_dir)
+    prune_empty(root, rel_dir)
 
 
 async def list_quarantined(session: AsyncSession) -> list[tuple[Asset, str]]:

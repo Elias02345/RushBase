@@ -26,6 +26,7 @@ from rushbase_core.sidecar import (
     SidecarFile,
     SidecarMetadata,
     SidecarShot,
+    SidecarSync,
     SidecarTag,
     SidecarV1,
     render_xmp,
@@ -45,6 +46,7 @@ def build_sidecar(
     written_at: datetime,
     tags: Sequence[SidecarTag] = (),
     ai: SidecarAI | None = None,
+    sync: Sequence[SidecarSync] = (),
 ) -> SidecarV1:
     """Assemble the sidecar document of a (just filed) asset from database rows."""
     primary = next((f for f in files if f.id == asset.primary_file_id), files[0])
@@ -117,6 +119,7 @@ def build_sidecar(
         ),
         tags=list(tags),
         ai=ai,
+        sync=list(sync),
         rule_version=rule.version if rule else None,
         created_at=asset.created_at,
         filed_at=asset.filed_at,

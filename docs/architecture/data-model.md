@@ -20,42 +20,42 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 
 ## Library and server
 
-| Table | Purpose |
-| --- | --- |
-| `library` | Exactly one row (enforced by a unique expression index): `id` equals the id in `library.json`, `name`, `root_hint`, `schema_version`, `settings`. |
-| `app_setting` | Runtime-adjustable key/value settings (`queue.paused`, `pipeline.stages`), `updated_by`. |
+| Table         | Purpose                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `library`     | Exactly one row (enforced by a unique expression index): `id` equals the id in `library.json`, `name`, `root_hint`, `schema_version`, `settings`. |
+| `app_setting` | Runtime-adjustable key/value settings (`queue.paused`, `pipeline.stages`), `updated_by`.                                                          |
 
 ## Users and authentication
 
-| Table | Purpose |
-| --- | --- |
-| `user` | `username` (`citext`, unique), `display_name`, `password_hash` (argon2id), `role` in `admin|editor|viewer`, `locale` in `de|en`, `disabled`, `last_login_at`. |
-| `session` | Cookie session: `token_hash` (SHA-256 of the opaque cookie value), `csrf_token`, `expires_at`, `ip`, `user_agent`. |
-| `api_token` | `kind` in `worker|personal`, `token_hash` (unique), `prefix` (first 8 characters, for display), `scopes text[]`, `last_used_at`, `revoked_at`; a worker token belongs to a worker, a personal token to a user (CHECK). |
-| `audit_log` | Append-only: `at`, `actor_kind` in `user|worker|mcp|system`, `actor_id`, `action`, `target_kind`, `target_id`, `details`, `ip`. Indexed by `at DESC` and `(actor_kind, actor_id)`. |
+| Table       | Purpose                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `user`      | `username` (`citext`, unique), `display_name`, `password_hash` (argon2id), `role` in `admin                        | editor                                                                                                                                                                                           | viewer`, `locale`in`de | en`, `disabled`, `last_login_at`.                                                                                            |
+| `session`   | Cookie session: `token_hash` (SHA-256 of the opaque cookie value), `csrf_token`, `expires_at`, `ip`, `user_agent`. |
+| `api_token` | `kind` in `worker                                                                                                  | personal`, `token_hash`(unique),`prefix`(first 8 characters, for display),`scopes text[]`, `last_used_at`, `revoked_at`; a worker token belongs to a worker, a personal token to a user (CHECK). |
+| `audit_log` | Append-only: `at`, `actor_kind` in `user                                                                           | worker                                                                                                                                                                                           | mcp                    | system`, `actor_id`, `action`, `target_kind`, `target_id`, `details`, `ip`. Indexed by `at DESC`and`(actor_kind, actor_id)`. |
 
 ## Workers
 
-| Table | Purpose |
-| --- | --- |
-| `enrollment_token` | One-time token (hashed) with `expires_at`, `used_at`, `used_by_worker`, `created_by`, `note`. |
-| `worker` | `name`, `hostname`, `platform`, `capabilities` (JSONB: `backends`, `vram_mb`, `ram_mb`, `stages`, `models`, `profile`), `version`, `status` in `online|offline|draining`, `last_seen_at`, `last_stage` (the stage of its previous claim, used for batching), `current_job_id`. |
+| Table              | Purpose                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `enrollment_token` | One-time token (hashed) with `expires_at`, `used_at`, `used_by_worker`, `created_by`, `note`.                                                          |
+| `worker`           | `name`, `hostname`, `platform`, `capabilities` (JSONB: `backends`, `vram_mb`, `ram_mb`, `stages`, `models`, `profile`), `version`, `status` in `online | offline | draining`, `last_seen_at`, `last_stage`(the stage of its previous claim, used for batching),`current_job_id`. |
 
 ## Ingest
 
-| Table | Purpose |
-| --- | --- |
-| `batch` | A top-level folder of `Input/` (or a virtual per-day batch `Input/@auto/<day>` for loose files): `input_path` (unique), `label`, `hint_date`, `hint_location`, `hint_project`, `status` in `scanning|waiting|processing|done|error`, `priority`, `paused`, `first_seen_at` (the FIFO key), `completed_at`. |
-| `input_file` | A file seen in `Input/`: `rel_path` (unique), `size`, `mtime`, `stable_count`, `last_changed_at`, `first_seen_at`, `last_seen_at`, `state` in `copying|stable|grouped|ignored|gone`, `quick_fp` (size + BLAKE3 of 3 x 64 KiB samples), `asset_id`. Ignored junk files (`._*`, `.DS_Store`, ...) are skipped and not recorded; the state `ignored` is reserved. |
+| Table        | Purpose                                                                                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `batch`      | A top-level folder of `Input/` (or a virtual per-day batch `Input/@auto/<day>` for loose files): `input_path` (unique), `label`, `hint_date`, `hint_location`, `hint_project`, `status` in `scanning | waiting | processing | done    | error`, `priority`, `paused`, `first_seen_at`(the FIFO key),`completed_at`.                                                                                                    |
+| `input_file` | A file seen in `Input/`: `rel_path` (unique), `size`, `mtime`, `stable_count`, `last_changed_at`, `first_seen_at`, `last_seen_at`, `state` in `copying                                               | stable  | grouped    | ignored | gone`, `quick_fp`(size + BLAKE3 of 3 x 64 KiB samples),`asset_id`. Ignored junk files (`._*`, `.DS_Store`, ...) are skipped and not recorded; the state `ignored` is reserved. |
 
 ## Assets
 
-| Table | Purpose |
-| --- | --- |
-| `asset` | `batch_id`, `media_type` (`video|photo|audio|other`), `status` (`ingesting|processing|review|filed|quarantined|trashed|duplicate`), `duplicate_of`, `primary_file_id` (no FK, the two tables reference each other), `content_rel_dir` (set once when filed, never changed afterwards except by an admin migration), technical columns (`capture_at`, `capture_tz`, `duration_ms`, `width`, `height`, `fps`, `codec`, camera/lens, `focal_length_*`, `iso`, `log_profile`, `orientation`, `gps_lat/lon/alt`, `size_total`), descriptive columns (`title`, summaries, `rating` 0-5), privacy (`person_identifiable`, `consent`, `consent_ref` with `yes|no|unknown`), `locked`, `analysis_profile`, `search_tsv` (`tsvector`, GIN index, maintained by triggers, see "Full-text search"), `filed_at`, `rule_version_id`. |
-| `asset_file` | `role` in `primary|raw|jpeg|sidecar|proxy_camera|telemetry|audio_sync|member`, `rel_path` (unique; the current location, Input before filing, Content after), `original_rel_path` (immutable Input path), `size`, `mtime`, `blake3`, `quick_fp`, `card_structure_root` (a directory that must move as a unit). |
-| `asset_metadata` | `normalized` and `raw` JSONB plus a `version` per asset. |
-| `shot` | `(asset_id, idx)` unique; time range, keyframes, quality measures, descriptions, `search_tsv`. |
+| Table            | Purpose                                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
+| `asset`          | `batch_id`, `media_type` (`video                                                               | photo | audio | other`), `status` (`ingesting | processing   | review    | filed      | quarantined                                                                                                                                                                                                                          | trashed | duplicate`), `duplicate_of`, `primary_file_id`(no FK, the two tables reference each other),`content_rel_dir` (set once when filed, never changed afterwards except by an admin migration), technical columns (`capture_at`, `capture_tz`, `duration_ms`, `width`, `height`, `fps`, `codec`, camera/lens, `focal_length_*`, `iso`, `log_profile`, `orientation`, `gps_lat/lon/alt`, `size_total`), descriptive columns (`title`, summaries, `rating` 0-5), privacy (`person_identifiable`, `consent`, `consent_ref`with`yes | no  | unknown`), `locked`, `analysis_profile`, `search_tsv` (`tsvector`, GIN index, maintained by triggers, see "Full-text search"), `filed_at`, `rule_version_id`. |
+| `asset_file`     | `role` in `primary                                                                             | raw   | jpeg  | sidecar                       | proxy_camera | telemetry | audio_sync | member`, `rel_path`(unique; the current location, Input before filing, Content after),`original_rel_path`(immutable Input path),`size`, `mtime`, `blake3`, `quick_fp`, `card_structure_root` (a directory that must move as a unit). |
+| `asset_metadata` | `normalized` and `raw` JSONB plus a `version` per asset.                                       |
+| `shot`           | `(asset_id, idx)` unique; time range, keyframes, quality measures, descriptions, `search_tsv`. |
 
 ### Added in M2 (migration 0003)
 
@@ -76,6 +76,19 @@ The PostgreSQL schema is defined by the SQLAlchemy models in
 - Result ingestion contract: `docs/filing.md` and `rushbase_core.results`.
 
 M4 (migration 0005, below) adds the AI tables; M5 adds the need lists.
+
+### Spec gaps (migration 0008)
+
+- `trash_item` (`asset_id` PK/FK, `trashed_at`, `trashed_by`, `prior_status`, `manifest` JSONB with
+  the performed moves and the previous `rel_path`/`card_structure_root` per file). A trashed asset
+  has `status = 'trashed'` and its `asset_file.rel_path` points into `.rushbase/trash/<asset-id>/`.
+  Restoring deletes the row; the purge job deletes the asset (and so its rows) after the retention
+  period (`app_setting` `trash.retention_days`, default 30). Its sidecar is moved along, so
+  `rebuild-from-sidecars` does not resurrect trashed assets.
+- `sync_suggestion` (`asset_a` audio, `asset_b` video, `offset_ms` = audio start relative to video
+  start, `confidence`, `basis` `timecode|capture_at`, `status` `suggested|confirmed|rejected`,
+  `decided_by/at`). Only `confirmed` pairs are written to the sidecar (`sync` section).
+- `app_setting` `migration.enabled` (default false) switches the content migration tool.
 
 ### Full-text search (M3, migration 0004)
 
@@ -104,10 +117,10 @@ M4 (migration 0005, below) adds the AI tables; M5 adds the need lists.
 
 ## Results and queue
 
-| Table | Purpose |
-| --- | --- |
+| Table          | Purpose                                                                                                                                                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `stage_result` | Append-only history of stage runs: `asset_id`, `job_id`, `stage`, `model_id`, `model_version`, `prompt_version`, `worker_id`, `started_at`, `finished_at`, `duration_ms`, `ok`, `output`, `error`. The latest successful row per `(asset, stage)` is current. A partial unique index allows at most one successful result per job. |
-| `job` | `asset_id`, `stage` (`probe|hash|preview|shots|audio|embed|vision|classify|finalize`), `state` (`blocked|queued|leased|done|failed|cancelled`), `depends_on uuid[]`, `priority`, `enqueued_at` (the batch's `first_seen_at`), `attempts`, `max_attempts` (default 5), `not_before` (backoff), `lease_owner`, `lease_expires_at`, `last_error`, `requirements` (`{"gpu": bool, "min_vram_mb": int}`). |
+| `job`          | `asset_id`, `stage` (`probe                                                                                                                                                                                                                                                                                                        | hash | preview | shots | audio | embed | vision | classify | finalize`), `state` (`blocked | queued | leased | done | failed | cancelled`), `depends_on uuid[]`, `priority`, `enqueued_at`(the batch's`first_seen_at`), `attempts`, `max_attempts`(default 5),`not_before`(backoff),`lease_owner`, `lease_expires_at`, `last_error`, `requirements` (`{"gpu": bool, "min_vram_mb": int}`). |
 
 Indexes: partial `ix_job_queue (stage, priority DESC, enqueued_at) WHERE state = 'queued'` and
 `ix_job_lease_expires_at (lease_expires_at) WHERE state = 'leased'`.
@@ -139,23 +152,23 @@ blocked --(all dependencies done)--> queued --claim--> leased --result ok--> don
 
 ## Organisation
 
-| Table | Purpose |
-| --- | --- |
-| `filing_rule` | Versioned filing templates (`template`, `fallbacks`, `note`); a unique partial index allows one active rule. Used from M2. |
-| `move_journal` | Database mirror of `.rushbase/journal/*.jsonl`: `asset_id`, `from_rel`, `to_rel`, `at`, `reason`. Used from M2. |
+| Table          | Purpose                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `filing_rule`  | Versioned filing templates (`template`, `fallbacks`, `note`); a unique partial index allows one active rule. Used from M2. |
+| `move_journal` | Database mirror of `.rushbase/journal/*.jsonl`: `asset_id`, `from_rel`, `to_rel`, `at`, `reason`. Used from M2.            |
 
 ## Worker protocol (`/api/v1/worker/*`)
 
 Bearer API key per worker (stored hashed, shown once at enrollment).
 
-| Call | Purpose |
-| --- | --- |
-| `POST enroll` | Exchange a one-time enrollment token for an API key. |
-| `GET library` | Library id, to compare with the worker's mounted `library.json`. |
-| `POST claim` | Capabilities (optional) and `max_jobs`; returns jobs with file paths and upstream outputs. |
-| `POST jobs/{id}/heartbeat` | Extend the lease. |
-| `POST jobs/{id}/result` | `ok`/error, output JSON, model info, duration. Idempotent. |
-| `POST jobs/{id}/release` | Graceful give-back without an attempt penalty. |
+| Call                       | Purpose                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `POST enroll`              | Exchange a one-time enrollment token for an API key.                                       |
+| `GET library`              | Library id, to compare with the worker's mounted `library.json`.                           |
+| `POST claim`               | Capabilities (optional) and `max_jobs`; returns jobs with file paths and upstream outputs. |
+| `POST jobs/{id}/heartbeat` | Extend the lease.                                                                          |
+| `POST jobs/{id}/result`    | `ok`/error, output JSON, model info, duration. Idempotent.                                 |
+| `POST jobs/{id}/release`   | Graceful give-back without an attempt penalty.                                             |
 
 No endpoint waits for a worker; the backlog (`GET /api/v1/status`) is answered from the database alone.
 
@@ -164,17 +177,17 @@ No endpoint waits for a worker; the backlog (`GET /api/v1/status`) is answered f
 Additive and idempotent; `downgrade` drops the tables and columns and restores the 0004 search
 functions.
 
-| Table | Content |
-|---|---|
-| `tax_field` / `tax_value` | Vocabulary. Values: `status` proposed/approved/deprecated, `synonyms text[]`, `parent_id`, `proposal_count`, `example_asset_ids`; unique `(field_id, lower(value))`. |
-| `taxonomy_version` | Single row (`id = 1`) counter, bumped by approved changes. |
-| `asset_tag` | `asset_id`, optional `shot_id`, `field_id`, `value_id`, `source` ai/claude/human, `confidence`, `model_ref`; unique `(asset, shot, value, source)` with `NULLS NOT DISTINCT`. |
-| `transcript_segment` | `idx`, `start_ms`, `end_ms`, `text`, `language`, `speaker`, `words` (JSONB) and a generated `tsv`. |
-| `audio_event` | `tag`, time range, `confidence`, `raw_top`. |
+| Table                                | Content                                                                                                                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tax_field` / `tax_value`            | Vocabulary. Values: `status` proposed/approved/deprecated, `synonyms text[]`, `parent_id`, `proposal_count`, `example_asset_ids`; unique `(field_id, lower(value))`.                                                                 |
+| `taxonomy_version`                   | Single row (`id = 1`) counter, bumped by approved changes.                                                                                                                                                                           |
+| `asset_tag`                          | `asset_id`, optional `shot_id`, `field_id`, `value_id`, `source` ai/claude/human, `confidence`, `model_ref`; unique `(asset, shot, value, source)` with `NULLS NOT DISTINCT`.                                                        |
+| `transcript_segment`                 | `idx`, `start_ms`, `end_ms`, `text`, `language`, `speaker`, `words` (JSONB) and a generated `tsv`.                                                                                                                                   |
+| `audio_event`                        | `tag`, time range, `confidence`, `raw_top`.                                                                                                                                                                                          |
 | `embedding_image` / `embedding_text` | `vector(768)` with `model_id`, `revision`, HNSW `vector_cosine_ops`. Text rows carry `kind` (asset_summary, shot_description, transcript_chunk), time range and language. One table per space, so a model change never mixes spaces. |
-| `golden_label` | Expected value per `(asset, shot, field)`; `origin` label/correction. |
-| `eval_run` | Stored evaluation: model refs, `golden_count`, `metrics` (JSONB). |
-| `collection`, `collection_asset` | Manually curated sets (virtual organisation). |
+| `golden_label`                       | Expected value per `(asset, shot, field)`; `origin` label/correction.                                                                                                                                                                |
+| `eval_run`                           | Stored evaluation: model refs, `golden_count`, `metrics` (JSONB).                                                                                                                                                                    |
+| `collection`, `collection_asset`     | Manually curated sets (virtual organisation).                                                                                                                                                                                        |
 
 New `asset` columns: `summary_short_en`, `shot_size`, `camera_angle`, `interior_exterior`,
 `time_of_day`, `people_count`, `ai_details` (JSONB, models, rejected tags, review reasons per stage),

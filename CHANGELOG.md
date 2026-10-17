@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (spec gaps)
+
+- Delete to trash: administrators move a filed asset or duplicate (card folders whole, with
+  sidecars) to `.rushbase/trash/<asset-id>/` from the web UI after a confirmation, restore it
+  while the original path is free, and set the retention period (default 30 days). The
+  maintenance job deletes expired items for good: the only code path that removes media, audited
+  and tested. Not available through MCP, API tokens or the worker (migration 0008).
+- Privacy: consent, proof reference and "person identifiable" in the asset detail and in bulk
+  edit; "Privacy" page that finds and locks all assets of a batch or of a person (taxonomy field
+  `person` or a name in title, description or transcript), optionally setting consent.
+- Audio/video sync suggestions from BWF timecode or capture time (`sync_suggestion`, migration
+  0008); confirm or reject in the asset detail; confirmed pairs are written to the sidecars and
+  restored by `rebuild-from-sidecars`.
+- Optional content migration tool (`migration.enabled`, off by default): preview, typed
+  confirmation, rename-only moves with journal and a per-OS relink CSV for DaVinci Resolve.
+
 ### Added (milestone M7)
 
 - Disaster-recovery drill `scripts/dr-drill.sh` (restore from backup on a fresh server, then rebuild
@@ -92,6 +108,7 @@ All notable changes to this project are documented here. The format follows
   re-classified assets; administration page "MCP / Claude" (connector URL, clients with revoke,
   extra redirect URIs, call log). `/health` reports `warnings` (`mcp_public_url_missing`).
 - Docs: `docs/mcp.md` (connect to claude.ai, scopes, troubleshooting, generated tool reference).
+
 ### Added (milestone M6, companion)
 
 - Desktop app (Tauri 2): Processor with backlog, hardware, one-click processing, live progress,
@@ -146,6 +163,7 @@ All notable changes to this project are documented here. The format follows
   contracts in `docs/cli-json.md`; documentation in `docs/worker.md`.
 - `worker/scripts/fetch-exiftool.py` installs the pinned, checksum-verified ExifTool into the
   toolchain.
+
 ### Added (milestone M2, server filing)
 
 - Result ingestion: probe, hash, preview and shots outputs are validated against
@@ -165,6 +183,7 @@ All notable changes to this project are documented here. The format follows
 - `rushbase-server rebuild-from-sidecars [--dry-run]`.
 - Read APIs: `/api/v1/assets`, `/assets/{id}`, `/facets`, `/stats`, `/batches`,
   `/derived/{asset_id}/{path}` (Range, cache headers) and library settings (per-OS path roots).
+
 ### Added (milestone M3, integration)
 
 - Web UI wired to the real server: types come from the generated API client, MSW mocks are typed
@@ -212,7 +231,7 @@ All notable changes to this project are documented here. The format follows
   double-submit, login rate limit, personal API tokens, first-run setup, audit log.
 - Backups: scheduled `pg_dump` (custom format, every 6 h plus daily) with retention and a JSON
   export of settings and filing rules into `.rushbase/backups/`; `rushbase-server backup
-  now|list|restore`, `rushbase-server migrate`; the setup status offers a restore when backups exist.
+now|list|restore`, `rushbase-server migrate`; the setup status offers a restore when backups exist.
 - Server lease with `--force-takeover`; `/health` reports database, library mount and lease;
   `/api/v1/status` reports the backlog per stage (jobs, files, bytes, media duration) without any
   worker online; optional Prometheus `/metrics`.

@@ -24,6 +24,7 @@ import {
 } from "./data";
 import { aiHandlers, detailFor, extraFacets, resetAiState } from "./aiHandlers";
 import { mcpHandlers, resetMcpState } from "./mcpHandlers";
+import { resetSafetyState, safetyHandlers } from "./safetyHandlers";
 import { keyframeSvg, posterSvg, spriteSvg } from "./svg";
 
 /** Password every mock account accepts. */
@@ -88,7 +89,7 @@ function freshState(): MockState {
         revoked_at: null,
       },
     ],
-    settings: { path_roots: defaultPathRoots(), central_meta: false },
+    settings: { path_roots: defaultPathRoots(), central_meta: false, trash_retention_days: 30 },
     rules: defaultFilingRules(),
     paused: false,
     setupDone: scenario() !== "fresh",
@@ -116,6 +117,7 @@ export function resetMockState(): void {
   state = freshState();
   resetAiState();
   resetMcpState();
+  resetSafetyState();
 }
 
 function unauthorized() {
@@ -275,6 +277,7 @@ const aiDeps = {
 export const handlers = [
   ...aiHandlers(aiDeps),
   ...mcpHandlers(aiDeps),
+  ...safetyHandlers(aiDeps),
   http.get("/api/health", () =>
     HttpResponse.json({
       status: "ok",

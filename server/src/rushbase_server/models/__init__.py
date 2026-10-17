@@ -30,6 +30,8 @@ from rushbase_server.models.catalog import (
     FilingRule,
     MoveJournal,
     Shot,
+    SyncSuggestion,
+    TrashItem,
 )
 from rushbase_server.models.ingest import Batch, EnrollmentToken, InputFile, Worker
 from rushbase_server.models.needs import NeedCandidate, NeedItem, NeedList
@@ -69,10 +71,12 @@ __all__ = [
     "Session",
     "Shot",
     "StageResult",
+    "SyncSuggestion",
     "TaxField",
     "TaxValue",
     "TaxonomyVersion",
     "TranscriptSegment",
+    "TrashItem",
     "User",
     "Worker",
 ]

@@ -276,6 +276,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/migration/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a migration
+         * @description Move the assets (rename only), journal it and return the relink list.
+         */
+        post: operations["execute_api_v1_admin_migration_execute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/migration/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dry run of a migration
+         * @description Show where the selected assets would move with the new template; moves nothing.
+         */
+        post: operations["preview_api_v1_admin_migration_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/migration/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Migration tool switch
+         * @description Whether the migration tool is enabled (default: off).
+         */
+        get: operations["get_settings_api_v1_admin_migration_settings_get"];
+        /**
+         * Switch the migration tool
+         * @description Enable or disable the tool.
+         */
+        put: operations["put_settings_api_v1_admin_migration_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/pipeline/stages": {
         parameters: {
             query?: never;
@@ -370,6 +434,46 @@ export interface paths {
          * @description Re-enqueue a stage for assets whose latest result has an older model version.
          */
         post: operations["reprocess_api_v1_admin_reprocess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the trash
+         * @description Trashed assets with their expiry.
+         */
+        get: operations["list_trash_api_v1_admin_trash_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/trash/{asset_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore an asset from the trash
+         * @description Move the files back; 409 with the occupied locations when an original path is taken.
+         */
+        post: operations["restore_api_v1_admin_trash__asset_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -495,7 +599,7 @@ export interface paths {
         put?: never;
         /**
          * Bulk edit assets
-         * @description Add/remove tags, set the lock or change collection membership for up to 500 assets.
+         * @description Edit up to 500 assets: tags, lock, consent, person flag and collection membership.
          */
         post: operations["bulk_edit_api_v1_assets_bulk_post"];
         delete?: never;
@@ -564,6 +668,26 @@ export interface paths {
         get: operations["transcript_api_v1_assets__asset_id__transcript_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move an asset to the trash
+         * @description Move the files of a filed asset or duplicate to `.rushbase/trash/` (reversible).
+         */
+        post: operations["trash_asset_api_v1_assets__asset_id__trash_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1012,6 +1136,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/privacy/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lock the assets of a batch or person
+         * @description Find the assets of a batch or mentioning/tagged with a person; lock them unless dry run.
+         *
+         *     Locked assets keep their person and consent fields when the analysis runs again. Face
+         *     recognition is not involved: a person is a taxonomy value (`person` field) or a name in the
+         *     texts and transcript.
+         */
+        post: operations["lock_assets_api_v1_privacy_lock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quarantine": {
         parameters: {
             query?: never;
@@ -1253,6 +1401,26 @@ export interface paths {
         get: operations["system_status_api_v1_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sync-suggestions/{suggestion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide
+         * @description Confirm (links the pair in both sidecars) or reject a sync suggestion.
+         */
+        post: operations["decide_api_v1_sync_suggestions__suggestion_id__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1855,6 +2023,11 @@ export interface components {
             status: string;
             /** Summary */
             summary?: string | null;
+            /**
+             * Sync
+             * @default []
+             */
+            sync: components["schemas"]["SyncOut"][];
             /** Tech Summary De */
             tech_summary_de: string | null;
             /** Tech Summary En */
@@ -2155,8 +2328,14 @@ export interface components {
             add_to_collection?: string | null;
             /** Asset Ids */
             asset_ids: string[];
+            /** Consent */
+            consent?: ("yes" | "no" | "unknown") | null;
+            /** Consent Ref */
+            consent_ref?: string | null;
             /** Locked */
             locked?: boolean | null;
+            /** Person Identifiable */
+            person_identifiable?: ("yes" | "no" | "unknown") | null;
             /** Remove From Collection */
             remove_from_collection?: string | null;
             /** Remove Tags */
@@ -2319,6 +2498,17 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /**
+         * DecisionIn
+         * @description The person's decision.
+         */
+        DecisionIn: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "confirmed" | "rejected";
         };
         /**
          * DryRunIn
@@ -2540,6 +2730,34 @@ export interface components {
             filename: string;
             /** Poster Url */
             poster_url: string | null;
+        };
+        /**
+         * ExecuteIn
+         * @description Execution needs the typed confirmation shown by the preview.
+         */
+        ExecuteIn: {
+            /** Asset Ids */
+            asset_ids?: string[];
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Confirmation */
+            confirmation: string;
+            /** Template */
+            template: string;
+        };
+        /**
+         * ExecuteOut
+         * @description The result of a run, with the relink list.
+         */
+        ExecuteOut: {
+            /** Failed */
+            failed: number;
+            /** Moved */
+            moved: number;
+            /** Relink Csv */
+            relink_csv: string;
+            /** Relink Path */
+            relink_path: string;
         };
         /**
          * Facet
@@ -3033,6 +3251,44 @@ export interface components {
             path_roots?: {
                 [key: string]: string | null;
             };
+            /**
+             * Trash Retention Days
+             * @description Days a trashed asset is kept before it is deleted permanently.
+             * @default 30
+             */
+            trash_retention_days: number;
+        };
+        /**
+         * LockIn
+         * @description Select a batch or a person (exactly one) and what to set on the matches.
+         */
+        LockIn: {
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Consent */
+            consent?: ("yes" | "no" | "unknown") | null;
+            /** Consent Ref */
+            consent_ref?: string | null;
+            /**
+             * Dry Run
+             * @description Only count the matches; change nothing.
+             * @default true
+             */
+            dry_run: boolean;
+            /** Person */
+            person?: string | null;
+        };
+        /**
+         * LockOut
+         * @description The matches and how many were changed.
+         */
+        LockOut: {
+            /** Matched */
+            matched: number;
+            /** Sample */
+            sample: string[];
+            /** Updated */
+            updated: number;
         };
         /**
          * LoginIn
@@ -3140,6 +3396,35 @@ export interface components {
             };
         };
         /**
+         * MigrationItemOut
+         * @description One unit of the preview.
+         */
+        MigrationItemOut: {
+            /** Asset Ids */
+            asset_ids: string[];
+            /** Filename */
+            filename: string;
+            /** New Dir */
+            new_dir: string;
+            /** Old Dir */
+            old_dir: string;
+            /** Skipped */
+            skipped: string | null;
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * MigrationSettings
+         * @description Whether the tool is switched on.
+         */
+        MigrationSettings: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+        };
+        /**
          * ModelInfo
          * @description An installed model for a stage.
          */
@@ -3233,6 +3518,18 @@ export interface components {
             status: string;
             /** Title */
             title: string;
+        };
+        /**
+         * PreviewOut
+         * @description The dry run.
+         */
+        PreviewOut: {
+            /** Confirmation */
+            confirmation: string;
+            /** Items */
+            items: components["schemas"]["MigrationItemOut"][];
+            /** To Move */
+            to_move: number;
         };
         /**
          * PriorityIn
@@ -3538,6 +3835,18 @@ export interface components {
             }[];
         };
         /**
+         * Selection
+         * @description The assets to re-file (give ``asset_ids`` or ``batch_id``) and the new template.
+         */
+        Selection: {
+            /** Asset Ids */
+            asset_ids?: string[];
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Template */
+            template: string;
+        };
+        /**
          * SetupIn
          * @description First-run request: creates the admin and initialises or adopts the library.
          */
@@ -3808,6 +4117,34 @@ export interface components {
             total_bytes: number;
         };
         /**
+         * SyncOut
+         * @description An audio/video sync suggestion seen from one of the two assets.
+         */
+        SyncOut: {
+            /** Basis */
+            basis: string;
+            /** Confidence */
+            confidence: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Offset Ms */
+            offset_ms: number;
+            /**
+             * Other Asset Id
+             * Format: uuid
+             */
+            other_asset_id: string;
+            /** Other Filename */
+            other_filename: string;
+            /** Other Role */
+            other_role: string;
+            /** Status */
+            status: string;
+        };
+        /**
          * SynonymIn
          * @description A synonym to add.
          */
@@ -3942,6 +4279,58 @@ export interface components {
             segments: components["schemas"]["SegmentOut"][];
             /** Total Segments */
             total_segments: number;
+        };
+        /**
+         * TrashIn
+         * @description The explicit confirmation of the dialog.
+         */
+        TrashIn: {
+            /**
+             * Confirm
+             * @description Must be true: the caller confirmed the dialog.
+             */
+            confirm: boolean;
+        };
+        /**
+         * TrashList
+         * @description The trash with its retention period.
+         */
+        TrashList: {
+            /** Items */
+            items: components["schemas"]["TrashedOut"][];
+            /** Retention Days */
+            retention_days: number;
+        };
+        /**
+         * TrashedOut
+         * @description A trashed asset.
+         */
+        TrashedOut: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Filename */
+            filename: string;
+            /** Files */
+            files: number;
+            /** Media Type */
+            media_type: string;
+            /** Prior Status */
+            prior_status: string;
+            /** Size Total */
+            size_total: number;
+            /**
+             * Trashed At
+             * Format: date-time
+             */
+            trashed_at: string;
         };
         /**
          * UserCreate
@@ -4657,6 +5046,125 @@ export interface operations {
             };
         };
     };
+    execute_api_v1_admin_migration_execute_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExecuteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecuteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_v1_admin_migration_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Selection"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_api_v1_admin_migration_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MigrationSettings"];
+                };
+            };
+        };
+    };
+    put_settings_api_v1_admin_migration_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MigrationSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MigrationSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_stages_api_v1_admin_pipeline_stages_put: {
         parameters: {
             query?: never;
@@ -4765,6 +5273,55 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReprocessOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_trash_api_v1_admin_trash_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrashList"];
+                };
+            };
+        };
+    };
+    restore_api_v1_admin_trash__asset_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5141,6 +5698,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TranscriptOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trash_asset_api_v1_assets__asset_id__trash_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrashIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5936,6 +6526,39 @@ export interface operations {
             };
         };
     };
+    lock_assets_api_v1_privacy_lock_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LockIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LockOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_quarantine_api_v1_quarantine_get: {
         parameters: {
             query?: never;
@@ -6341,6 +6964,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+        };
+    };
+    decide_api_v1_sync_suggestions__suggestion_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

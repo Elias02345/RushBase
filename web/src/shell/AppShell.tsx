@@ -15,6 +15,7 @@ import {
   Pause,
   Play,
   Settings2,
+  ShieldCheck,
   Sun,
   type LucideIcon,
 } from "lucide-react";
@@ -46,6 +47,7 @@ interface NavItem {
     | "/review"
     | "/golden"
     | "/admin/taxonomy"
+    | "/privacy"
     | "/needs";
   icon: LucideIcon;
   label: string;
@@ -58,6 +60,7 @@ const NAV: NavItem[] = [
   { to: "/library", icon: Library, label: "nav.library" },
   { to: "/review", icon: SearchCheck, label: "nav.review", editor: true },
   { to: "/golden", icon: ListChecks, label: "nav.golden", editor: true },
+  { to: "/privacy", icon: ShieldCheck, label: "nav.privacy", editor: true },
   { to: "/needs", icon: ClipboardList, label: "nav.needs" },
   { to: "/processing", icon: Activity, label: "nav.processing" },
   { to: "/admin/taxonomy", icon: Tags, label: "nav.taxonomy", editor: true },

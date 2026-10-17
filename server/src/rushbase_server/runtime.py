@@ -24,6 +24,7 @@ from rushbase_server.services import (
     quarantine,
     queue,
     scanner,
+    trash,
 )
 from rushbase_server.services.cache import TtlCache
 from rushbase_server.services.library_binding import LibraryBinding
@@ -130,6 +131,7 @@ class Runtime:
         env = await self.filing_env()
         if env is not None:
             await quarantine.process_pending(self.session_factory, env.root, self.clock.now)
+            await trash.purge_expired(self.session_factory, env.root, self.clock.now)
             await filing.run_finalize(
                 self.session_factory, env, self.clock.now, on_filed=self.match_needs
             )

@@ -32,7 +32,8 @@
     "review": "Review",
     "golden": "Golden set",
     "taxonomy": "Taxonomy",
-    "needs": "Needs"
+    "needs": "Needs",
+    "privacy": "Privacy"
   },
   "theme": {
     "system": "Theme: system (click to change)",
@@ -114,7 +115,17 @@
     },
     "asset": {
       "edit": "Edited by hand",
-      "bulk_edit": "Bulk edit"
+      "bulk_edit": "Bulk edit",
+      "trash": "Moved to the trash",
+      "trash_restore": "Restored from the trash",
+      "migrated": "Re-filed by migration"
+    },
+    "privacy": {
+      "lock": "Locked by the privacy tool"
+    },
+    "sync": {
+      "confirmed": "Audio sync confirmed",
+      "rejected": "Audio sync rejected"
     }
   },
   "meta": {
@@ -420,7 +431,9 @@
       "transcript": "Transcript",
       "tags": "Tags",
       "ai": "Description",
-      "similar": "Similar"
+      "similar": "Similar",
+      "privacy": "Privacy",
+      "sync": "Audio sync"
     },
     "noMetadata": "No metadata yet",
     "noMetadataText": "Once the analysis has run, the data appears here.",
@@ -433,7 +446,8 @@
     "tagsText": "Tags appear after analysis, or when you add them yourself.",
     "transcriptSearch": "Search the transcript",
     "transcriptCount": "{{shown}} of {{total}} segments",
-    "audioEvents": "Audio events"
+    "audioEvents": "Audio events",
+    "duplicateOf": "Go to the original"
   },
   "processing": {
     "title": "Processing",
@@ -486,7 +500,9 @@
       "settings": "Settings",
       "backups": "Backups",
       "search": "Search",
-      "mcp": "MCP / Claude"
+      "mcp": "MCP / Claude",
+      "trash": "Trash",
+      "migration": "Migration"
     },
     "users": {
       "title": "Users",
@@ -852,5 +868,105 @@
       "failed": "failed",
       "empty": "No calls recorded."
     }
+  },
+  "trash": {
+    "title": "Trash",
+    "lead": "Deleted assets rest here. The files stay untouched in .rushbase/trash/ and can be restored until the retention period ends. After that they are deleted permanently.",
+    "move": "Move to trash",
+    "moveDuplicate": "Move duplicate to trash",
+    "confirmTitle": "Move to the trash?",
+    "confirmText": "\"{{name}}\" and all of its files will be moved from the library to the trash.",
+    "confirmHint": "This can be undone while the retention period runs. Only administrators can delete; Claude never can.",
+    "confirm": "Move to trash",
+    "done": "Moved to the trash",
+    "restore": "Restore",
+    "restored": "Restored",
+    "restoreFailed": "Could not restore",
+    "retention": "Retention (days)",
+    "retentionHint": "After this period the trash content is deleted permanently.",
+    "emptyTitle": "The trash is empty",
+    "emptyText": "Deleted assets appear here.",
+    "col": {
+      "name": "File",
+      "trashed": "Deleted on",
+      "expires": "Permanently deleted from"
+    }
+  },
+  "privacy": {
+    "title": "Privacy",
+    "lead": "Find and lock all assets of a person or a batch.",
+    "selectBy": "Select by",
+    "byPerson": "Person",
+    "byBatch": "Batch",
+    "personHint": "Matches assets tagged with an approved value of the \"person\" field, or that mention the name in title, description or transcript. This is a text search, not face recognition.",
+    "batchHint": "All assets of the chosen batch.",
+    "person": "Name of the person",
+    "batch": "Batch",
+    "setConsent": "Set consent",
+    "consent": "Consent",
+    "consentRef": "Proof (reference)",
+    "consentRefHint": "For example a contract number or document name.",
+    "consentChoice": {
+      "keep": "Leave unchanged",
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Unknown"
+    },
+    "consentValue": {
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Unknown"
+    },
+    "find": "Show matches",
+    "found": "{{count}} assets found.",
+    "lockAll": "Lock {{count}} assets",
+    "lockedDone": "{{count}} assets locked",
+    "locked": "Locked",
+    "lockedHint": "On locked assets the analysis changes neither person identifiable nor consent.",
+    "faceNote": "Face recognition is off by default and not implemented in Rushbase.",
+    "bulkButton": "Privacy",
+    "bulkTitle": "Privacy for {{count}} assets",
+    "asset": {
+      "lead": "The AI only estimates \"person identifiable\" as a hint; a person decides.",
+      "personHint": "Is a person recognisable?"
+    }
+  },
+  "sync": {
+    "emptyTitle": "No sync suggestions",
+    "emptyText": "Audio and video of the same batch with overlapping timecode show up here as a suggestion.",
+    "lead": "Suggestions link nothing. Only your confirmation joins sound and picture.",
+    "details": "Offset {{offset}} · confidence {{confidence}} % · basis: {{basis}}",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "role": {
+      "audio": "audio",
+      "video": "video"
+    },
+    "basis": {
+      "timecode": "timecode",
+      "capture_at": "capture time"
+    },
+    "status": {
+      "suggested": "Suggested",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected"
+    }
+  },
+  "migration": {
+    "lead": "Optional and off by default: re-file existing files with a new filing rule. Preview first, then run with a typed confirmation. A relink list for DaVinci is produced. The tool is never reachable through MCP.",
+    "enable": "Enable the migration tool",
+    "tool": "Re-file",
+    "batch": "Batch",
+    "batchPlaceholder": "Choose a batch",
+    "template": "New filing rule",
+    "templateHint": "Template as in the filing rules, for example Content/{media_type}/{batch_label}/",
+    "preview": "Preview",
+    "summary": "{{count}} assets would move.",
+    "skipped": "skipped: {{reason}}",
+    "confirmLabel": "Type \"{{text}}\" to confirm",
+    "execute": "Move now",
+    "done": "{{count}} assets moved",
+    "result": "{{moved}} moved, {{failed}} failed.",
+    "relink": "Download relink list (CSV)"
   }
 }

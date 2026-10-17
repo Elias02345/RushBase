@@ -136,6 +136,16 @@ EditorDep = Annotated[Principal, Depends(require_role("editor"))]
 AdminDep = Annotated[Principal, Depends(require_role("admin"))]
 
 
+async def require_web_admin(principal: AdminDep) -> Principal:
+    """Admin with a browser session: destructive actions are never available to API tokens."""
+    if principal.session is None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "only available in the web interface")
+    return principal
+
+
+WebAdminDep = Annotated[Principal, Depends(require_web_admin)]
+
+
 async def current_worker(request: Request, runtime: RuntimeDep, db: DbDep) -> Worker:
     """Authenticate a worker by its bearer API key."""
     bearer = _bearer(request)
