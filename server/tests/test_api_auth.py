@@ -250,3 +250,28 @@ async def test_enrollment_tokens_list_never_exposes_secrets_and_can_be_revoked(
         async with server.runtime.session_factory() as session:
             actions = set((await session.execute(select(AuditLog.action))).scalars())
         assert "enrollment_token.revoke" in actions
+
+
+async def test_personal_token_expiry_is_enforced_and_listed(
+    server_factory: ServerFactory, database_url: str, library_root: Path
+) -> None:
+    async with server_factory(database_url, library_root=library_root) as server:
+        admin = await server.setup_admin()
+        client = server.client
+        forever = (await client.post("/api/v1/tokens", json={"name": "a"}, headers=admin)).json()
+        short = (
+            await client.post(
+                "/api/v1/tokens", json={"name": "b", "expires_in_days": 30}, headers=admin
+            )
+        ).json()
+        assert forever["expires_at"] is None
+        assert short["expires_at"] is not None
+        listed = (await client.get("/api/v1/tokens")).json()
+        assert {t["name"]: t["expires_at"] is None for t in listed} == {"a": True, "b": False}
+        client.cookies.clear()
+        bearer = {"Authorization": f"Bearer {short['token']}"}
+        assert (await client.get("/api/v1/auth/me", headers=bearer)).status_code == 200
+        server.clock.advance(31 * 24 * 3600)
+        assert (await client.get("/api/v1/auth/me", headers=bearer)).status_code == 401
+        other = {"Authorization": f"Bearer {forever['token']}"}
+        assert (await client.get("/api/v1/auth/me", headers=other)).status_code == 200

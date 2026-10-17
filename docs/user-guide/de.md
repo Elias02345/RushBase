@@ -58,6 +58,23 @@ erledigt ein Worker, typischerweise ein PC mit Grafikkarte, den man nur bei Beda
 er aus, wartet das Material in der Schlange (die Übersicht zeigt "Kein Worker online"). Sobald er
 läuft, arbeitet er alles auf einmal ab. Alles, was schon analysiert ist, bleibt durchsuchbar.
 
+### Neu verarbeiten (Administratoren)
+
+Unter _Verarbeitung → Neu verarbeiten_ planst du eine Stufe erneut ein für alles, dessen letztes
+Ergebnis von einem älteren oder anderen Modell stammt: Das Fenster listet je Stufe das aktuelle
+Modell mit Version und Profil und der Anzahl der Medien. Wähle Stufe, Merkmal (Modellversion,
+Modell, Profil) und Bedingung ("älter als" oder "ungleich"), drücke **Zählen**, um zu sehen, wie viele
+Medien betroffen wären, und plane sie erst dann ein. Dateien werden nie angefasst; die Arbeit läuft
+beim nächsten Worker-Lauf.
+
+### Übersicht
+
+Neben dem Ablauf zeigt die **Übersicht**, wie viel Speicher pro Monat dazukam (nach Medientyp), wie viele
+Aufträge in den letzten sieben Tagen pro Stunde fertig wurden und eine **Abdeckung**: Wähle zwei
+Felder (etwa _Tageszeit_ und _Einstellungsgröße_) und sieh, wie viel Material es je Kombination
+gibt. Gestrichelte Felder sind Lücken; ein Klick öffnet die Bibliothek mit genau dieser
+Kombination, darunter stehen die schwächsten Kombinationen.
+
 ## 2. Suchen und Filtern
 
 Unter **Bibliothek** gibst du einfach ein, was du suchst - in normalen Worten, deutsch oder
@@ -92,8 +109,13 @@ Ein Klick öffnet die Detailseite.
   springt dorthin.
 - **Reiter:** _Technik_ (Codec, Auflösung, Kamera ...), _Dateien_, _Verlauf_, _Transkript_
   (durchsuchbar, Klick auf einen Abschnitt springt zur Stelle), _Tags_, _Beschreibung_ (KI-Text
-  auf Deutsch und Englisch), _Datenschutz_ (siehe Abschnitt 9), _Ton-Sync_ (nur wenn ein Vorschlag
-  existiert) und _Ähnliches_.
+  auf Deutsch und Englisch), _Datenschutz_ (siehe Abschnitt 9), _Verwendung_, _Bedarfslisten_ (nur wenn das
+  Material Kandidat ist), _Ton-Sync_ (nur wenn ein Vorschlag existiert) und _Ähnliches_.
+- **Verwendet in Projekt:** Der Reiter _Verwendung_ listet die Projekte, in denen das Material
+  benutzt wurde. Resolve meldet das über die Companion-App (`rushbase resolve sync-usage`,
+  Abschnitt 7); Bearbeiter können ein Projekt auch von Hand eintragen oder entfernen. In der
+  Bibliothek zeigt der Filter **Verwendet in Projekt** nur Material, das in einem (bestimmten)
+  Projekt benutzt wurde.
 - **Tags und ihre Herkunft:** Jeder Tag zeigt, woher er kommt: **KI** (automatisch erkannt),
   **Claude** (von Claude gesetzt) oder **Von Hand** (von einer Person). Von Hand schlägt Claude,
   Claude schlägt KI.
@@ -147,6 +169,9 @@ optionale Filter und eine gewünschte Anzahl.
   Punkt nicht erneut vorgeschlagen.
 - Ist das Projekt durch, **schließt** du die Liste (wieder öffnen geht jederzeit).
 
+Am Material zeigt der Reiter _Bedarfslisten_, für welche Listen es Kandidat ist; dort bestätigst
+oder lehnst du direkt ab.
+
 Du kannst Bedarfslisten auch von Claude anlegen lassen (Abschnitt 8).
 
 ## 6. Sammlungen und Mehrfachbearbeitung
@@ -193,6 +218,12 @@ Clips oder einzelne Szenen in die **Auswahl** und kannst sie dann
 
 Voraussetzung für Studio: In Resolve unter _Einstellungen → System → Allgemein_ "Externe
 Skripterstellung" auf "Lokal". Speichere dein Projekt vor dem ersten Senden.
+
+**Verwendung zurückmelden:** Mit `rushbase resolve sync-usage` liest die Companion-App (nur lesend)
+in Resolve Studio, welche Rushbase-Clips im geöffneten Projekt auf einer Timeline liegen, und meldet
+Projektname und Verwendung an den Server. Danach zeigt Rushbase an jedem Material, in welchen
+Projekten es benutzt wird. Starte den Befehl nach einer Schnittsitzung; mit `--dry-run` siehst du
+vorher, was gesendet würde.
 
 **Tipp für gemischte Teams:** Resolve speichert absolute Pfade. Nutzt auf allen Rechnern denselben
 Einhängepfad (oder Resolves "Mapped Mount"), damit Projekte zwischen Windows, macOS und Linux
@@ -269,6 +300,17 @@ das Dokument).
 zeitlich, erscheint am Material der Reiter _Ton-Sync_ mit einem **Vorschlag**: Versatz, Sicherheit
 und Grundlage (Timecode oder Aufnahmezeit). Verknüpft wird erst, wenn du _Bestätigen_ drückst;
 _Ablehnen_ blendet ihn aus. Bestätigte Paare stehen in beiden Sidecars.
+
+### Protokoll und API-Tokens (Administratoren)
+
+- _Administration → Protokoll_ listet sicherheitsrelevante Aktionen (Anmeldungen, Tokens, Löschen,
+  Neuverarbeiten, Verwendungsmeldungen), neueste zuerst. Filtere nach Art des Akteurs, Aktion, Ziel
+  und Datum; ein Klick auf eine Zeile zeigt die Einzelheiten und "Nur dieser Akteur". Das Protokoll
+  ist nur lesbar.
+- _Administration → API-Tokens_ verwaltet deine persönlichen Tokens für die Kommandozeile und die
+  Companion-App. Wähle eine Gültigkeit (unbegrenzt, 30, 90 oder 365 Tage) und optional "Nur
+  lesen"; das Token wird nur einmal angezeigt. Abgelaufene Tokens funktionieren sofort nicht mehr
+  und sind in der Liste markiert.
 
 ### Vorhandenes Material neu ablegen (optional)
 

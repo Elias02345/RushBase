@@ -95,6 +95,15 @@ third-party metadata key `rushbase_asset_id`, markers by their `customData`. Eve
 result is checked; failures are reported, never swallowed. The metadata key names Resolve reports
 are cached in `resolve_keys.json`.
 
+**Used in project**: `rushbase resolve sync-usage [--dry-run]` reads, read-only, every clip of the
+open project's media pool (all bins) that Rushbase imported (third-party metadata
+`rushbase_asset_id`, else the `rushbase:<id>` comment) together with `GetClipProperty("Usage")`
+(how often it is on a timeline) and reports it to the server with the personal token (or, on a
+worker-only machine, the worker key) together with the project name and machine. Clips with usage
+0 clear this machine's earlier Resolve mark for that project; the library shows the result as the
+facet and filter "Used in project" and in the _Usage_ tab of the asset. Needs Studio. Run it after
+an edit session (it is not scheduled); `--dry-run` prints what would be sent.
+
 **Self-test (never run automatically)**: `rushbase resolve selftest --yes [--project rushbase-test]`
 generates a 2 s clip, creates or reuses a project whose name starts with `rushbase-test` (the bridge
 refuses any other name), pushes, reads everything back and re-runs the push to prove idempotency,

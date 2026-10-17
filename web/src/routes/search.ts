@@ -21,6 +21,8 @@ export interface LibrarySearch {
   review_state?: string;
   consent?: string;
   collection_id?: string;
+  /** Project name (a Resolve project the asset was used in) or `*` for any project. */
+  used_in_project?: string;
   /** Taxonomy filters as `field:value`. */
   tag?: string[];
   /** Search result granularity: whole assets or scenes (shots). */
@@ -83,6 +85,7 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
     review_state: text(raw.review_state),
     consent: text(raw.consent),
     collection_id: text(raw.collection_id),
+    used_in_project: text(raw.used_in_project),
     tag: strings(raw.tag),
     level: oneOf(raw.level, ["asset", "shot"] as const),
     sort: oneOf<SortKey>(raw.sort, SORT_KEYS),
@@ -94,7 +97,17 @@ export function validateLibrarySearch(raw: Record<string, unknown>): LibrarySear
 
 export type ProcessingTab = "queue" | "batches" | "workers" | "quarantine";
 export type AdminTab =
-  "users" | "workers" | "rules" | "settings" | "backups" | "search" | "mcp" | "trash" | "migration";
+  | "users"
+  | "workers"
+  | "rules"
+  | "settings"
+  | "backups"
+  | "search"
+  | "mcp"
+  | "trash"
+  | "migration"
+  | "tokens"
+  | "audit";
 
 export function validateProcessingSearch(raw: Record<string, unknown>): { tab?: ProcessingTab } {
   const tab = oneOf(raw.tab, ["queue", "batches", "workers", "quarantine"] as const);
@@ -112,6 +125,8 @@ export function validateAdminSearch(raw: Record<string, unknown>): { tab?: Admin
     "mcp",
     "trash",
     "migration",
+    "tokens",
+    "audit",
   ] as const);
   return tab ? { tab } : {};
 }

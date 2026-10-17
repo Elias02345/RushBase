@@ -282,6 +282,7 @@ export function buildDetail(summary: AssetSummary, mapping: PathRoots): Omit<Ass
   return {
     ...summary,
     sync: [],
+    usage: [],
     files: [
       {
         role: "original",

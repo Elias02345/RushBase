@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import { useTranscript } from "../api/aiQueries";
 import { ApiError } from "../api/client";
+import { useAssetNeeds } from "../api/finalQueries";
 import type { AssetDetail, Shot } from "../api/contracts";
 import { hasRole, useAsset, useMe } from "../api/queries";
 import { timecode } from "../lib/ai";
@@ -33,7 +34,9 @@ import { assetTone } from "../lib/status";
 import { AiDescription } from "./asset/AiDescription";
 import { PrivacyPanel } from "./asset/PrivacyPanel";
 import { SimilarPanel } from "./asset/SimilarPanel";
+import { NeedsPanel } from "./asset/NeedsPanel";
 import { SyncPanel } from "./asset/SyncPanel";
+import { UsagePanel } from "./asset/UsagePanel";
 import { TrashButton } from "./asset/TrashButton";
 import { TagsPanel } from "./asset/TagsPanel";
 import { TranscriptPanel } from "./asset/TranscriptPanel";
@@ -293,6 +296,7 @@ function AssetBody({
   const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const [current, setCurrent] = useState(search.t ?? 0);
   const canEdit = hasRole(me.data?.role, "editor");
+  const needLinks = useAssetNeeds(detail.id).data ?? [];
   const seek = (ms: number) => {
     const video = videoRef.current;
     if (video) video.currentTime = ms / 1000;
@@ -321,6 +325,10 @@ function AssetBody({
           <TabsTrigger value="privacy">{t("asset.tabs.privacy")}</TabsTrigger>
           {(detail.sync ?? []).length > 0 ? (
             <TabsTrigger value="sync">{t("asset.tabs.sync")}</TabsTrigger>
+          ) : null}
+          <TabsTrigger value="usage">{t("asset.tabs.usage")}</TabsTrigger>
+          {needLinks.length > 0 ? (
+            <TabsTrigger value="needs">{t("asset.tabs.needs")}</TabsTrigger>
           ) : null}
           <TabsTrigger value="similar">{t("asset.tabs.similar")}</TabsTrigger>
           <TabsTrigger value="files">{t("asset.tabs.files")}</TabsTrigger>
@@ -351,6 +359,12 @@ function AssetBody({
         </TabsContent>
         <TabsContent value="sync">
           <SyncPanel detail={detail} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="usage">
+          <UsagePanel detail={detail} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="needs">
+          <NeedsPanel assetId={detail.id} links={needLinks} canEdit={canEdit} />
         </TabsContent>
         <TabsContent value="similar">
           {tab === "similar" ? <SimilarPanel kind={similar.kind} id={similar.id} /> : null}

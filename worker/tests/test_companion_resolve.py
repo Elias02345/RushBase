@@ -181,3 +181,28 @@ def test_selftest_refuses_other_project_names(settings: WorkerSettings, tmp_path
     assert not (tmp_path / "state.json").exists() or state(settings, tmp_path)["projects"] == [
         "Untitled"
     ]
+
+
+def test_read_usage_lists_only_rushbase_clips_with_their_timeline_uses(
+    settings: WorkerSettings, media: Path, tmp_path: Path
+) -> None:
+    push(settings, media)
+    foreign = tmp_path / "foreign.mov"
+    foreign.write_bytes(b"y")
+    stored = state(settings, tmp_path)
+    stored["items"][str(foreign)] = {"metadata": {}, "third": {}, "markers": {}, "color": ""}
+    stored["bins"]["Night"].append(str(foreign))
+    stored["items"][str(media)]["usage"] = 2
+    (tmp_path / "state.json").write_text(json.dumps(stored))
+    result = client.read_usage(settings)
+    assert result == {"project": "Untitled", "items": [{"asset_id": ASSET_ID, "uses": 2}]}
+
+
+def test_read_usage_recognises_the_comments_mark(
+    settings: WorkerSettings, media: Path, tmp_path: Path
+) -> None:
+    push(settings, media)
+    stored = state(settings, tmp_path)
+    stored["items"][str(media)]["third"] = {}
+    (tmp_path / "state.json").write_text(json.dumps(stored))
+    assert client.read_usage(settings)["items"] == [{"asset_id": ASSET_ID, "uses": 0}]

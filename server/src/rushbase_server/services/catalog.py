@@ -22,6 +22,7 @@ from rushbase_server.models import (
     Asset,
     AssetFile,
     AssetTag,
+    AssetUsage,
     AuditLog,
     Batch,
     CollectionAsset,
@@ -69,6 +70,8 @@ class AssetFilters:
     collection_id: UUID | None = None
     tags: tuple[str, ...] = ()
     """Taxonomy filters ``field:value``; values of one field are alternatives, fields combine."""
+    used_in_project: str | None = None
+    """Only assets with a usage row for this project name (``"*"``: any project)."""
 
 
 def search_terms(q: str) -> list[str]:
@@ -234,6 +237,16 @@ def apply_filters[*Ts](stmt: Select[*Ts], f: AssetFilters) -> Select[*Ts]:
         )
     for field_key, values in _tag_groups(f.tags).items():
         stmt = stmt.where(_has_tag(field_key, values))
+    if f.used_in_project:
+        used = (
+            select(literal(1))
+            .select_from(AssetUsage)
+            .where(AssetUsage.asset_id == Asset.id)
+            .correlate(Asset)
+        )
+        if f.used_in_project != ANY_PROJECT:
+            used = used.where(AssetUsage.project_name == f.used_in_project)
+        stmt = stmt.where(used.exists())
     if f.q:
         if (terms := _fts_terms(f)) is not None:
             return stmt.where(Asset.search_tsv.op("@@")(tsquery(terms)))
@@ -380,6 +393,7 @@ FACET_LABELS = {
 
 
 FACET_VALUE_LIMIT = 100
+ANY_PROJECT = "*"
 
 
 def cast_kwargs(key: str) -> dict[str, Any]:
@@ -434,6 +448,7 @@ async def facets(
             result.append(
                 {"key": key, "label_de": de, "label_en": en, "kind": "enum", "values": values}
             )
+    result += await _usage_facet(session, active)
     result += await _tag_facets(session, active)
     ranges = select(
         func.min(Asset.duration_ms),
@@ -465,6 +480,32 @@ async def facets(
             }
         )
     return result
+
+
+async def _usage_facet(session: AsyncSession, active: AssetFilters) -> list[dict[str, Any]]:
+    """ "Used in project": project names with asset counts (ignores its own filter)."""
+    stmt = (
+        select(AssetUsage.project_name, func.count(func.distinct(Asset.id)))
+        .select_from(Asset)
+        .join(AssetUsage, AssetUsage.asset_id == Asset.id)
+    )
+    stmt = apply_filters(stmt, replace(active, used_in_project=None)).group_by(
+        AssetUsage.project_name
+    )
+    rows = sorted(
+        ((n, int(c)) for n, c in await session.execute(stmt)), key=lambda r: (-r[1], r[0])
+    )
+    if not rows:
+        return []
+    return [
+        {
+            "key": "used_in_project",
+            "label_de": "Verwendet in Projekt",
+            "label_en": "Used in project",
+            "kind": "enum",
+            "values": [{"value": n, "count": c} for n, c in rows[:FACET_VALUE_LIMIT]],
+        }
+    ]
 
 
 async def _tag_counts(

@@ -25,6 +25,7 @@ from rushbase_server.models import (
     TranscriptSegment,
 )
 from rushbase_server.services import catalog, derived, stats, sync
+from rushbase_server.services import usage as usage_service
 from rushbase_server.services.settings_store import PATH_ROOTS_KEY, get_setting
 
 router = APIRouter(prefix="/api/v1", tags=["catalog"])
@@ -183,6 +184,16 @@ class SyncOut(BaseModel):
     status: str
 
 
+class UsageOut(BaseModel):
+    """A project the asset was used in."""
+
+    project_name: str
+    source: str
+    machine: str
+    first_seen: datetime
+    last_seen: datetime
+
+
 class AssetDetail(AssetSummary):
     """Everything the detail view shows."""
 
@@ -199,6 +210,7 @@ class AssetDetail(AssetSummary):
     history: list[HistoryOut]
     ai: AiOut
     sync: list[SyncOut] = []
+    usage: list[UsageOut] = []
 
 
 async def ai_out(db: AsyncSession, asset: Asset) -> AiOut:
@@ -311,6 +323,7 @@ def _filters(
     review_reason: str | None = None,
     collection_id: UUID | None = None,
     tag: Annotated[list[str] | None, Query(max_length=50)] = None,
+    used_in_project: Annotated[str | None, Query(max_length=300)] = None,
 ) -> catalog.AssetFilters:
     """Filter and search parameters shared by the asset list and the facets.
 
@@ -321,6 +334,7 @@ def _filters(
         media_type, status_, batch_id, camera_model, lens_model, log_profile, orientation,
         date_from, date_to, q, shot_size, camera_angle, interior_exterior, time_of_day,
         person_identifiable, review_state, consent, review_reason, collection_id, tuple(tag or ()),
+        used_in_project,
     )  # fmt: skip
 
 
@@ -464,6 +478,10 @@ async def get_asset(asset_id: UUID, _: ViewerDep, db: DbDep) -> AssetDetail:
         ],
         ai=await ai_out(db, asset),
         sync=await _sync_out(db, asset),
+        usage=[
+            UsageOut.model_validate(u, from_attributes=True)
+            for u in await usage_service.usage_of(db, asset_id)
+        ],
     )
 
 

@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 
 import type { McpAuditEntry, McpClient, NeedDetail, NeedItem } from "../contracts";
 import type { AiDeps } from "./aiHandlers";
+import { buildAssets } from "./data";
 
 /** Mock needs lists and MCP administration (same shapes as the server). */
 
@@ -13,6 +14,9 @@ interface McpState {
 }
 
 const CLIENT_ID = "0194b0f0-0000-7000-8000-000000000001";
+/** First filed video of the mock library: it shows up as a candidate on its detail page. */
+const MOCK_ASSET =
+  buildAssets().find((a) => a.media_type === "video" && a.status === "filed")?.id ?? "";
 
 function fresh(): McpState {
   const item = (id: string, description: string, over: Partial<NeedItem> = {}): NeedItem => ({
@@ -51,6 +55,29 @@ function fresh(): McpState {
           }),
           item("0194b0f0-0000-7000-8000-0000000000b2", "Drohnenflug über der Mole", {
             count_wanted: 2,
+          }),
+        ],
+      },
+      {
+        id: "0194b0f0-0000-7000-8000-0000000000a2",
+        title: "Messe-Teaser",
+        purpose: "Zehn Sekunden für die Messe",
+        status: "open",
+        created_by: "user",
+        created_at: "2026-10-13T10:00:00Z",
+        items: [
+          item("0194b0f0-0000-7000-8000-0000000000b3", "Kran im Gegenlicht", {
+            candidates: [
+              {
+                id: "0194b0f0-0000-7000-8000-0000000000c2",
+                asset_id: MOCK_ASSET,
+                shot_idx: null,
+                score: 0.0511,
+                status: "candidate",
+                source: "auto",
+                asset: null,
+              },
+            ],
           }),
         ],
       },
@@ -148,6 +175,33 @@ export function mcpHandlers({ guarded }: Pick<AiDeps, "guarded">) {
         state.needs.unshift(need);
         return HttpResponse.json(need, { status: 201 });
       }),
+    ),
+    http.get(
+      "/api/v1/needs/for-asset/:asset",
+      guarded("viewer", ({ params }) =>
+        HttpResponse.json(
+          state.needs.flatMap((need) =>
+            need.items.flatMap((item) =>
+              item.candidates
+                .filter((c) => c.asset_id === params.asset)
+                .map((c) => ({
+                  list_id: need.id,
+                  list_title: need.title,
+                  list_status: need.status,
+                  item_id: item.id,
+                  item_description: item.description,
+                  item_status: item.status,
+                  count_wanted: item.count_wanted,
+                  candidate_id: c.id,
+                  status: c.status,
+                  source: c.source,
+                  score: c.score,
+                  shot_idx: c.shot_idx,
+                })),
+            ),
+          ),
+        ),
+      ),
     ),
     http.get(
       "/api/v1/needs/:id",

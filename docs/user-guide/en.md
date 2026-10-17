@@ -58,6 +58,22 @@ done by a worker, typically a PC with a graphics card that is only switched on w
 is off, material waits in the queue (the dashboard says "No worker online"). Once it is on, it works
 through everything in one go. Whatever has been analysed already stays searchable.
 
+### Reprocess (administrators)
+
+_Processing -> Reprocess_ queues a stage again for everything whose latest result came from an older
+or different model: it lists the current model, version and profile per stage with the number of
+assets. Pick the stage, the attribute (model version, model, profile) and a condition ("older than"
+or "different from"), press **Count** to see how many assets would be queued, and only then queue
+them. Files are never touched; the work runs on the next worker run.
+
+### Dashboard
+
+Besides the pipeline the **Dashboard** shows how much storage was added per month (by media type),
+how many jobs finished per hour in the last seven days, and a **coverage** matrix: choose two
+fields (for example _time of day_ and _shot size_) and see how much footage exists for every
+combination. Dashed cells are gaps; a click opens the library with exactly that combination, and
+the weakest combinations are listed below.
+
 ## 2. Searching and filtering
 
 In **Library** just type what you are looking for, in plain words, German or English:
@@ -90,8 +106,12 @@ A click opens the detail page.
 - **Shots:** below the player the detected shots are listed with key frames. A click jumps there.
 - **Tabs:** _Technical_ (codec, resolution, camera ...), _Files_, _History_, _Transcript_
   (searchable, a click on a passage jumps to that point), _Tags_, _Description_ (AI text in German
-  and English), _Privacy_ (see section 9), _Audio sync_ (only when a suggestion exists) and
-  _Similar_.
+  and English), _Privacy_ (see section 9), _Usage_, _Needs lists_ (only when the asset is a
+  candidate), _Audio sync_ (only when a suggestion exists) and _Similar_.
+- **Used in project:** the _Usage_ tab lists the projects the footage was used in. Resolve reports
+  that through the companion app (`rushbase resolve sync-usage`, section 7); editors can add or
+  remove a project by hand. In the library the facet **Used in project** shows only footage used in
+  a project (or in a given one).
 - **Tags and their source:** every tag shows where it comes from: **AI** (detected automatically),
   **Claude** (set by Claude) or **By hand** (set by a person). By hand beats Claude, Claude beats AI.
 - **Copy path:** "Copy path" gives you the file path for **your operating system** (Windows drive
@@ -143,7 +163,8 @@ a wanted count.
   fulfilled ("2 of 3 confirmed"). Rejected material is not suggested again for that item.
 - When the project is done, **close** the list (you can reopen it at any time).
 
-You can also have Claude create needs lists (section 8).
+You can also have Claude create needs lists (section 8). An asset shows the lists it is a candidate
+for in its _Needs lists_ tab, where you can confirm or reject it right there.
 
 ## 6. Collections and bulk edit
 
@@ -189,6 +210,11 @@ scenes into the **selection** and then
 
 Prerequisite for Studio: in Resolve under _Preferences -> System -> General_ set "External scripting
 using" to "Local". Save your project before sending for the first time.
+
+**Reporting usage back:** `rushbase resolve sync-usage` makes the companion app read (read-only)
+in Resolve Studio which Rushbase clips of the open project are on a timeline, and report the project
+name and usage to the server. Afterwards Rushbase shows on every asset which projects use it. Run it
+after an editing session; `--dry-run` shows what would be sent first.
 
 **Tip for mixed teams:** Resolve stores absolute paths. Use the same mount path on every machine (or
 Resolve's "Mapped Mount") so projects work across Windows, macOS and Linux.
@@ -266,6 +292,15 @@ When a sound recorder's file (BWF/iXML timecode) and a video of the same batch o
 the asset page gets an _Audio sync_ tab with a **suggestion**: offset, confidence and the basis
 (timecode or capture time). Nothing is linked until you press _Confirm_; _Reject_ hides it.
 Confirmed pairs are written to both sidecars.
+
+### Audit log and API tokens (administrators)
+
+- _Administration -> Audit log_ lists security-relevant actions (sign-ins, tokens, deleting,
+  reprocessing, usage reports) newest first. Filter by type of actor, action, target and date; a
+  click on a row opens the details and "Only this actor". The log is read only.
+- _Administration -> API tokens_ manages your personal tokens for the command line and the
+  companion app. Choose a validity (unlimited, 30, 90 or 365 days) and optionally "read only"; the
+  token is shown once. Expired tokens stop working at once and are marked in the list.
 
 ### Re-filing existing material (optional)
 

@@ -14,7 +14,8 @@ import {
   type DataColumn,
 } from "@rushbase/ui";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Minus, Pause, Play, Plus, RotateCw, ShieldCheck, Unplug } from "lucide-react";
+import { Minus, Pause, Play, Plus, RefreshCw, RotateCw, ShieldCheck, Unplug } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -34,6 +35,7 @@ import { STAGE_ORDER } from "../api/types";
 import { formatBytes, formatDurationWords, formatNumber, formatRelative } from "../lib/format";
 import { batchTone } from "../lib/status";
 import type { ProcessingTab } from "../routes/search";
+import { ReprocessDialog } from "./processing/ReprocessDialog";
 
 function QueuePanel() {
   const { t } = useTranslation();
@@ -316,6 +318,7 @@ export function ProcessingPage() {
   const queue = useQueuePaused();
   const isAdmin = hasRole(me?.role, "admin");
   const canEdit = hasRole(me?.role, "editor");
+  const [reprocessOpen, setReprocessOpen] = useState(false);
 
   return (
     <div className="page">
@@ -324,17 +327,29 @@ export function ProcessingPage() {
           <h1 className="page__title">{t("processing.title")}</h1>
           <p className="page__lead">{t("processing.lead")}</p>
         </div>
-        {isAdmin && status ? (
-          <Button
-            variant={status.queue_paused ? "primary" : "secondary"}
-            icon={status.queue_paused ? <Play size={16} /> : <Pause size={16} />}
-            loading={queue.isPending}
-            onClick={() => queue.mutate(!status.queue_paused)}
-          >
-            {status.queue_paused ? t("processing.resumeQueue") : t("processing.pauseQueue")}
-          </Button>
+        {isAdmin ? (
+          <div className="page__actions">
+            <Button
+              variant="secondary"
+              icon={<RefreshCw size={16} />}
+              onClick={() => setReprocessOpen(true)}
+            >
+              {t("reprocess.open")}
+            </Button>
+            {status ? (
+              <Button
+                variant={status.queue_paused ? "primary" : "secondary"}
+                icon={status.queue_paused ? <Play size={16} /> : <Pause size={16} />}
+                loading={queue.isPending}
+                onClick={() => queue.mutate(!status.queue_paused)}
+              >
+                {status.queue_paused ? t("processing.resumeQueue") : t("processing.pauseQueue")}
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </header>
+      {isAdmin ? <ReprocessDialog open={reprocessOpen} onOpenChange={setReprocessOpen} /> : null}
       <Tabs
         value={tab}
         onValueChange={(value) =>

@@ -371,11 +371,13 @@ No arguments.
 
 ### reprocess
 
-Queue an analysis stage again for given assets or a filter selection. Never touches or moves files.
+Queue an analysis stage again for given assets, a filter selection or by the model version of the latest result (with dry run). Never touches or moves files.
 
 | Argument | Type | Required | Description |
 | --- | --- | --- | --- |
 | `stage` | `probe` | `hash` | `preview` | `shots` | `audio` | `embed` | `vision` | `classify` | yes |  |
 | `asset_ids` | list of string | no |  |
 | `filters` | MediaFilters | no | Select by filter instead of ids (max 500 assets). |
+| `model` | ModelSelector | no | Select by the model of the latest result, e.g. version below Y (max 100000). |
+| `dry_run` | boolean | no | Only count what would be queued. |
 <!-- tools:end -->

@@ -126,4 +126,46 @@ test("real stack: setup, worker, library, playback, processing, admin", async ({
   await expect.poll(() => assetTotal(page.request)).toBe(before - 1);
   await page.getByRole("button", { name: "Wiederherstellen" }).click();
   await expect.poll(() => assetTotal(page.request)).toBe(before);
+
+  // --- dashboard insights come from the real aggregates -------------------------------------
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Speicherwachstum" })).toBeVisible();
+  await expect(page.getByRole("table", { name: /Anzahl Medien nach/ })).toBeAttached();
+  await expect(page.getByRole("link", { name: /Querformat: \d+ Medien$/ }).first()).toBeVisible();
+
+  // --- used in project: mark an asset by hand, then filter the library by it ----------------
+  await page.goto("/library?q=uhd");
+  await page.getByRole("list", { name: "Treffer" }).getByRole("link").first().click();
+  await page.getByRole("tab", { name: "Verwendung" }).click();
+  await page.getByLabel("Projektname").fill("E2E-Projekt");
+  await page.getByRole("button", { name: "Eintragen" }).click();
+  await expect(page.getByText("Von Hand")).toBeVisible();
+  await page.goto("/library?used_in_project=E2E-Projekt");
+  await expect(page.locator(".rb-tile__media")).toHaveCount(1);
+
+  // --- reprocess dialog counts without queueing ---------------------------------------------
+  await page.goto("/processing");
+  await page.getByRole("button", { name: "Neu verarbeiten" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("Aktuelle Modelle je Stufe")).toBeVisible();
+  await dialog.getByLabel("Wert").fill("99999");
+  await dialog.getByRole("button", { name: "Zählen", exact: true }).click();
+  await expect(dialog.getByText(/[1-9]\d* Medi(um|en) betroffen/)).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // --- audit log and personal token with expiry ---------------------------------------------
+  await page.goto("/admin?tab=tokens");
+  await page.getByLabel("Name", { exact: true }).fill("e2e-token");
+  await page.getByLabel("Gültigkeit").click();
+  await page.getByRole("option", { name: "30 Tage" }).click();
+  await page.getByRole("button", { name: "Token erstellen" }).click();
+  await expect(page.getByRole("dialog")).toContainText("rbp_");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("table", { name: "Persönliche API-Tokens" })).toContainText(
+    "e2e-token",
+  );
+  await page.goto("/admin?tab=audit");
+  const audit = page.getByRole("table", { name: "Protokoll" });
+  await expect(audit).toContainText("api_token.create");
+  await expect(audit).toContainText("usage.mark");
 });

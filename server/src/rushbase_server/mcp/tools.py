@@ -721,21 +721,32 @@ async def processing_status(ctx: Ctx, p: spec.ProcessingStatus) -> ToolOutput:
 async def reprocess_tool(ctx: Ctx, p: spec.Reprocess) -> ToolOutput:
     """``reprocess``: only creates jobs."""
     ctx.require_role("editor")
-    if bool(p.asset_ids) == (p.filters is not None):
-        raise ToolFailure("give either asset_ids or filters")
-    ids = (
-        [_uuid(a, "asset_id") for a in p.asset_ids]
-        if p.asset_ids
-        else await reprocess.select_assets(ctx.db, _filters(p.filters or spec.MediaFilters()))
-    )
+    if [bool(p.asset_ids), p.filters is not None, p.model is not None].count(True) != 1:
+        raise ToolFailure("give exactly one of asset_ids, filters or model")
+    stage = Stage(p.stage)
+    details: dict[str, Any] = {}
+    matched: int | None = None
+    if p.model is not None:
+        selection = await reprocess.select_by_model(
+            ctx.db, stage, p.model.field, p.model.op, p.model.value
+        )
+        ids, matched = selection.asset_ids, selection.matched
+        details = p.model.model_dump()
+    elif p.asset_ids:
+        ids = [_uuid(a, "asset_id") for a in p.asset_ids]
+    else:
+        ids = await reprocess.select_assets(ctx.db, _filters(p.filters or spec.MediaFilters()))
+    if p.dry_run:
+        return ToolOutput({"stage": p.stage, "dry_run": True, "matched": matched or len(ids)})
     queued, skipped = await reprocess.enqueue_stage(
         ctx.db,
-        Stage(p.stage),
+        stage,
         ids,
         ctx.runtime.clock.now(),
         ctx.runtime.queue_config,
         "mcp",
         ctx.user.id,
+        details,
     )
     await ctx.db.commit()
     return ToolOutput({"stage": p.stage, "queued": queued, "skipped": skipped})

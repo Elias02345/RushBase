@@ -325,6 +325,29 @@ class TrashItem(Base):
     __table_args__ = (Index("ix_trash_item_trashed_at", "trashed_at"),)
 
 
+USAGE_SOURCES = ("resolve", "manual", "claude")
+
+
+class AssetUsage(Base):
+    """An asset seen in a named project ("used in project" feedback, ADR-0002)."""
+
+    __tablename__ = "asset_usage"
+
+    asset_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("asset.id", ondelete="CASCADE"), primary_key=True
+    )
+    project_name: Mapped[str] = mapped_column(Text, primary_key=True)
+    source: Mapped[str] = mapped_column(String(8), primary_key=True)
+    machine: Mapped[str] = mapped_column(Text, server_default="", default="")
+    first_seen: Mapped[datetime] = now_column()
+    last_seen: Mapped[datetime] = now_column()
+
+    __table_args__ = (
+        enum_check("source", USAGE_SOURCES),
+        Index("ix_asset_usage_project_name", "project_name"),
+    )
+
+
 SYNC_STATUSES = ("suggested", "confirmed", "rejected")
 
 

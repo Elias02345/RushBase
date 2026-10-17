@@ -114,6 +114,7 @@ environment variable `RUSHBASE_API_TOKEN` overrides it.
 | `export fcpxml\|edl\|csv --out FILE [--asset ID ...] [--columns "A,B"]` | `format`, `file`, `bytes`, `warnings[]` |
 | `resolve status` | `installed`, `interpreter`, `resolve_python`, `reachable`, `studio`, `product`, `version`, `project`, `error` (exit 1 unless reachable Studio) |
 | `resolve send --yes [--bin NAME] [--markers] [--metadata] [--project NAME]` | `project`, `bin`, `imported`, `existing`, `metadata_set`, `markers_added`, `colored`, `keys[]`, `errors[]`, `skipped[]` |
+| `resolve sync-usage [--dry-run]` | `project`, `items[{asset_id, uses}]`, `dry_run`, `server{recorded, cleared, unknown}` (exit 4 when the server rejects it) |
 | `resolve selftest --yes [--project rushbase-test...]` | `push`, `checks{imported, metadata, third_party, markers, idempotent}`, `ok` |
 | `overview [--no-mount-check]` | `server{url, reachable, error}`, `enrolled`, `worker`, `backlog` (the `/status` document), `totals{files, hours, jobs}`, `estimate{total_seconds, concurrency, stages{pending_jobs, mean_job_ms, seconds, source}}`, `hardware{gpu, vram_total_mb, vram_free_mb, backend, profile, cpu, cores}`, `models{needed, installed, missing}`, `runnable_stages[]`, `mount{root, ok, error}`, `last_run`, `issues[{code, message}]`, `ready` |
 | `mcp serve [--stdio \| --http HOST:PORT --token-file F]` | not JSON: speaks MCP on stdio / HTTP |

@@ -13,6 +13,7 @@ export const ENUM_KEYS = [
   "person_identifiable",
   "review_state",
   "consent",
+  "used_in_project",
 ] as const;
 export type EnumKey = (typeof ENUM_KEYS)[number];
 

@@ -13,6 +13,7 @@ import type {
 } from "../contracts";
 import type { User } from "../types";
 import { buildDetail, type PathRoots } from "./data";
+import { usageFor } from "./insightHandlers";
 import { syncFor } from "./safetyHandlers";
 import {
   buildGoldenFields,
@@ -93,6 +94,7 @@ export function detailFor(asset: AssetSummary, deps: AiDeps): AssetDetail {
   const detail = withAi(buildDetail(asset, deps.roots()), ai.taxonomy, index);
   Object.assign(detail.ai, ai.privacy.get(asset.id));
   detail.sync = syncFor(asset, deps.assets());
+  detail.usage = usageFor(asset, deps.assets());
   const edits = ai.editedTags.get(asset.id);
   if (edits) {
     detail.ai.tags = detail.ai.tags.filter(

@@ -4,7 +4,7 @@ It is executed as a script (``ResolvePython bridge.py``), reads one JSON request
 prints one JSON response to stdout. Standard library only: it must not import ``rushbase_*``
 because ResolvePython (21.1+) is a separate interpreter. See ADR-0002.
 
-Requests: ``{"op": "probe" | "push" | "selftest", ...}``. Every Resolve call's return value is
+Requests: ``{"op": "probe" | "push" | "usage" | "selftest", ...}``. Every Resolve call's return value is
 checked; failures are collected in ``errors`` and never raised silently.
 """
 
@@ -157,6 +157,53 @@ def push(request: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _walk_clips(folder: Any, seen: set[str]) -> Any:
+    """All clips of ``folder`` and its sub-bins (each clip once)."""
+    yield from folder.GetClipList() or []
+    for sub in folder.GetSubFolderList() or []:
+        name = sub.GetName()
+        if name not in seen:  # guards against cycles in odd media pools
+            seen.add(name)
+            yield from _walk_clips(sub, seen)
+
+
+def _rushbase_id(item: Any) -> str | None:
+    """Asset id of a clip imported by Rushbase: third-party metadata, else the Comments mark."""
+    third = (
+        item.GetThirdPartyMetadata(THIRD_PARTY_KEY)
+        if hasattr(item, "GetThirdPartyMetadata")
+        else ""
+    )
+    if third:
+        return str(third)
+    comments = item.GetMetadata("Comments")
+    if isinstance(comments, str) and comments.startswith("rushbase:"):
+        return comments.removeprefix("rushbase:").strip() or None
+    return None
+
+
+def usage(_request: dict[str, Any]) -> dict[str, Any]:
+    """Read-only: Rushbase clips of the open project with their timeline ``Usage`` count."""
+    resolve = _connect()
+    project = resolve.GetProjectManager().GetCurrentProject()
+    if not project:
+        raise BridgeError("no project is open in Resolve")
+    counts: dict[str, int] = {}
+    for item in _walk_clips(project.GetMediaPool().GetRootFolder(), set()):
+        asset_id = _rushbase_id(item)
+        if asset_id is None:
+            continue
+        try:
+            uses = int(str(item.GetClipProperty("Usage") or "0").strip() or 0)
+        except ValueError:
+            uses = 0
+        counts[asset_id] = max(counts.get(asset_id, 0), uses)
+    return {
+        "project": project.GetName(),
+        "items": [{"asset_id": a, "uses": n} for a, n in sorted(counts.items())],
+    }
+
+
 def selftest(request: dict[str, Any]) -> dict[str, Any]:
     """Create or reuse the throwaway project, push the given clip and read everything back."""
     resolve = _connect()
@@ -198,7 +245,7 @@ def selftest(request: dict[str, Any]) -> dict[str, Any]:
     return {"push": result, "checks": checks, "ok": all(checks.values()) and not result["errors"]}
 
 
-OPERATIONS = {"probe": probe, "push": push, "selftest": selftest}
+OPERATIONS = {"probe": probe, "push": push, "usage": usage, "selftest": selftest}
 
 
 def main() -> int:

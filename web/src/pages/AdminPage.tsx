@@ -51,7 +51,9 @@ import { copyText, enrollCommand } from "../lib/platform";
 import type { AdminTab } from "../routes/search";
 import { SearchAdmin } from "./admin/SearchAdmin";
 import { McpAdmin } from "./admin/McpAdmin";
+import { AuditAdmin } from "./admin/AuditAdmin";
 import { MigrationAdmin } from "./admin/MigrationAdmin";
+import { TokensAdmin } from "./admin/TokensAdmin";
 import { TrashAdmin } from "./admin/TrashAdmin";
 
 const ROLES: Role[] = ["admin", "editor", "viewer"];
@@ -655,6 +657,8 @@ export function AdminPage() {
           <TabsTrigger value="mcp">{t("admin.tabs.mcp")}</TabsTrigger>
           <TabsTrigger value="trash">{t("admin.tabs.trash")}</TabsTrigger>
           <TabsTrigger value="migration">{t("admin.tabs.migration")}</TabsTrigger>
+          <TabsTrigger value="tokens">{t("admin.tabs.tokens")}</TabsTrigger>
+          <TabsTrigger value="audit">{t("admin.tabs.audit")}</TabsTrigger>
         </TabsList>
         <TabsContent value="users">
           <UsersPanel />
@@ -682,6 +686,12 @@ export function AdminPage() {
         </TabsContent>
         <TabsContent value="migration">
           <MigrationAdmin />
+        </TabsContent>
+        <TabsContent value="tokens">
+          <TokensAdmin />
+        </TabsContent>
+        <TabsContent value="audit">
+          <AuditAdmin />
         </TabsContent>
       </Tabs>
     </div>

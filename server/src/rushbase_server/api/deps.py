@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rushbase_server.models import ApiToken, Session, User, Worker
@@ -81,6 +81,7 @@ async def current_principal(request: Request, runtime: RuntimeDep, db: DbDep) ->
                     ApiToken.token_hash == hash_token(bearer),
                     ApiToken.kind == "personal",
                     ApiToken.revoked_at.is_(None),
+                    or_(ApiToken.expires_at.is_(None), ApiToken.expires_at > now),
                 )
             )
         ).scalar_one_or_none()
