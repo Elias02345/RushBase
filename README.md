@@ -108,7 +108,7 @@ Download from [GitHub Releases](https://github.com/Elias02345/RushBase/releases)
 | --- | --- | --- |
 | Windows | `.msi` or `-setup.exe` | SmartScreen: *More info, Run anyway* |
 | macOS (Apple Silicon) | `.dmg` | right-click the app, *Open* (or `xattr -dr com.apple.quarantine /Applications/Rushbase.app`) |
-| Arch / CachyOS / Manjaro | `sudo pacman -U rushbase-bin-<version>-1-x86_64.pkg.tar.zst` | appears in the application launcher |
+| Arch / CachyOS / Manjaro | download, then `sudo pacman -U ./rushbase-bin-<version>-1-x86_64.pkg.tar.zst` (a URL would require a package signature) | appears in the application launcher |
 | Debian / Ubuntu, Fedora | `.deb` / `.rpm` | appears in the application launcher |
 | Any Linux | `.AppImage` | `chmod +x`, run; use AppImageLauncher or Gear Lever for a menu entry |
 | Headless worker (no GUI) | `rushbase-<version>-<os>-<arch>` | `rushbase enroll`, `rushbase process` |

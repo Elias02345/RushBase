@@ -94,7 +94,7 @@ IMG_WORKER="ghcr.io/${OWNER_LC}/rushbase-worker"
 | Windows | ${WINDOWS_CELL} |
 | macOS (Apple Silicon) | [\`${DMG}\`](https://github.com/${REPO}/releases/download/${TAG}/${DMG}) |
 | Linux | ${LINUX_CELL} |
-| Arch Linux / CachyOS / Manjaro | \`sudo pacman -U https://github.com/${REPO}/releases/download/${TAG}/${ARCH_PKG}\` (adds Rushbase to the KDE/GNOME menu) |
+| Arch Linux / CachyOS / Manjaro | \`curl -LO https://github.com/${REPO}/releases/download/${TAG}/${ARCH_PKG} && sudo pacman -U ./${ARCH_PKG}\` (adds Rushbase to the KDE/GNOME menu; install the downloaded file — \`pacman -U <url>\` would ask for a package signature, which unsigned builds do not have yet) |
 | Headless worker (no GUI) | \`${CLI_LINUX}\`, \`${CLI_MAC}\`, \`${CLI_WIN}\`: run \`rushbase enroll\` and \`rushbase process\` |
 
 Verify downloads with \`SHA256SUMS\` (\`sha256sum -c SHA256SUMS --ignore-missing\`).

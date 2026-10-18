@@ -39,7 +39,7 @@ Pre-release versions are written PEP 440 style in Python files (`0.9.0rc1`).
 
 Verify after the run: the release page lists installers for each OS, the three CLI binaries, the
 `.pkg.tar.zst`, `SHA256SUMS`; `docker pull ghcr.io/elias02345/rushbase-server:<version>` works;
-`sudo pacman -U <url>` installs and Rushbase appears in the KDE launcher.
+Downloading the package and running `sudo pacman -U ./<file>` installs it and Rushbase appears in the KDE launcher. (`pacman -U <url>` fetches a `.sig` as well; until packages are GPG-signed, install from the downloaded file.)
 
 A failed run leaves a draft release: fix the cause and re-run the workflow (assets are uploaded with
 overwrite) or delete the draft; never move a published tag.

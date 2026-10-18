@@ -16,7 +16,7 @@ JSON lines of `rushbase process --json`. There are no GUI-only features.
 
 | OS | Package | Notes |
 | --- | --- | --- |
-| Linux | `Rushbase_<version>_amd64.AppImage`, `.deb`, `.rpm`, Arch `rushbase-bin-<version>-1-x86_64.pkg.tar.zst` (`sudo pacman -U <url>`; PKGBUILD in `deploy/aur/`) | needs `webkit2gtk-4.1`, `gtk3`, `libsoup3`; `libayatana-appindicator` for the tray (the app works without it) |
+| Linux | `Rushbase_<version>_amd64.AppImage`, `.deb`, `.rpm`, Arch `rushbase-bin-<version>-1-x86_64.pkg.tar.zst` (download it, then `sudo pacman -U ./<file>` — `pacman -U <url>` asks for a signature the unsigned builds lack; PKGBUILD in `deploy/aur/`) | needs `webkit2gtk-4.1`, `gtk3`, `libsoup3`; `libayatana-appindicator` for the tray (the app works without it) |
 | Windows | `.msi` or `-setup.exe` (NSIS, per user) | the app is unsigned until the signing secrets exist (SmartScreen warning) |
 | macOS | `.dmg` for Apple Silicon (Intel Macs: not supported, see ADR-0004) | unsigned until the Apple secrets exist (right click, Open) |
 
