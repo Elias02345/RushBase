@@ -25,7 +25,7 @@ ARG CUDA_BASE=nvidia/cuda:12.8.1-runtime-ubuntu24.04
 ARG VULKAN_BASE=ubuntu:24.04
 ARG ROCM_BASE=ubuntu:24.04
 
-FROM python:3.12-slim-bookworm AS build
+FROM python:3.15-slim-bookworm AS build
 COPY --from=ghcr.io/astral-sh/uv:0.12 /uv /usr/local/bin/uv
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_INSTALL_DIR=/opt/python UV_PYTHON_PREFERENCE=only-managed
